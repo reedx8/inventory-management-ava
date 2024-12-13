@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from '/public/logo.jpeg';
 import {Home, Store, CookingPot, NotepadText, Settings2 } from "lucide-react";
 import {
     Sidebar,
@@ -60,8 +61,8 @@ import {
         </SidebarContent>
         <SidebarFooter>
             <Avatar>
-                <AvatarImage src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=200&q=80" />
-                <AvatarFallback>UI</AvatarFallback>
+                <AvatarImage src={Logo.src} alt="avatar"/>
+                <AvatarFallback>AVA</AvatarFallback>
             </Avatar>
         </SidebarFooter>
       </Sidebar>
