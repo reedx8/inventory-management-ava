@@ -1,7 +1,9 @@
 export default function Bakery() {
     return (
-        <div className='p-4 m-4 border-2 border-red-500'>
-            <p>Bakery</p>
+        <div className='ml-2 mt-6'>
+            <div>
+                <h1 className='text-3xl'>Bakery</h1>
+            </div>
         </div>
     );
 }

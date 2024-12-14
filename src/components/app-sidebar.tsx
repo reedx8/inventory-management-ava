@@ -20,8 +20,8 @@ import {
         icon: Home,
     },
     {
-        title: "Stores",
-        url: "/stores",
+        title: "Store",
+        url: "/store",
         icon: Store,
     },
     {

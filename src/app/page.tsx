@@ -143,7 +143,7 @@ export default function Home() {
   return (
     <div className="ml-2 mt-6">
       <div>
-        <p className="text-3xl">Home <span className="text-sm p-6">{todaysDate()}</span></p>
+        <h1 className="text-3xl">Home <span className="text-sm p-6">{todaysDate()}</span></h1>
       </div>
       <div className="flex gap-4 mt-3 items-stretch h-auto max-h-[100px]">
         <div className="flex-1 h-full">

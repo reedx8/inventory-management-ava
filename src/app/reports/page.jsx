@@ -1,7 +1,9 @@
 export default function Reports() {
     return (
-        <div className='p-4 m-4 border-2 border-red-500'>
-            <p>Reports</p>
+        <div className='ml-2 mt-6'>
+            <div>
+                <h1 className='text-3xl'>Reports</h1>
+            </div>
         </div>
     );
 }
