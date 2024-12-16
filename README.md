@@ -1,5 +1,5 @@
 # Ava Roasteria
-Ava Roasteria's DB and internal ordering application. A React/Next.js/Drizzle/Supabase project.
+Ava Roasteria's DB and internal ordering application. A React / Next.js / TypeScript / Drizzle / Supabase project.
 
 ## Getting Started
 1. Clone repo
