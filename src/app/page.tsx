@@ -73,7 +73,7 @@ const invSchedule = [
 
 function CarouselComponent(){
   const plugin = useRef(
-    Autoplay({ delay: 7000, stopOnInteraction: true })
+    Autoplay({ delay: 5000, stopOnInteraction: true })
   )
 
   return (

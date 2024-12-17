@@ -1,6 +1,11 @@
-import Link from "next/link";
+"use client";
+import Link from 'next/link';
 import Logo from '/public/logo.jpeg';
-import {Home, Store, CookingPot, NotepadText, Settings2 } from "lucide-react";
+import Image from 'next/image';
+import menuLogo from '/public/menuLogo.png';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Home, Store, CookingPot, NotepadText, Settings2 } from 'lucide-react';
 import {
     Sidebar,
     SidebarContent,
@@ -9,63 +14,68 @@ import {
     SidebarHeader,
     SidebarMenuButton,
     SidebarMenuItem,
-  } from "@/components/ui/sidebar"
-  import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from '@/components/ui/sidebar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-  
-  const items = [
+const items = [
     {
-        title: "Home",
-        url: "/",
+        title: 'Home',
+        url: '/',
         icon: Home,
     },
     {
-        title: "Store",
-        url: "/store",
+        title: 'Store',
+        url: '/store',
         icon: Store,
     },
     {
-        title: "Bakery",
-        url: "/bakery",
+        title: 'Bakery',
+        url: '/bakery',
         icon: CookingPot,
     },
     {
-        title: "Reports",
-        url: "/reports",
+        title: 'Reports',
+        url: '/reports',
         icon: NotepadText,
     },
     {
-        title: "Manage",
-        url: "/manage",
+        title: 'Manage',
+        url: '/manage',
         icon: Settings2,
     },
-  ]
-  export function AppSidebar() {
+];
+export function AppSidebar() {
+  const [currentPage, setCurrentPage] = useState('/');
+  const pathname = usePathname();
+  useEffect(() => {
+    setCurrentPage(pathname);
+  }, [pathname])
+
     return (
-      <Sidebar>
-        <SidebarHeader />
-        <SidebarContent>
-          <SidebarGroup >
-            {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                        <Link href={item.url}>
-                            <item.icon/>
-                            <span>{item.title}</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            ))}
-          </SidebarGroup>
-          <SidebarGroup />
-        </SidebarContent>
-        <SidebarFooter>
-            <Avatar>
-                <AvatarImage src={Logo.src} alt="avatar"/>
-                <AvatarFallback>AVA</AvatarFallback>
-            </Avatar>
-        </SidebarFooter>
-      </Sidebar>
-    )
-  }
-  
+        <Sidebar>
+            <SidebarHeader>
+                <Image src={menuLogo} alt='menu logo' />
+            </SidebarHeader>
+            <SidebarContent>
+                <SidebarGroup>
+                    {items.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton asChild isActive={currentPage === item.url}>
+                                <Link href={item.url}>
+                                    <item.icon />
+                                    <span>{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarGroup>
+            </SidebarContent>
+            <SidebarFooter>
+                <Avatar>
+                    <AvatarImage src={Logo.src} alt='avatar' />
+                    <AvatarFallback>AVA</AvatarFallback>
+                </Avatar>
+            </SidebarFooter>
+        </Sidebar>
+    );
+}
