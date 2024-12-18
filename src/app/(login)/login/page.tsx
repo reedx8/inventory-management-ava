@@ -15,6 +15,9 @@ import { Button } from '@/components/ui/button';
 import menuLogo from '/public/menuLogo.png';
 // import loginbg from '/public/loginbg.jpg';
 import Image from 'next/image';
+import {createClient} from '@/app/utils/supabase/client';
+import { redirect } from 'next/navigation';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -36,6 +39,20 @@ export default function LoginPage() {
         formData.append('password', values.password);
         await login(formData);
     }
+    
+    // redirect if already logged in
+    async function checkIfLoggedIn() {
+        const supabase = await createClient();
+        const { data, error } = await supabase.auth.getUser();
+
+        if (!error) {
+            redirect('/');
+        }
+    }
+
+    useEffect(() => {
+        checkIfLoggedIn();
+    }, []);
 
     return (
       <div className="fixed h-screen w-screen overflow-hidden top-0 left-0 -z-10">
