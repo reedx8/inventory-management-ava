@@ -14,7 +14,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Ava Roasteria",
+  title: "AVA Roasteria",
   description: "Ava Roasteria application for managing stores and bakeries",
 };
 

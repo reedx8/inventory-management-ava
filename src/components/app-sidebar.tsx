@@ -1,21 +1,25 @@
 "use client";
 import Link from 'next/link';
-import Logo from '/public/logo.jpeg';
+// import Logo from '/public/logo.jpeg';
 import Image from 'next/image';
 import menuLogo from '/public/menuLogo.png';
-import { usePathname } from 'next/navigation';
+import { redirect, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Home, Store, CookingPot, NotepadText, Settings2 } from 'lucide-react';
+import { Home, Store, CookingPot, NotepadText, Settings2, LogOut, ChevronUp, CircleUserRound, CircleUser, UserRound, User } from 'lucide-react';
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
     SidebarGroup,
     SidebarHeader,
+    SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// import { supabase } from '@/app/utils/supabase/client';
+import { createClient } from '@/app/utils/supabase/client';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 const items = [
     {
@@ -51,6 +55,17 @@ export function AppSidebar() {
     setCurrentPage(pathname);
   }, [pathname])
 
+  async function signOut() {
+    const supabase = await createClient();
+
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error logging out:', error);
+    } else {
+        redirect('/login');
+    }
+  }
+
     return (
         <Sidebar>
             <SidebarHeader>
@@ -71,10 +86,28 @@ export function AppSidebar() {
                 </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
-                <Avatar>
-                    <AvatarImage src={Logo.src} alt='avatar' />
-                    <AvatarFallback>AVA</AvatarFallback>
-                </Avatar>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <SidebarMenuButton>
+                                    <User/>
+                                    <span>Account</span>
+                                    <ChevronUp className="ml-auto"/>
+                                </SidebarMenuButton>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                side="top"
+                                className="w-[--radix-popper-anchor-width]"
+                            >
+                                <DropdownMenuItem onClick={() => signOut()}>
+                                    <LogOut />
+                                    <span>Sign Out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </SidebarMenuItem>
+                </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
     );

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/popover"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // import { Separator } from "@/components/ui/separator"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { ChevronRight, CalendarDays } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay"
 import { useRef } from "react";
@@ -141,7 +141,7 @@ export default function Home() {
   }
 
   return (
-    <div className="ml-2 mt-6">
+    <div className="mt-6">
       <div>
         <h1 className="text-3xl">Home <span className="text-sm p-6">{todaysDate()}</span></h1>
       </div>
