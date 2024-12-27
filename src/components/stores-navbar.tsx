@@ -1,13 +1,9 @@
 "use client" // for shadcn navigation menu
 import {
   NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  NavigationMenuViewport,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
@@ -40,6 +36,8 @@ export default function StoreNavsBar(){
         setCurrentPage(pathname);
     }, [pathname]);
 
+    console.log(currentPage);
+
     return (
         <NavigationMenu className="mt-2">
             <NavigationMenuList>
@@ -47,7 +45,7 @@ export default function StoreNavsBar(){
                     <NavigationMenuItem key={item.title}>
                         <Link href={item.url} legacyBehavior passHref>
                             {/* <NavigationMenuLink className={`${navigationMenuTriggerStyle()} font-extrabold`}>{item.title}</NavigationMenuLink> */}
-                            <NavigationMenuLink className={currentPage === item.url ? `${navigationMenuTriggerStyle()} bg-gray-100` : navigationMenuTriggerStyle()}>{item.title}</NavigationMenuLink>
+                            <NavigationMenuLink className={currentPage === item.url ? `${navigationMenuTriggerStyle()} bg-gray-200` : navigationMenuTriggerStyle()}>{item.title}</NavigationMenuLink>
                         </Link>
                     </NavigationMenuItem>
                 ))}

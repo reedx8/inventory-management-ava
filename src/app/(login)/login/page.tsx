@@ -55,7 +55,7 @@ export default function LoginPage() {
     }, []);
 
     return (
-      <div className="fixed h-screen w-screen overflow-hidden top-0 left-0 -z-10">
+      <div className="fixed h-screen w-screen overflow-hidden top-0 left-0 -z-10 bg-brown">
         {/* <Image src={loginbg} alt="login background" className="w-full h-full object-cover layout-fill -z-10"/> */}
         <div className="flex flex-col items-center justify-center h-screen z-100">
           <Image src={menuLogo} alt="login logo" height={130}/>
@@ -74,13 +74,15 @@ export default function LoginPage() {
                         control={form.control}
                         name='email'
                         render={({ field }) => (
-                            <FormItem>
+                            <FormItem className='text-sm'>
                                 <FormLabel htmlFor={field.name}>
                                     Email
                                 </FormLabel>
                                 <FormControl>
                                     <Input
+                                        className="focus:border-none"
                                         placeholder='Enter your email'
+                                        type='email'
                                         {...field}
                                     />
                                 </FormControl>
@@ -91,20 +93,22 @@ export default function LoginPage() {
                         control={form.control}
                         name='password'
                         render={({ field }) => (
-                            <FormItem>
+                            <FormItem className='text-sm'>
                                 <FormLabel htmlFor={field.name}>
                                     Password
                                 </FormLabel>
                                 <FormControl>
                                     <Input
+                                        className="focus:border-none"
                                         placeholder='Enter your password'
+                                        type='password'
                                         {...field}
                                     />
                                 </FormControl>
                             </FormItem>
                         )}
                     />
-                    <Button type='submit'>Log in</Button>
+                    <Button type='submit' className='bg-darkbrown'>Log in</Button>
                 </form>
             </Form>
         </div>

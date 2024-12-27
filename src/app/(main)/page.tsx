@@ -145,7 +145,7 @@ export default function Home() {
       <div>
         <h1 className="text-3xl">Home <span className="text-sm p-6">{todaysDate()}</span></h1>
       </div>
-      <div className="flex gap-4 mt-3 items-stretch h-auto max-h-[100px]">
+      <div className="flex gap-4 mt-3 items-stretch h-auto max-h-[100px] text-sm">
         <div className="flex-1 h-full">
         <Card className="h-full">
           <CardHeader>
@@ -158,16 +158,16 @@ export default function Home() {
           <CardFooter>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline">
+                <Button variant="myTheme">
                   <CalendarDays className="h-4 w-4"/>
                   Schedule
                   <ChevronRight className="ml-2 h-4 w-4"/>
                 </Button>
               </PopoverTrigger>
               <PopoverContent>
-                <Tabs>
-                  <TabsList className="">
-                    <TabsTrigger value='orders'>Store Orders</TabsTrigger>
+                <Tabs className="text-sm">
+                  <TabsList>
+                    <TabsTrigger value='orders'>Orders</TabsTrigger>
                     <TabsTrigger value='inventory'>Inventory</TabsTrigger>
                   </TabsList>
                   <TabsContent value='orders' className="flex flex-col gap-1">

@@ -61,6 +61,7 @@ const items = [
     },
 ];
 export function AppSidebar() {
+    const [userName, setUserName] = useState('');
     const [currentPage, setCurrentPage] = useState('/');
     const pathname = usePathname();
     useEffect(() => {
@@ -78,6 +79,27 @@ export function AppSidebar() {
         }
     }
 
+    async function getUserName() {
+        const supabase = createClient();
+        const { data, error } = await supabase.auth.getUser();
+        if (error) {
+            console.error('Error getting user:', error);
+        } else {
+            const name = data.user?.email ?? '';
+            if (name.includes('@')) {
+                setUserName(name.split('@')[0]);
+            } else if (name === '') {
+                setUserName("Account");
+            } else {
+                setUserName(name);
+            }
+        }
+    }
+    
+    useEffect(() => {
+        getUserName();
+    }, []);
+
     return (
         <Sidebar>
             <SidebarHeader>
@@ -92,6 +114,8 @@ export function AppSidebar() {
                             <SidebarMenuButton
                                 asChild
                                 isActive={currentPage === item.url}
+                                variant="myTheme"
+                                // className={`hover:bg-brown ${currentPage === item.url ? 'text-brown' : ''}`}
                             >
                                 <Link href={item.url}>
                                     <item.icon />
@@ -107,9 +131,9 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton>
+                                <SidebarMenuButton variant="myTheme">
                                     <User />
-                                    <span>Account</span>
+                                    <span>{userName}</span>
                                     <ChevronUp className='ml-auto' />
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
