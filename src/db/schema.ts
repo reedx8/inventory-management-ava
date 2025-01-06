@@ -12,6 +12,7 @@ import {
     primaryKey,
     check,
     pgEnum,
+    uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { create } from 'domain';
@@ -28,14 +29,18 @@ const statusEnum = pgEnum('status', [
 ]);
 export const status = statusEnum;
 
-/*
 // Core items table with shared properties across all stores
 export const itemsTable = pgTable(
     'items',
     {
         id: serial('id').primaryKey(),
-        name: varchar('name', { length: 100 }).notNull(),
-        barcode: varchar('barcode', { length: 100 }).unique(),
+        name: varchar('name', { length: 100 }).notNull().unique(),
+        barcode: varchar('barcode', { length: 200 }).unique(),
+        vendor_id: integer('vendor_id')
+            .notNull()
+            .references(() => vendorsTable.id),
+        unit: varchar('unit', { length: 30 }),
+        unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }),
         raw_cost: decimal('raw_cost', { precision: 10, scale: 2 })
             .notNull()
             .default(sql`0.00`),
@@ -55,7 +60,16 @@ export const itemsTable = pgTable(
             ),
         },
         {
-            posRawCostCheck: check('positive_raw_cost', sql`${table.raw_cost} >= 0`),
+            posRawCostCheck: check(
+                'positive_raw_cost',
+                sql`${table.raw_cost} >= 0`
+            ),
+        },
+        {
+            positiveUnitQtyCheck: check(
+                'positive_unit_qty',
+                sql`${table.unit_qty} >= 0`
+            ),
         },
     ]
 );
@@ -71,18 +85,16 @@ export const storeItemsTable = pgTable(
         store_id: integer('store_id')
             .notNull()
             .references(() => storesTable.id),
-        vendor_id: integer('vendor_id')
-            .notNull()
-            .references(() => vendorsTable.id),
-        unit: varchar('unit', { length: 30 }),
-        unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }),
         active: boolean('active').notNull().default(true),
         location_categ: varchar('location', { length: 30 }).notNull(),
         created_at: timestamp('created_at').notNull().defaultNow(),
     },
     (table) => [
         {
-            storeItemUnique: uniqueIndex("store_items_unique_idx").on(table.store_id, table.item_id),
+            storeItemUnique: uniqueIndex('store_items_unique_idx').on(
+                table.store_id,
+                table.item_id
+            ),
         },
         {
             locationCheck: check(
@@ -90,23 +102,16 @@ export const storeItemsTable = pgTable(
                 sql`${table.location_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
             ),
         },
-        {
-            positiveUnitQtyCheck: check(
-                'positive_unit_qty',
-                sql`${table.unit_qty} >= 0`
-            ),
-        },
     ]
 );
 
-*/
-
+/*
 // Menu of items for every store at Ava Roasteria. Core table.
 export const itemsTable = pgTable(
     'items',
     {
         id: serial('id').primaryKey(),
-        name: varchar('name', { length: 100 }).notNull(),
+        name: varchar('name', { length: 100 }).notNull().unique(),
         barcode: varchar('barcode', { length: 100 }).unique(),
         store_id: integer('store_id')
             .notNull()
@@ -159,6 +164,7 @@ export const itemsTable = pgTable(
         },
     ]
 );
+*/
 
 // Record of inventory counts from every store
 export const inventoryTable = pgTable(
@@ -167,7 +173,7 @@ export const inventoryTable = pgTable(
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
-            .references(() => itemsTable.id),
+            .references(() => storeItemsTable.id),
         // store_id: integer('store_id').notNull(),
         count: decimal('count', { precision: 10, scale: 2 })
             .notNull()
@@ -249,7 +255,7 @@ export const ordersTable = pgTable(
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
-            .references(() => itemsTable.id),
+            .references(() => storeItemsTable.id),
         qty_submitted: decimal('qty_submitted', { precision: 10, scale: 2 }), // quantity submitted/requested from store managers
         qty_ordered: decimal('qty_ordered', {
             precision: 10,
@@ -279,12 +285,6 @@ export const ordersTable = pgTable(
         created_at: timestamp('created_at').notNull().defaultNow(), // date order originally created
     },
     (table) => [
-        {
-            statusCheck: check(
-                'status_check',
-                sql`${table.status} IN ('DUE', 'SUBMITTED', 'ORDERED', 'FULFILLED', 'CANCELLED')`
-            ),
-        },
         {
             posQtySubmittedCheck: check(
                 'positive_qty_submitted',
@@ -357,7 +357,7 @@ export const parsTable = pgTable(
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
-            .references(() => itemsTable.id),
+            .references(() => storeItemsTable.id, { onDelete: 'cascade' }),
         value: decimal('value', { precision: 10, scale: 2 }).notNull(),
         day_of_week: integer('day_of_week').notNull(), // (0-6, where 0 is Sunday)
         changed_at: timestamp('changed_at').notNull().defaultNow(),
@@ -387,7 +387,7 @@ export const schedulesTable = pgTable('schedules', {
 export const order_item_schedulesTable = pgTable(
     'order_item_schedules',
     {
-        item_id: integer('item_id').references(() => itemsTable.id),
+        item_id: integer('item_id').references(() => storeItemsTable.id),
         schedule_id: integer('schedule_id').references(() => schedulesTable.id),
     },
     (table) => {
@@ -404,7 +404,7 @@ export const order_item_schedulesTable = pgTable(
 export const inv_item_schedulesTable = pgTable(
     'inv_item_schedules',
     {
-        item_id: integer('item_id').references(() => itemsTable.id),
+        item_id: integer('item_id').references(() => storeItemsTable.id),
         schedule_id: integer('schedule_id').references(() => schedulesTable.id),
     },
     (table) => {
@@ -420,6 +420,9 @@ export const inv_item_schedulesTable = pgTable(
 export type InsertItem = typeof itemsTable.$inferInsert;
 export type SelectItem = typeof itemsTable.$inferSelect;
 // export type UpdateItem = typeof itemsTable.$inferUpdate;
+export type InsertStoreItem = typeof storeItemsTable.$inferInsert;
+export type SelectStoreItem = typeof storeItemsTable.$inferSelect;
+// export type UpdateStoreItem = typeof storeItemsTable.$inferUpdate;
 export type InsertInventory = typeof inventoryTable.$inferInsert;
 export type SelectInventory = typeof inventoryTable.$inferSelect;
 // export type UpdateInventory = typeof inventoryTable.$inferUpdate;
