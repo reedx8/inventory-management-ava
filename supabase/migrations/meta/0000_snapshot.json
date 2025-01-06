@@ -1,5 +1,5 @@
 {
-  "id": "1199d189-1516-4367-b403-fa1fd5af144d",
+  "id": "7937a04d-6b08-4294-af73-f7f79ae2c713",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -60,6 +60,58 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.inv_item_schedules": {
+      "name": "inv_item_schedules",
+      "schema": "",
+      "columns": {
+        "item_id": {
+          "name": "item_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "schedule_id": {
+          "name": "schedule_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "inv_item_schedules_item_id_items_id_fk": {
+          "name": "inv_item_schedules_item_id_items_id_fk",
+          "tableFrom": "inv_item_schedules",
+          "tableTo": "items",
+          "columnsFrom": [
+            "item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inv_item_schedules_schedule_id_schedules_id_fk": {
+          "name": "inv_item_schedules_schedule_id_schedules_id_fk",
+          "tableFrom": "inv_item_schedules",
+          "tableTo": "schedules",
+          "columnsFrom": [
+            "schedule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.inventory": {
       "name": "inventory",
       "schema": "",
@@ -76,14 +128,22 @@
           "primaryKey": false,
           "notNull": true
         },
-        "qty": {
-          "name": "qty",
+        "count": {
+          "name": "count",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "0.00"
         },
         "date_of_count": {
           "name": "date_of_count",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
@@ -93,42 +153,54 @@
           "name": "closed_count",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "0.00"
         },
         "sealed_count": {
           "name": "sealed_count",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "0.00"
         },
         "open_items_weight": {
           "name": "open_items_weight",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "0.00"
         },
         "expired_count": {
           "name": "expired_count",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "0.00"
         },
         "reused_count": {
           "name": "reused_count",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": false,
+          "default": "0.00"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "inventory_item_id_items_id_fk": {
+          "name": "inventory_item_id_items_id_fk",
+          "tableFrom": "inventory",
+          "tableTo": "items",
+          "columnsFrom": [
+            "item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -145,17 +217,17 @@
           "primaryKey": true,
           "notNull": true
         },
-        "barcode": {
-          "name": "barcode",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": false
-        },
         "name": {
           "name": "name",
           "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true
+        },
+        "barcode": {
+          "name": "barcode",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
         },
         "store_id": {
           "name": "store_id",
@@ -163,24 +235,30 @@
           "primaryKey": false,
           "notNull": true
         },
-        "cost": {
-          "name": "cost",
-          "type": "numeric(10, 2)",
+        "vendor_id": {
+          "name": "vendor_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "raw_cost": {
+          "name": "raw_cost",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "0.00"
         },
         "unit": {
           "name": "unit",
           "type": "varchar(30)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "unit_qty": {
           "name": "unit_qty",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'1.00'"
+          "notNull": false
         },
         "active": {
           "name": "active",
@@ -189,23 +267,30 @@
           "notNull": true,
           "default": true
         },
-        "order_days": {
-          "name": "order_days",
-          "type": "text[9]",
+        "acc_category": {
+          "name": "acc_category",
+          "type": "varchar(10)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'NONE'"
         },
-        "own_brand": {
-          "name": "own_brand",
-          "type": "boolean",
+        "main_categ": {
+          "name": "main_categ",
+          "type": "varchar(30)",
           "primaryKey": false,
           "notNull": true
         },
-        "category": {
-          "name": "category",
-          "type": "varchar(100)",
+        "sub_categ": {
+          "name": "sub_categ",
+          "type": "varchar(30)",
           "primaryKey": false,
           "notNull": false
+        },
+        "location_categ": {
+          "name": "location_categ",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": true
         },
         "description": {
           "name": "description",
@@ -222,7 +307,34 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "items_store_id_stores_id_fk": {
+          "name": "items_store_id_stores_id_fk",
+          "tableFrom": "items",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "items_vendor_id_vendors_id_fk": {
+          "name": "items_vendor_id_vendors_id_fk",
+          "tableFrom": "items",
+          "tableTo": "vendors",
+          "columnsFrom": [
+            "vendor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "items_barcode_unique": {
@@ -233,6 +345,58 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.order_item_schedules": {
+      "name": "order_item_schedules",
+      "schema": "",
+      "columns": {
+        "item_id": {
+          "name": "item_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "schedule_id": {
+          "name": "schedule_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "order_item_schedules_item_id_items_id_fk": {
+          "name": "order_item_schedules_item_id_items_id_fk",
+          "tableFrom": "order_item_schedules",
+          "tableTo": "items",
+          "columnsFrom": [
+            "item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "order_item_schedules_schedule_id_schedules_id_fk": {
+          "name": "order_item_schedules_schedule_id_schedules_id_fk",
+          "tableFrom": "order_item_schedules",
+          "tableTo": "schedules",
+          "columnsFrom": [
+            "schedule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -253,30 +417,30 @@
           "primaryKey": false,
           "notNull": true
         },
-        "quantity": {
-          "name": "quantity",
+        "qty_submitted": {
+          "name": "qty_submitted",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qty_ordered": {
+          "name": "qty_ordered",
           "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true
         },
-        "delivered": {
-          "name": "delivered",
+        "qty_delivered": {
+          "name": "qty_delivered",
           "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": false
         },
-        "order_date": {
-          "name": "order_date",
-          "type": "timestamp",
+        "is_replacement_order": {
+          "name": "is_replacement_order",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": "now()"
-        },
-        "delivery_date": {
-          "name": "delivery_date",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
+          "default": false
         },
         "vendor_id": {
           "name": "vendor_id",
@@ -290,16 +454,42 @@
           "primaryKey": false,
           "notNull": false
         },
+        "adj_price": {
+          "name": "adj_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "status": {
           "name": "status",
-          "type": "varchar(100)",
+          "type": "status",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'open'"
+          "default": "'DUE'"
+        },
+        "is_par_order": {
+          "name": "is_par_order",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "comments": {
           "name": "comments",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "submitted_date": {
+          "name": "submitted_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_date": {
+          "name": "order_date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
@@ -312,7 +502,34 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "orders_item_id_items_id_fk": {
+          "name": "orders_item_id_items_id_fk",
+          "tableFrom": "orders",
+          "tableTo": "items",
+          "columnsFrom": [
+            "item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "orders_vendor_id_vendors_id_fk": {
+          "name": "orders_vendor_id_vendors_id_fk",
+          "tableFrom": "orders",
+          "tableTo": "vendors",
+          "columnsFrom": [
+            "vendor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -339,13 +556,13 @@
           "name": "value",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "day_of_week": {
           "name": "day_of_week",
-          "type": "varchar(9)",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "changed_at": {
           "name": "changed_at",
@@ -356,9 +573,95 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "pars_item_id_items_id_fk": {
+          "name": "pars_item_id_items_id_fk",
+          "tableFrom": "pars",
+          "tableTo": "items",
+          "columnsFrom": [
+            "item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.schedules": {
+      "name": "schedules",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "exec_time": {
+          "name": "exec_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'00:00:00'"
+        },
+        "days_of_week": {
+          "name": "days_of_week",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_run": {
+          "name": "last_run",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "schedules_name_unique": {
+          "name": "schedules_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -375,7 +678,7 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(100)",
+          "type": "varchar(30)",
           "primaryKey": false,
           "notNull": true
         },
@@ -383,11 +686,12 @@
           "name": "budget",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "0.00"
         },
         "logo": {
           "name": "logo",
-          "type": "varchar(100)",
+          "type": "varchar(200)",
           "primaryKey": false,
           "notNull": false
         }
@@ -395,7 +699,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "stores_name_unique": {
+          "name": "stores_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -424,19 +736,19 @@
         },
         "phone": {
           "name": "phone",
-          "type": "varchar(100)",
+          "type": "varchar(20)",
           "primaryKey": false,
           "notNull": false
         },
         "website": {
           "name": "website",
-          "type": "varchar(100)",
+          "type": "varchar(200)",
           "primaryKey": false,
           "notNull": false
         },
         "logo": {
           "name": "logo",
-          "type": "varchar(100)",
+          "type": "varchar(200)",
           "primaryKey": false,
           "notNull": false
         }
@@ -444,13 +756,33 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "vendors_name_unique": {
+          "name": "vendors_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.status": {
+      "name": "status",
+      "schema": "public",
+      "values": [
+        "DUE",
+        "SUBMITTED",
+        "ORDERED",
+        "DELIVERED",
+        "CANCELLED"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},

@@ -18,13 +18,88 @@ import { create } from 'domain';
 import exp from 'constants';
 // import exp from 'constants';
 
+// For orders.status
 const statusEnum = pgEnum('status', [
     'DUE',
     'SUBMITTED',
     'ORDERED',
-    'FULFILLED',
+    'DELIVERED',
     'CANCELLED',
 ]);
+export const status = statusEnum;
+
+/*
+// Core items table with shared properties across all stores
+export const itemsTable = pgTable(
+    'items',
+    {
+        id: serial('id').primaryKey(),
+        name: varchar('name', { length: 100 }).notNull(),
+        barcode: varchar('barcode', { length: 100 }).unique(),
+        raw_cost: decimal('raw_cost', { precision: 10, scale: 2 })
+            .notNull()
+            .default(sql`0.00`),
+        acc_categ: varchar('acc_category', { length: 10 })
+            .notNull()
+            .default('NONE'),
+        main_categ: varchar('main_categ', { length: 30 }).notNull(),
+        sub_categ: varchar('sub_categ', { length: 30 }),
+        description: text('description'),
+        created_at: timestamp('created_at').notNull().defaultNow(),
+    },
+    (table) => [
+        {
+            accCategoryCheck: check(
+                'acc_category_check',
+                sql`${table.acc_categ} IN ('CCP', 'CTC', 'NONE')`
+            ),
+        },
+        {
+            posRawCostCheck: check('positive_raw_cost', sql`${table.raw_cost} >= 0`),
+        },
+    ]
+);
+
+// Store-specific items table
+export const storeItemsTable = pgTable(
+    'store_items',
+    {
+        id: serial('id').primaryKey(),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id),
+        store_id: integer('store_id')
+            .notNull()
+            .references(() => storesTable.id),
+        vendor_id: integer('vendor_id')
+            .notNull()
+            .references(() => vendorsTable.id),
+        unit: varchar('unit', { length: 30 }),
+        unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }),
+        active: boolean('active').notNull().default(true),
+        location_categ: varchar('location', { length: 30 }).notNull(),
+        created_at: timestamp('created_at').notNull().defaultNow(),
+    },
+    (table) => [
+        {
+            storeItemUnique: uniqueIndex("store_items_unique_idx").on(table.store_id, table.item_id),
+        },
+        {
+            locationCheck: check(
+                'location_check',
+                sql`${table.location_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
+            ),
+        },
+        {
+            positiveUnitQtyCheck: check(
+                'positive_unit_qty',
+                sql`${table.unit_qty} >= 0`
+            ),
+        },
+    ]
+);
+
+*/
 
 // Menu of items for every store at Ava Roasteria. Core table.
 export const itemsTable = pgTable(
@@ -39,17 +114,18 @@ export const itemsTable = pgTable(
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id),
-        cost: decimal('cost', { precision: 10, scale: 2 })
+        raw_cost: decimal('raw_cost', { precision: 10, scale: 2 })
             .notNull()
-            .default(sql`0.00`),
+            .default(sql`0.00`), // raw cost = orders.vendor_price
         unit: varchar('unit', { length: 30 }),
         unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }),
         active: boolean('active').notNull().default(true),
-        acc_category: varchar('acc_category', { length: 30 }).notNull(),
-        food_categories: varchar('food_categories', { length: 30 })
-            .array()
-            .notNull(),
-        location: varchar('location', { length: 30 }).notNull(),
+        acc_categ: varchar('acc_category', { length: 10 })
+            .notNull()
+            .default('NONE'), // accounting category for accountant
+        main_categ: varchar('main_categ', { length: 30 }).notNull(), // main item category
+        sub_categ: varchar('sub_categ', { length: 30 }), // sub item category
+        location_categ: varchar('location_categ', { length: 30 }).notNull(), // categories for store managers
         description: text('description'),
         created_at: timestamp('created_at').notNull().defaultNow(),
         // category: varchar('category', { length: 100 }),
@@ -60,11 +136,20 @@ export const itemsTable = pgTable(
         {
             checkConstraint: check(
                 'location_check',
-                sql`${table.location} IN ('Front', 'Stockroom', 'Fridge', 'General', 'Beans&Tea')`
+                sql`${table.location_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
             ),
         },
         {
-            checkConstraint: check('positive_cost', sql`${table.cost} >= 0`),
+            checkConstraint: check(
+                'acc_category_check',
+                sql`${table.acc_categ} IN ('CCP', 'CTC', 'NONE')`
+            ),
+        },
+        {
+            checkConstraint: check(
+                'positive_raw_cost',
+                sql`${table.raw_cost} >= 0`
+            ),
         },
         {
             checkConstraint: check(
@@ -165,46 +250,69 @@ export const ordersTable = pgTable(
         item_id: integer('item_id')
             .notNull()
             .references(() => itemsTable.id),
-        quantity: decimal('quantity', { precision: 10, scale: 2 })
+        qty_submitted: decimal('qty_submitted', { precision: 10, scale: 2 }), // quantity submitted/requested from store managers
+        qty_ordered: decimal('qty_ordered', {
+            precision: 10,
+            scale: 2,
+        }).notNull(), // quantity ordered from vendor by kojo/jelena, qty ordered based on current cash flow or current vendor supply
+        qty_delivered: decimal('qty_delivered', { precision: 10, scale: 2 }), // quantity actually delivered/received to store? I dont think this will be reliably updated
+        is_replacement_order: boolean('is_replacement_order')
             .notNull()
-            .default(sql`0.00`),
-        delivered: decimal('delivered', { precision: 10, scale: 2 }),
-        order_date: timestamp('order_date').notNull().defaultNow(),
-        delivered_date: timestamp('delivery_date'),
-
+            .default(false), // If partial order when ordering from another vendor when vendor invent. insufficient, this will be true. Only applies to CCP items?
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id),
         vendor_price: decimal('vendor_price', {
             precision: 10,
             scale: 2,
-        }).default(sql`0.00`),
-        status: statusEnum().notNull().default('DUE'),
-        // status: varchar('status', { length: 15 }).notNull().default('DUE'),
-        is_par_order: boolean('is_par_order').notNull().default(false),
+        }), // vendor/order price at time of order, default value = items.raw_cost
+        adj_price: decimal('adj_price', {
+            precision: 10,
+            scale: 2,
+        }), // average price of item across stores, edge case for ccp items
+        status: statusEnum('status').notNull().default('DUE'),
+        is_par_order: boolean('is_par_order').notNull().default(false), // but par values are inaccurate/not used currently
         comments: text('comments'),
-        created_at: timestamp('created_at').notNull().defaultNow(),
+        submitted_date: timestamp('submitted_date'), // date order submitted from store managers
+        order_date: timestamp('order_date'), // date order placed upon kojo/jelena submit
+        // delivered_date: timestamp('delivery_date'), // I dont think this will be reliably updated
+        created_at: timestamp('created_at').notNull().defaultNow(), // date order originally created
     },
     (table) => [
         {
-            checkConstraint: check(
+            statusCheck: check(
                 'status_check',
                 sql`${table.status} IN ('DUE', 'SUBMITTED', 'ORDERED', 'FULFILLED', 'CANCELLED')`
             ),
         },
         {
-            checkConstraint: check('positive_qty', sql`${table.quantity} >= 0`),
-        },
-        {
-            checkConstraint: check(
-                'positive_delivered',
-                sql`${table.delivered} >= 0`
+            posQtySubmittedCheck: check(
+                'positive_qty_submitted',
+                sql`${table.qty_submitted} >= 0`
             ),
         },
         {
-            checkConstraint: check(
+            posQtyDeliveredCheck: check(
+                'positive_qty_delivered',
+                sql`${table.qty_delivered} >= 0`
+            ),
+        },
+        {
+            posQtyOrderedCheck: check(
+                'positive_qty_ordered',
+                sql`${table.qty_ordered} >= 0`
+            ),
+        },
+        {
+            posVendorPriceCheck: check(
                 'positive_vendor_price',
                 sql`${table.vendor_price} >= 0`
+            ),
+        },
+        {
+            posAdjPriceCheck: check(
+                'positive_adj_price',
+                sql`${table.adj_price} >= 0`
             ),
         },
     ]
