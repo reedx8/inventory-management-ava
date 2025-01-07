@@ -60,7 +60,7 @@ export const itemsTable = pgTable(
             ),
         },
         {
-            posRawCostCheck: check(
+            positiveRawCostCheck: check(
                 'positive_raw_cost',
                 sql`${table.raw_cost} >= 0`
             ),
@@ -175,10 +175,8 @@ export const inventoryTable = pgTable(
             .notNull()
             .references(() => storeItemsTable.id),
         // store_id: integer('store_id').notNull(),
-        count: decimal('count', { precision: 10, scale: 2 })
-            .notNull()
-            .default(sql`0.00`),
-        date_of_count: timestamp('date_of_count').notNull().defaultNow(),
+        count: decimal('count', { precision: 10, scale: 2 }),
+        date_of_count: timestamp('date_of_count').notNull(),
         created_at: timestamp('created_at').notNull().defaultNow(),
         closed_count: decimal('closed_count', {
             precision: 10,
@@ -203,34 +201,37 @@ export const inventoryTable = pgTable(
     },
     (table) => [
         {
-            checkConstraint: check('positive_count', sql`${table.count} >= 0`),
+            positiveCountCheck: check(
+                'positive_count',
+                sql`${table.count} >= 0`
+            ),
         },
         {
-            checkConstraint: check(
+            positiveClosedCountCheck: check(
                 'positive_closed_count',
                 sql`${table.closed_count} >= 0`
             ),
         },
         {
-            checkConstraint: check(
+            positiveSealedCountCheck: check(
                 'positive_sealed_count',
                 sql`${table.sealed_count} >= 0`
             ),
         },
         {
-            checkConstraint: check(
+            positiveOpenItemsWeightCheck: check(
                 'open_items_weight_check',
                 sql`${table.open_items_weight} >= 0`
             ),
         },
         {
-            checkConstraint: check(
+            positiveExpiredCountCheck: check(
                 'expired_count_check',
                 sql`${table.expired_count} >= 0`
             ),
         },
         {
-            checkConstraint: check(
+            positiveReusedCountCheck: check(
                 'reused_count_check',
                 sql`${table.reused_count} >= 0`
             ),
