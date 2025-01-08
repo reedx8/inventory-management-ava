@@ -1,6 +1,6 @@
 'use client';
 import StoreNavsBar from '@/components/stores-navbar';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
     Table,
     TableBody,
@@ -14,19 +14,40 @@ import { Button } from '@/components/ui/button';
 import {
     flexRender,
     getCoreRowModel,
+    getFilteredRowModel,
     getPaginationRowModel,
     useReactTable,
 } from '@tanstack/react-table';
-import next from 'next';
+// import next from 'next';
+
+interface Item {
+    id: number;
+    name: string;
+    dueDate: string;
+    size: string;
+    order: number | null;
+    location_categ: string;
+}
+
+const LOCATION_CATEGORIES = [
+    'All',
+    'Pastry',
+    'Front',
+    'General',
+    'Fridge',
+    'Stockroom',
+    'Beans & Tea',
+] as const;
 
 // Sample data
-const initialData = [
+const initialData: Item[] = [
     {
         id: 1,
         name: 'Tomatoes',
         dueDate: '2025-02-01',
         size: '1 lb.',
         order: null,
+        location_categ: 'Fridge',
     },
     {
         id: 2,
@@ -34,6 +55,7 @@ const initialData = [
         dueDate: '2025-02-15',
         size: '1 lb.',
         order: null,
+        location_categ: 'Fridge',
     },
     {
         id: 3,
@@ -41,6 +63,7 @@ const initialData = [
         dueDate: '2025-03-01',
         size: '50 each',
         order: null,
+        location_categ: 'General',
     },
     {
         id: 4,
@@ -48,6 +71,7 @@ const initialData = [
         dueDate: '2025-03-15',
         size: '12/500 CT',
         order: null,
+        location_categ: 'General',
     },
     {
         id: 5,
@@ -55,6 +79,7 @@ const initialData = [
         dueDate: '2025-04-01',
         size: '500/box',
         order: null,
+        location_categ: 'General',
     },
     {
         id: 6,
@@ -62,6 +87,7 @@ const initialData = [
         dueDate: '2025-04-15',
         size: '1 bottle',
         order: null,
+        location_categ: 'Stockroom',
     },
     {
         id: 7,
@@ -69,6 +95,7 @@ const initialData = [
         dueDate: '2025-05-01',
         size: '1 case',
         order: null,
+        location_categ: 'Stockroom',
     },
     {
         id: 8,
@@ -76,6 +103,7 @@ const initialData = [
         dueDate: '2025-05-15',
         size: 'Bag of 3',
         order: null,
+        location_categ: 'Fridge',
     },
     {
         id: 9,
@@ -83,6 +111,7 @@ const initialData = [
         dueDate: '2025-06-01',
         size: '3 lb.',
         order: null,
+        location_categ: 'Fridge',
     },
     {
         id: 10,
@@ -90,6 +119,7 @@ const initialData = [
         dueDate: '2025-06-15',
         size: '1 lb.',
         order: null,
+        location_categ: 'Fridge',
     },
     {
         id: 11,
@@ -97,11 +127,21 @@ const initialData = [
         dueDate: '2025-07-01',
         size: '15 Dozen',
         order: null,
+        location_categ: 'General',
+    },
+    {
+        id: 12,
+        name: 'Decaf Beans',
+        dueDate: '2025-07-01',
+        size: '1 bag',
+        order: null,
+        location_categ: 'Beans & Tea',
     },
 ];
 
 export default function Stores() {
-    const [data, setData] = useState(initialData);
+    const [data, setData] = useState<Item[]>(initialData);
+    const [activeCateg, setActiveCateg] = useState<string>('Pastry');
 
     // Accepts integers only
     const OrderCell = ({ getValue, row, column, table }) => {
@@ -184,7 +224,7 @@ export default function Stores() {
 
     const columns = [
         {
-            accessorKey: 'name',
+            accessorKey: 'name', // accessorKey matches to the property name in initialData[], thereby rendering the appropriate data
             header: 'Name',
         },
         {
@@ -208,11 +248,13 @@ export default function Stores() {
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        // defaultColumn: {
-        //     size: 500,
-        //     minSize: 500,
-        //     maxSize: 700,
-        // },
+        getFilteredRowModel: getFilteredRowModel(),
+        state: {
+            globalFilter: activeCateg === 'All' ? undefined : activeCateg,
+        },
+        globalFilterFn: (row, columnId, filterValue) => {
+            return row.original.location_categ === filterValue;
+        },
         meta: {
             updateData: (rowIndex, columnId, value) => {
                 setData((old) =>
@@ -238,10 +280,24 @@ export default function Stores() {
             <div>
                 <StoreNavsBar />
             </div>
+            <div className='mb-4 flex flex-wrap gap-2'>
+                {LOCATION_CATEGORIES.map((category) => (
+                    <Button
+                        key={category}
+                        variant={
+                            activeCateg === category ? 'myTheme' : 'outline'
+                        }
+                        onClick={() => setActiveCateg(category)}
+                        // className='min-w-[100px]'
+                    >
+                        {category}
+                    </Button>
+                ))}
+            </div>
             <div className='flex flex-col mr-2'>
                 <div className='rounded-lg border'>
                     <Table>
-                        <TableHeader className='bg-gray-100'>
+                        <TableHeader className='bg-gray-200'>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (

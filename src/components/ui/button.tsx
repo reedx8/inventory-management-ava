@@ -18,7 +18,8 @@ const buttonVariants = cva(
           "bg-neutral-100 text-neutral-900 hover:bg-neutral-100/80 dark:bg-neutral-800 dark:text-neutral-50 dark:hover:bg-neutral-800/80",
         ghost: "hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-50",
         link: "text-neutral-900 underline-offset-4 hover:underline dark:text-neutral-50",
-        myTheme: "bg-myDarkbrown text-white hover:bg-myDarkbrown/80 dark:bg-myBrown dark:text-white dark:hover:bg-myBrown/80",
+        myTheme: "bg-myDarkbrown text-neutral-50 hover:bg-myDarkbrown/90 dark:bg-myDarkbrown dark:text-white dark:hover:bg-myDarkbrown/90",
+        myTheme2: "bg-myBrown text-neutral-900 hover:bg-myBrown/90 dark:bg-myBrown dark:text-neutral-900 dark:hover:bg-myBrown/90",
       },
       size: {
         default: "h-10 px-4 py-2",
