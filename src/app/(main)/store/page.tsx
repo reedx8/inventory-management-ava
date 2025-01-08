@@ -137,6 +137,22 @@ const initialData: Item[] = [
         order: null,
         location_categ: 'Beans & Tea',
     },
+    {
+        id: 13,
+        name: 'Strawberry & Cream Cheese Turnover',
+        dueDate: '2025-07-01',
+        size: '?',
+        order: null,
+        location_categ: 'Pastry',
+    },
+    {
+        id: 14,
+        name: 'Sesame Bagel',
+        dueDate: '2025-07-01',
+        size: 'Bag of 4',
+        order: null,
+        location_categ: 'Pastry',
+    }
 ];
 
 export default function Stores() {
@@ -272,6 +288,18 @@ export default function Stores() {
         },
     });
 
+    // object lookup for category messages
+    const categoryMessage: Record<string, JSX.Element | string> = {
+        'All': '',
+        'Pastry': <p>Pastry item orders due everyday</p>,
+        'Front': <p>Front counter items</p>,
+        'General': <p>General items</p>,
+        'Stockroom': <p>Items in stockroom and its shelves</p>,
+        'Fridge': <p>Items in all fridges and freezers</p>,
+        'Beans & Tea': <p>Coffee bean and tea items</p>,
+    };
+
+
     return (
         <div className='ml-2 mt-6'>
             <div>
@@ -293,6 +321,9 @@ export default function Stores() {
                         {category}
                     </Button>
                 ))}
+            </div>
+            <div className='mb-2 text-sm'>
+              {categoryMessage[activeCateg]}
             </div>
             <div className='flex flex-col mr-2'>
                 <div className='rounded-lg border'>
