@@ -55,7 +55,7 @@ export default function LoginPage() {
     }, []);
 
     return (
-      <div className="fixed h-screen w-screen overflow-hidden top-0 left-0 -z-10 bg-brown">
+      <div className="fixed h-screen w-screen overflow-hidden top-0 left-0 -z-10 bg-myBrown">
         {/* <Image src={loginbg} alt="login background" className="w-full h-full object-cover layout-fill -z-10"/> */}
         <div className="flex flex-col items-center justify-center h-screen z-100">
           <Image src={menuLogo} alt="login logo" height={130}/>

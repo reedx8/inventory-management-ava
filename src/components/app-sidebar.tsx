@@ -117,7 +117,7 @@ export function AppSidebar() {
                                 // isActive={currentPage === item.url}
                                 isActive={currentPage.split('/')[1] === item.url.split('/')[1]}
                                 variant="myTheme"
-                                // className={`hover:bg-brown ${currentPage === item.url ? 'text-brown' : ''}`}
+                                // className={`hover:bg-myBrown ${currentPage === item.url ? 'text-brown' : ''}`}
                             >
                                 <Link href={item.url}>
                                     <item.icon />
