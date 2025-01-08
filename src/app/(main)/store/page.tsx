@@ -106,7 +106,9 @@ export default function Stores() {
     // Accepts integers only
     const OrderCell = ({ getValue, row, column, table }) => {
         const initialValue = getValue();
-        const [value, setValue] = useState<string>(initialValue?.toString() ?? '');
+        const [value, setValue] = useState<string>(
+            initialValue?.toString() ?? ''
+        );
         // const inputRef = useRef<HTMLInputElement>(null);
 
         const handleBlur = () => {
@@ -118,7 +120,7 @@ export default function Stores() {
 
         const focusNextInput = (currentRowIndex: number) => {
             const nextRowIndex = currentRowIndex + 1;
-            
+
             // Use setTimeout to ensure DOM is ready
             setTimeout(() => {
                 try {
@@ -126,7 +128,7 @@ export default function Stores() {
                     const nextInput = document.querySelector(
                         `input[data-row-index="${nextRowIndex}"][data-column-id="${column.id}"]`
                     ) as HTMLInputElement;
-    
+
                     if (nextInput) {
                         nextInput.focus();
                         nextInput.select(); // Optional: select the text
@@ -139,16 +141,17 @@ export default function Stores() {
             }, 10);
         };
 
-
-        const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        const handleKeyDown = (
+            event: React.KeyboardEvent<HTMLInputElement>
+        ) => {
             if (event.key === 'Enter' || event.key === 'Tab') {
                 event.preventDefault();
                 event.stopPropagation();
-                
+
                 // Save the current value
                 const numValue = value === '' ? null : parseInt(value);
                 table.options.meta?.updateData(row.index, column.id, numValue);
-                
+
                 // Focus next input
                 focusNextInput(row.index);
             }
@@ -242,7 +245,15 @@ export default function Stores() {
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id}>
+                                        <TableHead
+                                            key={header.id}
+                                            style={{
+                                                width:
+                                                    header.id === 'order'
+                                                        ? '130px'
+                                                        : 'auto',
+                                            }}
+                                        >
                                             {flexRender(
                                                 header.column.columnDef.header,
                                                 header.getContext()
@@ -256,7 +267,15 @@ export default function Stores() {
                             {table.getRowModel().rows.map((row) => (
                                 <TableRow key={row.id}>
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
+                                        <TableCell
+                                            key={cell.id}
+                                            style={{
+                                                width:
+                                                    cell.column.id === 'order'
+                                                        ? '130px'
+                                                        : 'auto',
+                                            }}
+                                        >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
