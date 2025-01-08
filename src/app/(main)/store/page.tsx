@@ -1,6 +1,6 @@
 'use client';
 import StoreNavsBar from '@/components/stores-navbar';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     Table,
     TableBody,
@@ -17,6 +17,7 @@ import {
     getPaginationRowModel,
     useReactTable,
 } from '@tanstack/react-table';
+import next from 'next';
 
 // Sample data
 const initialData = [
@@ -105,23 +106,75 @@ export default function Stores() {
     // Accepts integers only
     const OrderCell = ({ getValue, row, column, table }) => {
         const initialValue = getValue();
-        const [value, setValue] = useState(initialValue);
+        const [value, setValue] = useState<string>(initialValue?.toString() ?? '');
+        // const inputRef = useRef<HTMLInputElement>(null);
 
-        const onBlur = () => {
-            table.options.meta?.updateData(row.index, column.id, value);
+        const handleBlur = () => {
+            const numValue = value === '' ? null : parseInt(value);
+            table.options.meta?.updateData(row.index, column.id, numValue);
+
+            // table.options.meta?.updateData(row.index, column.id, value);
+        };
+
+        const focusNextInput = (currentRowIndex: number) => {
+            const nextRowIndex = currentRowIndex + 1;
+            
+            // Use setTimeout to ensure DOM is ready
+            setTimeout(() => {
+                try {
+                    // Try to find next input directly by row index
+                    const nextInput = document.querySelector(
+                        `input[data-row-index="${nextRowIndex}"][data-column-id="${column.id}"]`
+                    ) as HTMLInputElement;
+    
+                    if (nextInput) {
+                        nextInput.focus();
+                        nextInput.select(); // Optional: select the text
+                    } else {
+                        console.log('No next input found');
+                    }
+                } catch (error) {
+                    console.error('Focus error:', error);
+                }
+            }, 10);
+        };
+
+
+        const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+            if (event.key === 'Enter' || event.key === 'Tab') {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Save the current value
+                const numValue = value === '' ? null : parseInt(value);
+                table.options.meta?.updateData(row.index, column.id, numValue);
+                
+                // Focus next input
+                focusNextInput(row.index);
+            }
         };
 
         return (
             <Input
-                type="number"
+                type='number'
+                // ref={inputRef}
+                // value={value}
+                // value={value ?? ''}
                 value={value !== null ? value : ''}
-                onChange={(e) => e.target.value.includes('.') ? setValue(''): setValue(e.target.value)}
+                onChange={(e) =>
+                    e.target.value.includes('.')
+                        ? setValue('')
+                        : setValue(e.target.value)
+                }
                 // onKeyDown=""
-                onBlur={onBlur}
-                className='h-6 text-right'
-                min="0"
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+                data-row-index={row.index}
+                data-column-id={column.id}
+                className='h-6 text-center'
+                min='0'
                 // step="0.5"
-                placeholder="0"
+                placeholder='0'
             />
         );
     };
@@ -182,10 +235,10 @@ export default function Stores() {
             <div>
                 <StoreNavsBar />
             </div>
-            <div className="flex flex-col mr-2">
-                <div className='rounder-md border'>
+            <div className='flex flex-col mr-2'>
+                <div className='rounded-lg border'>
                     <Table>
-                        <TableHeader className="bg-gray-100">
+                        <TableHeader className='bg-gray-100'>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (
@@ -215,7 +268,9 @@ export default function Stores() {
                         </TableBody>
                     </Table>
                 </div>
-                <div> {/* Pagination: 10 items per page */}
+                <div>
+                    {' '}
+                    {/* Pagination: 10 items per page */}
                     <div className='flex items-center justify-end space-x-2 py-4'>
                         <Button
                             variant='outline'

@@ -87,7 +87,8 @@ export function AppSidebar() {
         } else {
             const name = data.user?.email ?? '';
             if (name.includes('@')) {
-                setUserName(name.split('@')[0]);
+                const formattedName = name.split('@')[0];
+                setUserName(formattedName[0].toUpperCase() + formattedName.slice(1));
             } else if (name === '') {
                 setUserName("Account");
             } else {
@@ -113,7 +114,8 @@ export function AppSidebar() {
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 asChild
-                                isActive={currentPage === item.url}
+                                // isActive={currentPage === item.url}
+                                isActive={currentPage.split('/')[1] === item.url.split('/')[1]}
                                 variant="myTheme"
                                 // className={`hover:bg-brown ${currentPage === item.url ? 'text-brown' : ''}`}
                             >
