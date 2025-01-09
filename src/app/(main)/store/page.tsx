@@ -18,6 +18,8 @@ import {
     getPaginationRowModel,
     useReactTable,
 } from '@tanstack/react-table';
+import { Dot } from 'lucide-react';
+import { init } from 'next/dist/compiled/webpack/webpack';
 // import next from 'next';
 
 interface Item {
@@ -27,6 +29,7 @@ interface Item {
     size: string;
     order: number | null;
     location_categ: string;
+    status: string;
 }
 
 const LOCATION_CATEGORIES = [
@@ -48,6 +51,7 @@ const initialData: Item[] = [
         size: '1 lb.',
         order: null,
         location_categ: 'Fridge',
+        status: 'DUE',
     },
     {
         id: 2,
@@ -56,6 +60,7 @@ const initialData: Item[] = [
         size: '1 lb.',
         order: null,
         location_categ: 'Fridge',
+        status: 'DUE',
     },
     {
         id: 3,
@@ -64,6 +69,7 @@ const initialData: Item[] = [
         size: '50 each',
         order: null,
         location_categ: 'General',
+        status: 'DUE',
     },
     {
         id: 4,
@@ -72,6 +78,7 @@ const initialData: Item[] = [
         size: '12/500 CT',
         order: null,
         location_categ: 'General',
+        status: 'DUE',
     },
     {
         id: 5,
@@ -80,6 +87,7 @@ const initialData: Item[] = [
         size: '500/box',
         order: null,
         location_categ: 'General',
+        status: 'DUE',
     },
     {
         id: 6,
@@ -88,6 +96,7 @@ const initialData: Item[] = [
         size: '1 bottle',
         order: null,
         location_categ: 'Stockroom',
+        status: 'DUE',
     },
     {
         id: 7,
@@ -96,6 +105,7 @@ const initialData: Item[] = [
         size: '1 case',
         order: null,
         location_categ: 'Stockroom',
+        status: 'DUE',
     },
     {
         id: 8,
@@ -104,6 +114,7 @@ const initialData: Item[] = [
         size: 'Bag of 3',
         order: null,
         location_categ: 'Fridge',
+        status: 'DUE',
     },
     {
         id: 9,
@@ -112,6 +123,7 @@ const initialData: Item[] = [
         size: '3 lb.',
         order: null,
         location_categ: 'Fridge',
+        status: 'DUE',
     },
     {
         id: 10,
@@ -120,6 +132,7 @@ const initialData: Item[] = [
         size: '1 lb.',
         order: null,
         location_categ: 'Fridge',
+        status: 'DUE',
     },
     {
         id: 11,
@@ -128,6 +141,7 @@ const initialData: Item[] = [
         size: '15 Dozen',
         order: null,
         location_categ: 'General',
+        status: 'DUE',
     },
     {
         id: 12,
@@ -136,6 +150,7 @@ const initialData: Item[] = [
         size: '1 bag',
         order: null,
         location_categ: 'Beans & Tea',
+        status: 'SUBMITTED',
     },
     {
         id: 13,
@@ -144,6 +159,7 @@ const initialData: Item[] = [
         size: '?',
         order: null,
         location_categ: 'Pastry',
+        status: 'DUE',
     },
     {
         id: 14,
@@ -152,7 +168,8 @@ const initialData: Item[] = [
         size: 'Bag of 4',
         order: null,
         location_categ: 'Pastry',
-    }
+        status: 'DUE',
+    },
 ];
 
 export default function Stores() {
@@ -290,15 +307,34 @@ export default function Stores() {
 
     // object lookup for category messages
     const categoryMessage: Record<string, JSX.Element | string> = {
-        'All': '',
-        'Pastry': <p>Pastry item orders due everyday</p>,
-        'Front': <p>Front counter items</p>,
-        'General': <p>General items</p>,
-        'Stockroom': <p>Items in stockroom and its shelves</p>,
-        'Fridge': <p>Items in all fridges and freezers</p>,
+        All: '',
+        Pastry: <p>Pastry item orders due everyday</p>,
+        Front: <p>Front counter items</p>,
+        General: <p>General items</p>,
+        Stockroom: <p>Items in stockroom and its shelves</p>,
+        Fridge: <p>Items in all fridges and freezers</p>,
         'Beans & Tea': <p>Coffee bean and tea items</p>,
     };
 
+    // render red dot if any item is due in the category
+    function renderRedDot(category: string) {
+        const items = initialData.filter(
+            (item) => item.location_categ === category
+        );
+
+        if (items.length > 0) {
+            // Check if any item has status 'DUE'
+            const hasDueItems = items.some((item) => item.status === 'DUE');
+            if (hasDueItems) {
+                return (
+                    // <p>test</p>
+                    // <div className='bg-red-500 rounded-full w-2 h-2 absolute top-0 right-0'></div>
+                    <Dot className='text-red-500' />
+                );
+            }
+        }
+        return <div></div>;
+    }
 
     return (
         <div className='ml-2 mt-6'>
@@ -310,21 +346,23 @@ export default function Stores() {
             </div>
             <div className='mb-4 flex flex-wrap gap-2'>
                 {LOCATION_CATEGORIES.map((category) => (
-                    <Button
-                        key={category}
-                        variant={
-                            activeCateg === category ? 'myTheme' : 'outline'
-                        }
-                        onClick={() => setActiveCateg(category)}
-                        // className='min-w-[100px]'
-                    >
-                        {category}
-                    </Button>
+                    <div key={category} className='flex flex-col items-center'>
+                        {/* {renderRedDot(category)} */}
+                        <Button
+                            key={category}
+                            variant={
+                                activeCateg === category ? 'myTheme' : 'outline'
+                            }
+                            onClick={() => setActiveCateg(category)}
+                            // className='min-w-[100px]'
+                        >
+                            {category}
+                        </Button>
+                        <div>{renderRedDot(category)}</div>
+                    </div>
                 ))}
             </div>
-            <div className='mb-2 text-sm'>
-              {categoryMessage[activeCateg]}
-            </div>
+            <div className='mb-2 text-sm'>{categoryMessage[activeCateg]}</div>
             <div className='flex flex-col mr-2'>
                 <div className='rounded-lg border'>
                     <Table>
