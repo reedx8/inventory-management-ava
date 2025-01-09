@@ -1,0 +1,1 @@
+ALTER TABLE "store_items" RENAME COLUMN "location" TO "store_categ";

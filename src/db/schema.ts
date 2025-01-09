@@ -44,14 +44,14 @@ export const itemsTable = pgTable(
         raw_cost: decimal('raw_cost', { precision: 10, scale: 2 })
             .notNull()
             .default(sql`0.00`), // Raw cost of item from vendor. raw cost = orders.vendor_price
-        acc_categ: varchar('acc_category', { length: 10 }) 
+        acc_categ: varchar('acc_category', { length: 10 })
             .notNull()
             .default('NONE'), // accounting category for accountants
         main_categ: varchar('main_categ', { length: 30 }).notNull(), // food main category
         sub_categ: varchar('sub_categ', { length: 30 }), // food sub category
         requires_inventory: boolean('requires_inventory').notNull(), // whether item requires inventory
         requires_order: boolean('requires_order').notNull(), // whether item requires order
-        description: text('description'),  // description of item
+        description: text('description'), // description of item
         created_at: timestamp('created_at').notNull().defaultNow(),
     },
     (table) => [
@@ -88,7 +88,7 @@ export const storeItemsTable = pgTable(
             .notNull()
             .references(() => storesTable.id), // specific store this item is for
         active: boolean('active').notNull().default(true), // whether item is active or not
-        store_categ: varchar('location', { length: 30 }).notNull(), // categories for store managers
+        store_categ: varchar('store_categ', { length: 30 }).notNull(), // categories for store managers
         // location_categ: varchar('location', { length: 30 }).notNull(), // categories for store managers
         created_at: timestamp('created_at').notNull().defaultNow(),
     },
