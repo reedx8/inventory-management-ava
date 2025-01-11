@@ -47,7 +47,7 @@ export const itemsTable = pgTable(
         acc_categ: varchar('acc_category', { length: 10 })
             .notNull()
             .default('NONE'), // accounting category for accountants
-        main_categ: varchar('main_categ', { length: 30 }).notNull(), // food main category
+        main_categ: varchar('main_categ', { length: 30 }).notNull(), // food main category, ie customer-facing category (sandwich, beverage, pastry, etc)
         sub_categ: varchar('sub_categ', { length: 30 }), // food sub category
         requires_inventory: boolean('requires_inventory').notNull(), // whether item requires inventory
         requires_order: boolean('requires_order').notNull(), // whether item requires order
