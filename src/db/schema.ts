@@ -35,42 +35,37 @@ export const itemsTable = pgTable(
     {
         id: serial('id').primaryKey(),
         name: varchar('name', { length: 100 }).notNull().unique(), // name of item
-        barcode: varchar('barcode', { length: 200 }).unique(), // barcode of item
+        item_code: varchar('item_code', { length: 200 }), // vendor specific item code/number (Sysco, Petes Milk, Grand Central)
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // the vendor that supplies this item
-        unit: varchar('unit', { length: 30 }), // unit of item
-        unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
+        unit: varchar('unit', { length: 50 }), // unit of item from vendor or bakery. These are vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc)
+        // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
         raw_cost: decimal('raw_cost', { precision: 10, scale: 2 })
             .notNull()
-            .default(sql`0.00`), // Raw cost of item from vendor. raw cost = orders.vendor_price
-        acc_categ: varchar('acc_category', { length: 10 })
+            .default(sql`0.00`), // Raw default cost of item from vendor. raw cost = orders.vendor_price, eg cost * orders.qty_ordered
+        invoice_categ: varchar('invoice_categ', { length: 30 })
             .notNull()
-            .default('NONE'), // accounting category for accountants
-        main_categ: varchar('main_categ', { length: 30 }).notNull(), // food main category, ie customer-facing category (sandwich, beverage, pastry, etc)
+            .default('none'), // accounting category for invoicing
+        main_categ: varchar('main_categ', { length: 30 }), // food main category, ie customer-facing category (sandwich, beverage, pastry, etc)
         sub_categ: varchar('sub_categ', { length: 30 }), // food sub category
         requires_inventory: boolean('requires_inventory').notNull(), // whether item requires inventory
         requires_order: boolean('requires_order').notNull(), // whether item requires order
-        description: text('description'), // description of item
+        item_description: text('item_description'), // internal description of item
+        vendor_description: text('vendor_description'), // vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
         created_at: timestamp('created_at').notNull().defaultNow(),
     },
     (table) => [
         {
-            accCategoryCheck: check(
-                'acc_category_check',
-                sql`${table.acc_categ} IN ('CCP', 'CTC', 'NONE')`
+            invoiceCategoryCheck: check(
+                'invoice_categ_check',
+                sql`${table.invoice_categ} IN ('sandwich', 'pastry', 'food', 'cooler&extras', 'beverage', 'misc/bathroom', 'chocolate&tea, 'coffee', 'none'`
             ),
         },
         {
             positiveRawCostCheck: check(
                 'positive_raw_cost',
                 sql`${table.raw_cost} >= 0`
-            ),
-        },
-        {
-            positiveUnitQtyCheck: check(
-                'positive_unit_qty',
-                sql`${table.unit_qty} >= 0`
             ),
         },
     ]
