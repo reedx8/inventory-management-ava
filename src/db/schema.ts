@@ -34,16 +34,16 @@ export const itemsTable = pgTable(
     'items',
     {
         id: serial('id').primaryKey(),
-        name: varchar('name', { length: 100 }).notNull().unique(), // name of item
-        item_code: varchar('item_code', { length: 200 }), // vendor specific item code/number (Sysco, Petes Milk, Grand Central)
+        name: varchar('name', { length: 100 }).notNull().unique(), // brand + name of item + size of item (if any)
+        item_code: varchar('item_code', { length: 50 }), // vendor specific item code/number (Sysco, Petes Milk, Grand Central)
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // the vendor that supplies this item
-        unit: varchar('unit', { length: 50 }), // unit of item from vendor or bakery. These are vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc)
+        qty_per_order: varchar('qty_per_order', { length: 50 }), // Qty per order of item from vendor or bakery, not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc)
         // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
-        raw_cost: decimal('raw_cost', { precision: 10, scale: 2 })
+        list_price: decimal('list_price', { precision: 10, scale: 2 })
             .notNull()
-            .default(sql`0.00`), // Raw default cost of item from vendor. raw cost = orders.vendor_price, eg cost * orders.qty_ordered
+            .default(sql`0.00`), // Vendor's stated/expected list price for item, before receiving invoice. list_price -> orders.vendor_price, and eg list_price * orders.qty_ordered.
         invoice_categ: varchar('invoice_categ', { length: 30 })
             .notNull()
             .default('none'), // accounting category for invoicing
@@ -64,8 +64,8 @@ export const itemsTable = pgTable(
         },
         {
             positiveRawCostCheck: check(
-                'positive_raw_cost',
-                sql`${table.raw_cost} >= 0`
+                'positive_list_price',
+                sql`${table.list_price} >= 0`
             ),
         },
     ]
@@ -240,10 +240,10 @@ export const inventoryTable = pgTable(
 // List of vendors that stores can order from. Lookup table.
 export const vendorsTable = pgTable('vendors', {
     id: serial('id').primaryKey(),
-    name: varchar('name', { length: 100 }).notNull().unique(),
-    email: varchar('email', { length: 100 }),
-    phone: varchar('phone', { length: 20 }),
-    website: varchar('website', { length: 200 }),
+    name: varchar('name', { length: 100 }).notNull().unique(), // vendors name (eg Petes Milk, Grand Central, Sysco,etc)
+    email: varchar('email', { length: 100 }), // email for orders (if any)
+    phone: varchar('phone', { length: 20 }), // phone number for orders (if any)
+    website: varchar('website', { length: 200 }), // website for orders (if any)
     logo: varchar('logo', { length: 200 }),
 });
 
@@ -267,14 +267,14 @@ export const ordersTable = pgTable(
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id),
-        vendor_price: decimal('vendor_price', {
+        final_price: decimal('final_price', {
             precision: 10,
             scale: 2,
-        }), // vendor/order price at time of order, default value = items.raw_cost
+        }), // final invoiced amount for item, default value = items.list_price
         adj_price: decimal('adj_price', {
             precision: 10,
             scale: 2,
-        }), // average price of item across stores, edge case for ccp items
+        }), // average price of item across stores, edge case for ccp items?, to report to stores
         status: statusEnum('status').notNull().default('DUE'),
         is_par_order: boolean('is_par_order').notNull().default(false), // but par values are inaccurate/not used currently
         comments: text('comments'),
@@ -303,9 +303,9 @@ export const ordersTable = pgTable(
             ),
         },
         {
-            posVendorPriceCheck: check(
-                'positive_vendor_price',
-                sql`${table.vendor_price} >= 0`
+            posFinalPriceCheck: check(
+                'positive_final_price',
+                sql`${table.final_price} >= 0`
             ),
         },
         {
@@ -322,17 +322,18 @@ export const storesTable = pgTable(
     'stores',
     {
         id: serial('id').primaryKey(),
-        name: varchar('name', { length: 30 }).notNull().unique(),
-        budget: decimal('budget', { precision: 10, scale: 2 }).default(
-            sql`0.00`
-        ),
+        name: varchar('name', { length: 30 }).notNull().unique(), // name of store (eg Hall, Barrows, etc)
+        weekly_budget: decimal('weekly_budget', {
+            precision: 10,
+            scale: 2,
+        }).default(sql`0.00`), // weekly budget for store
         logo: varchar('logo', { length: 200 }),
     },
     (table) => [
         {
             checkConstraint: check(
-                'positive_budget',
-                sql`${table.budget} >= 0`
+                'positive_weekly_budget',
+                sql`${table.weekly_budget} >= 0`
             ),
         },
     ]
