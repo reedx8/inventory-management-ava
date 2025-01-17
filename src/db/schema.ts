@@ -240,7 +240,7 @@ export const inventoryTable = pgTable(
 // List of vendors that stores can order from. Lookup table.
 export const vendorsTable = pgTable('vendors', {
     id: serial('id').primaryKey(),
-    name: varchar('name', { length: 100 }).notNull().unique(), // vendors name (eg Petes Milk, Grand Central, Sysco,etc)
+    name: varchar('name', { length: 100 }).notNull().unique(), // vendors name (eg Sysco, Winco, Restaurant Depot, McDonalds, Chef Store, Costco, Grand Central, Petes Milk, and ava design?)
     email: varchar('email', { length: 100 }), // email for orders (if any)
     phone: varchar('phone', { length: 20 }), // phone number for orders (if any)
     website: varchar('website', { length: 200 }), // website for orders (if any)
@@ -266,7 +266,7 @@ export const ordersTable = pgTable(
             .default(false), // If partial order when ordering from another vendor when vendor invent. insufficient, this will be true. Only applies to CCP items?
         vendor_id: integer('vendor_id')
             .notNull()
-            .references(() => vendorsTable.id),
+            .references(() => vendorsTable.id), // vendor that supplied this item
         final_price: decimal('final_price', {
             precision: 10,
             scale: 2,
@@ -275,9 +275,9 @@ export const ordersTable = pgTable(
             precision: 10,
             scale: 2,
         }), // average price of item across stores, edge case for ccp items?, to report to stores
-        status: statusEnum('status').notNull().default('DUE'),
+        status: statusEnum('status').notNull().default('DUE'), // status of item in the order chain (eg DUE, SUBMITTED, ORDERED, DELIVERED, CANCELLED)
         is_par_order: boolean('is_par_order').notNull().default(false), // but par values are inaccurate/not used currently
-        comments: text('comments'),
+        comments: text('comments'), // any comments for order
         submitted_date: timestamp('submitted_date'), // date order submitted from store managers
         order_date: timestamp('order_date'), // date order placed upon kojo/jelena submit
         // delivered_date: timestamp('delivery_date'), // I dont think this will be reliably updated
