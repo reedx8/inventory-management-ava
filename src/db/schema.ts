@@ -29,30 +29,29 @@ const statusEnum = pgEnum('status', [
 ]);
 export const status = statusEnum;
 
-// Core items table with shared properties across all stores
+// Table of general/internal items Ava Roasteria uses by default, containing operational necessities
 export const itemsTable = pgTable(
     'items',
     {
         id: serial('id').primaryKey(),
-        name: varchar('name', { length: 100 }).notNull().unique(), // brand + name of item + size of item (if any)
-        item_code: varchar('item_code', { length: 50 }), // vendor specific item code/number (Sysco, Petes Milk, Grand Central)
+        name: varchar('name', { length: 100 }).notNull().unique(), // General/internal name of item + size of item (if any). Avoid using brand name, due to vendor_items table, but its ok if you do
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // the vendor that supplies this item
-        qty_per_order: varchar('qty_per_order', { length: 50 }), // Qty per order of item from vendor or bakery, not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc)
+        qty_per_order: varchar('qty_per_order', { length: 50 }), // Items unit from its primary vendor (or bakery), not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc). Just change in csv if vendor changed-to requires different unit
         // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
         list_price: decimal('list_price', { precision: 10, scale: 2 })
             .notNull()
-            .default(sql`0.00`), // Vendor's stated/expected list price for item, before receiving invoice. list_price -> orders.vendor_price, and eg list_price * orders.qty_ordered.
+            .default(sql`0.00`), // Vendor's stated/expected list price for item, before receiving invoice. list_price -> orders.final_price, and eg list_price * orders.qty_ordered.
         invoice_categ: varchar('invoice_categ', { length: 30 })
             .notNull()
             .default('none'), // accounting category for invoicing
-        main_categ: varchar('main_categ', { length: 30 }), // food main category, ie customer-facing category (sandwich, beverage, pastry, etc)
+        main_categ: varchar('main_categ', { length: 30 }), // main food category (US food groups + custom groups)
         sub_categ: varchar('sub_categ', { length: 30 }), // food sub category
         requires_inventory: boolean('requires_inventory').notNull(), // whether item requires inventory
         requires_order: boolean('requires_order').notNull(), // whether item requires order
         item_description: text('item_description'), // internal description of item
-        vendor_description: text('vendor_description'), // vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
+        vendor_description: text('vendor_description'), // primary vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
         created_at: timestamp('created_at').notNull().defaultNow(),
     },
     (table) => [
@@ -241,13 +240,19 @@ export const inventoryTable = pgTable(
 export const vendorsTable = pgTable('vendors', {
     id: serial('id').primaryKey(),
     name: varchar('name', { length: 100 }).notNull().unique(), // vendors name (eg Sysco, Winco, Restaurant Depot, McDonalds, Chef Store, Costco, Grand Central, Petes Milk, and ava design?)
+    is_exclusive_supplier: boolean('is_exclusive_supplier')
+        .notNull()
+        .default(false), // If in Exclusive Supply Agreement with vendor, eg Sysco atm (non-ccp items if false. ccp = cost controlled product)
     email: varchar('email', { length: 100 }), // email for orders (if any)
     phone: varchar('phone', { length: 20 }), // phone number for orders (if any)
     website: varchar('website', { length: 200 }), // website for orders (if any)
     logo: varchar('logo', { length: 200 }),
+    agreement_start_date: timestamp('agreement_start_date'),
+    agreement_end_date: timestamp('agreement_end_date'),
 });
 
-// Record of item orders for every store
+// History of item orders for every store, serving as a record of truth for orders.
+// Each record maintains a complete snapshot of how the item was ordered at every store.
 export const ordersTable = pgTable(
     'orders',
     {
@@ -259,18 +264,23 @@ export const ordersTable = pgTable(
         qty_ordered: decimal('qty_ordered', {
             precision: 10,
             scale: 2,
-        }).notNull(), // quantity ordered from vendor by kojo/jelena, qty ordered based on current cash flow or current vendor supply
+        }), // quantity ordered from vendor by kojo/jelena, qty ordered based on current cash flow or current vendor supply
         qty_delivered: decimal('qty_delivered', { precision: 10, scale: 2 }), // quantity actually delivered/received to store? I dont think this will be reliably updated
+        qty_per_order: decimal('qty_per_order', { precision: 10, scale: 2 }), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
         is_replacement_order: boolean('is_replacement_order')
             .notNull()
             .default(false), // If partial order when ordering from another vendor when vendor invent. insufficient, this will be true. Only applies to CCP items?
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // vendor that supplied this item
+        list_price: decimal('list_price', {
+            precision: 10,
+            scale: 2,
+        }).notNull(), // Expected price of item at time of order. default value is items.list_price
         final_price: decimal('final_price', {
             precision: 10,
             scale: 2,
-        }), // final invoiced amount for item, default value = items.list_price
+        }).notNull(), // final invoiced amount for item, default value = items.list_price
         adj_price: decimal('adj_price', {
             precision: 10,
             scale: 2,
@@ -300,6 +310,18 @@ export const ordersTable = pgTable(
             posQtyOrderedCheck: check(
                 'positive_qty_ordered',
                 sql`${table.qty_ordered} >= 0`
+            ),
+        },
+        {
+            posQtyPerOrderCheck: check(
+                'positive_qty_per_order',
+                sql`${table.qty_per_order} >= 0`
+            ),
+        },
+        {
+            posListPriceCheck: check(
+                'positive_list_price',
+                sql`${table.list_price} >= 0`
             ),
         },
         {
@@ -350,7 +372,40 @@ export const historyTable = pgTable('history', {
     changed_at: timestamp('changed_at').notNull().defaultNow(),
 });
 
-// Pars table for tracking daily/weekly par values
+// Vendor-specific item details when neccessary, for edge cases where vendors have different names or details for the same general/internal item we use
+// Primary Use: For automating the generating/emailing of excel files for/to vendors that need exact details
+// Eg Petes milk needs "PACIFIC ORIGINAL ALMOND MILK - BARISTA" exactly in its excel file, while we (store managers) only care about "Almond milk" at time of ordering
+export const vendorItemsTable = pgTable(
+    'vendor_items',
+    {
+        id: serial('id').primaryKey(),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id),
+        vendor_id: integer('vendor_id')
+            .notNull()
+            .references(() => vendorsTable.id),
+        item_name: varchar('item_name', { length: 100 }), // exact name of item vendor needs/uses
+        item_code: varchar('item_code', { length: 50 }), // vendor specific item code/number (SUPC for Sysco, Petes Milk, Grand Central, etc)
+        brand_code: varchar('item_brand', { length: 100 }), // brand acronym/code of item from vendor (eg AREZIMP or WHLFCLS from Sysco vendor, etc)
+        item_description: text('item_description'), // vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
+        is_primary: boolean('is_primary').notNull().default(false), // whether this is the primary item for this vendor
+        created_at: timestamp('created_at').notNull().defaultNow(),
+    },
+    (table) => [
+        {
+            // can have multiple records with the same vendor and general item but different brands/names
+            // Remove item_name if you want 1 item_name per vendor/general item (but using is_primary will alleviate any problems?)
+            vendorItemUnique: uniqueIndex('vendor_item_unique_idx').on(
+                table.vendor_id,
+                table.item_id,
+                table.item_name
+            ),
+        },
+    ]
+);
+
+// Pars table for tracking daily/weekly par values, ie par = replacement level/value
 export const parsTable = pgTable(
     'pars',
     {
@@ -435,6 +490,9 @@ export type SelectOrder = typeof ordersTable.$inferSelect;
 export type InsertStore = typeof storesTable.$inferInsert;
 export type SelectStore = typeof storesTable.$inferSelect;
 // export type UpdateStore = typeof storesTable.$inferUpdate;
+export type InsertVendorItem = typeof vendorItemsTable.$inferInsert;
+export type SelectVendorItem = typeof vendorItemsTable.$inferSelect;
+// export type UpdateVendorItem = typeof vendorItemsTable.$inferUpdate;
 export type InsertPars = typeof parsTable.$inferInsert;
 export type SelectPars = typeof parsTable.$inferSelect;
 // export type UpdatePars = typeof parsTable.$inferUpdate;
