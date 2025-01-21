@@ -1,0 +1,2 @@
+ALTER TABLE "items" DROP CONSTRAINT IF EXISTS invoice_categ_check;
+ALTER TABLE "items" ADD CONSTRAINT invoice_categ_check CHECK (invoice_categ IN ('sandwich', 'pastry', 'food', 'cooler&extras', 'beverage', 'misc/bathroom', 'chocolate&tea', 'coffee', 'none'));

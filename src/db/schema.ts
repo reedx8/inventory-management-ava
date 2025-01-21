@@ -58,7 +58,7 @@ export const itemsTable = pgTable(
         {
             invoiceCategoryCheck: check(
                 'invoice_categ_check',
-                sql`${table.invoice_categ} IN ('sandwich', 'pastry', 'food', 'cooler&extras', 'beverage', 'misc/bathroom', 'chocolate&tea, 'coffee', 'none'`
+                sql`${table.invoice_categ} IN ('sandwich', 'pastry', 'food', 'cooler&extras', 'beverage', 'misc/bathroom', 'chocolate&tea', 'coffee', 'none')`
             ),
         },
         {
