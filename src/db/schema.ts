@@ -15,8 +15,8 @@ import {
     uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import { create } from 'domain';
-import exp from 'constants';
+// import { create } from 'domain';
+// import exp from 'constants';
 // import exp from 'constants';
 
 // For orders.status
@@ -266,7 +266,7 @@ export const ordersTable = pgTable(
             scale: 2,
         }), // quantity ordered from vendor by kojo/jelena, qty ordered based on current cash flow or current vendor supply
         qty_delivered: decimal('qty_delivered', { precision: 10, scale: 2 }), // quantity actually delivered/received to store? I dont think this will be reliably updated
-        qty_per_order: decimal('qty_per_order', { precision: 10, scale: 2 }), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
+        qty_per_order: varchar('qty_per_order', { length: 50 }), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
         is_replacement_order: boolean('is_replacement_order')
             .notNull()
             .default(false), // If partial order when ordering from another vendor when vendor invent. insufficient, this will be true. Only applies to CCP items?

@@ -64,6 +64,20 @@
       "when": 1737171526780,
       "tag": "0008_slow_marauders",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1737501843041,
+      "tag": "0009_mushy_shocker",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1737502277658,
+      "tag": "0010_nappy_tinkerer",
+      "breakpoints": true
     }
   ]
 }
