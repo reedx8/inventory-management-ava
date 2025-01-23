@@ -32,6 +32,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import React from 'react';
 
 const items = [
     {
@@ -88,15 +89,17 @@ export function AppSidebar() {
             const name = data.user?.email ?? '';
             if (name.includes('@')) {
                 const formattedName = name.split('@')[0];
-                setUserName(formattedName[0].toUpperCase() + formattedName.slice(1));
+                setUserName(
+                    formattedName[0].toUpperCase() + formattedName.slice(1)
+                );
             } else if (name === '') {
-                setUserName("Account");
+                setUserName('Account');
             } else {
                 setUserName(name);
             }
         }
     }
-    
+
     useEffect(() => {
         getUserName();
     }, []);
@@ -104,8 +107,8 @@ export function AppSidebar() {
     return (
         <Sidebar>
             <SidebarHeader>
-                <Link href='/' className="pointer-events-none">
-                    <Image src={menuLogo} alt='menu logo'/>
+                <Link href='/' className='pointer-events-none'>
+                    <Image src={menuLogo} alt='menu logo' />
                 </Link>
             </SidebarHeader>
             <SidebarContent>
@@ -115,12 +118,22 @@ export function AppSidebar() {
                             <SidebarMenuButton
                                 asChild
                                 // isActive={currentPage === item.url}
-                                isActive={currentPage.split('/')[1] === item.url.split('/')[1]}
-                                variant="myTheme"
+                                isActive={
+                                    currentPage.split('/')[1] ===
+                                    item.url.split('/')[1]
+                                }
+                                variant='myTheme'
                                 // className={`hover:bg-myBrown ${currentPage === item.url ? 'text-brown' : ''}`}
                             >
                                 <Link href={item.url}>
-                                    <item.icon />
+                                    {/* <item.icon/> */}
+                                    {React.createElement(item.icon, {
+                                        strokeWidth:
+                                            currentPage.split('/')[1] ===
+                                            item.url.split('/')[1]
+                                                ? 2
+                                                : 1,
+                                    })}
                                     <span>{item.title}</span>
                                 </Link>
                             </SidebarMenuButton>
@@ -133,7 +146,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton variant="myTheme">
+                                <SidebarMenuButton variant='myTheme'>
                                     <User />
                                     <span>{userName}</span>
                                     <ChevronUp className='ml-auto' />
