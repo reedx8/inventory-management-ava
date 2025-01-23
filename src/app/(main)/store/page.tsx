@@ -357,10 +357,11 @@ export default function Stores() {
                         <Image
                             src={baristaPic}
                             alt='complete'
-                            width={200}
-                            height={200}
+                            width={175}
+                            height={175}
                         />
-                        <p className="text-xl text-gray-400">No orders due!</p>
+                        <p className="text-xl text-gray-600">No orders due!</p>
+                        <p className="text-sm text-gray-400">Create an order below if you need one</p>
                         <Button size='lg' variant='myTheme'>Create Order</Button>
                     </div>
                 // </div>
