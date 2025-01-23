@@ -17,7 +17,7 @@ const navItems = [
         url: '/store',
     },
     {
-        title: 'Inventory',
+        title: 'Inventory Due',
         url: '/store/inventory',
     },
     // { TODO

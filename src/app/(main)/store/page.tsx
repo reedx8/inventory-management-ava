@@ -237,18 +237,17 @@ export default function Stores() {
             <div>
                 <h1 className='text-3xl'>Store</h1>
             </div>
-            <div>
+            <div className='mb-4'>
                 <StoreNavsBar />
             </div>
             {data?.length > 0 ? (
                 <>
-                    <div className='mb-4 flex flex-wrap gap-2'>
+                    <div className='flex flex-wrap gap-2'>
                         {STORE_CATEGORIES.map((category) => (
                             <div
                                 key={category}
                                 className='flex flex-col items-center'
                             >
-                                {/* {renderRedDot(category)} */}
                                 <Button
                                     key={category}
                                     variant={
@@ -257,7 +256,6 @@ export default function Stores() {
                                             : 'outline'
                                     }
                                     onClick={() => setActiveCateg(category)}
-                                    // className='min-w-[100px]'
                                 >
                                     {category}
                                 </Button>
@@ -354,8 +352,8 @@ export default function Stores() {
                     </div>
                 </>
             ) : (
-                <div className='flex flex-col justify-center'>
-                    <div className='flex flex-col items-center gap-2'>
+                // <div className='flex flex-col justify-center'>
+                    <div className='flex flex-col items-center justify-center gap-2'>
                         <Image
                             src={baristaPic}
                             alt='complete'
@@ -363,8 +361,9 @@ export default function Stores() {
                             height={200}
                         />
                         <p className="text-xl text-gray-400">No orders due!</p>
+                        <Button size='lg' variant='myTheme'>Create Order</Button>
                     </div>
-                </div>
+                // </div>
             )}
         </div>
     );

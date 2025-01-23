@@ -10,7 +10,7 @@ export default function MainLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarTrigger />
-        <div className="mx-3">
+        <div className="w-full h-full mx-3">
           {children}
         </div>
       </SidebarProvider>
