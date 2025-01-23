@@ -239,7 +239,7 @@ export const inventoryTable = pgTable(
 // List of vendors that stores can order from. Lookup table.
 export const vendorsTable = pgTable('vendors', {
     id: serial('id').primaryKey(),
-    name: varchar('name', { length: 100 }).notNull().unique(), // vendors name (eg Sysco, Winco, Restaurant Depot, McDonalds, Chef Store, Costco, Grand Central, Petes Milk, and ava design?)
+    name: varchar('name', { length: 100 }).notNull().unique(), // vendors name (Ava Design, Bakery, Sysco, McDonalds, Javastock, Winco, Restaurant Depot, Chef Store, Costco, Grand Central (Jelena), Petes Milk (Jelena), Fred Meyer, and Safeway
     is_exclusive_supplier: boolean('is_exclusive_supplier')
         .notNull()
         .default(false), // If in Exclusive Supply Agreement with vendor, eg Sysco atm (non-ccp items if false. ccp = cost controlled product)
