@@ -247,6 +247,7 @@ export const vendorsTable = pgTable('vendors', {
     phone: varchar('phone', { length: 20 }), // phone number for orders (if any)
     website: varchar('website', { length: 200 }), // website for orders (if any)
     logo: varchar('logo', { length: 200 }),
+    is_active: boolean('is_active').notNull().default(true),
     agreement_start_date: timestamp('agreement_start_date'),
     agreement_end_date: timestamp('agreement_end_date'),
 });
@@ -267,9 +268,7 @@ export const ordersTable = pgTable(
         }), // quantity ordered from vendor by kojo/jelena, qty ordered based on current cash flow or current vendor supply
         qty_delivered: decimal('qty_delivered', { precision: 10, scale: 2 }), // quantity actually delivered/received to store? I dont think this will be reliably updated
         qty_per_order: varchar('qty_per_order', { length: 50 }), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
-        is_replacement_order: boolean('is_replacement_order')
-            .notNull()
-            .default(false), // If partial order when ordering from another vendor when vendor invent. insufficient, this will be true. Only applies to CCP items?
+        is_order_change: boolean('is_order_change').notNull().default(false), // If partial/complete order change when ordering from another vendor when vendor invent. insufficient, or cost effectiveness, this will be true. Only applies to CCP items?
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // vendor that supplied this item
@@ -286,6 +285,9 @@ export const ordersTable = pgTable(
             scale: 2,
         }), // average price of item across stores, edge case for ccp items?, to report to stores
         status: statusEnum('status').notNull().default('DUE'), // status of item in the order chain (eg DUE, SUBMITTED, ORDERED, DELIVERED, CANCELLED)
+        is_priority_delivery: boolean('is_priority_delivery')
+            .notNull()
+            .default(false), // whether order is a priority delivery (emergencies, etc)
         is_par_order: boolean('is_par_order').notNull().default(false), // but par values are inaccurate/not used currently
         comments: text('comments'), // any comments for order
         submitted_date: timestamp('submitted_date'), // date order submitted from store managers
