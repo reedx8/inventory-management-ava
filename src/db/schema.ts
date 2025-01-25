@@ -40,21 +40,19 @@ export const itemsTable = pgTable(
     'items',
     {
         id: serial('id').primaryKey(),
-        name: varchar('name', { length: 100 }).notNull().unique(), // General/internal name of item + size of item (if any). Avoid using brand name, due to vendor_items table, but its ok if you do
+        name: varchar('name').notNull().unique(), // General/internal name of item + size of item (if any). Avoid using brand name, due to vendor_items table, but its ok if you do
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // the vendor that supplies this item
-        qty_per_order: varchar('qty_per_order', { length: 50 }), // Items unit from its primary vendor (or bakery), not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc). Just change in csv if vendor changed-to requires different unit
+        qty_per_order: varchar('qty_per_order'), // Items unit from its primary vendor (or bakery), not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc). Just change in csv if vendor changed-to requires different unit
         // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
         current_price: decimal('current_price', { precision: 10, scale: 2 })
             .notNull()
             .default(sql`0.00`), // Vendor's current list price for item
-        store_categ: varchar('store_categ', { length: 30 }).notNull(), // categories for store managers
-        invoice_categ: varchar('invoice_categ', { length: 30 })
-            .notNull()
-            .default('none'), // accounting category for invoicing
-        main_categ: varchar('main_categ', { length: 30 }), // main food category (US food groups + custom groups)
-        sub_categ: varchar('sub_categ', { length: 30 }), // food sub category
+        store_categ: varchar('store_categ').notNull(), // categories for store managers
+        invoice_categ: varchar('invoice_categ').notNull().default('none'), // accounting category for invoicing
+        main_categ: varchar('main_categ'), // main food category (US food groups + custom groups)
+        sub_categ: varchar('sub_categ'), // food sub category
         requires_inventory: boolean('requires_inventory'), // whether item requires inventory
         requires_order: boolean('requires_order'), // whether item requires order
         item_description: text('item_description'), // internal description of item
@@ -75,14 +73,10 @@ export const itemsTable = pgTable(
                 'invoice_categ_check',
                 sql`${table.invoice_categ} IN ('SANDWICH', 'PASTRY', 'FOOD', 'COOLER&EXTRAS', 'BEVERAGE', 'MISC/BATHROOM', 'CHOCOLATE&TEA', 'COFFEE', 'NONE')`
             ),
-        },
-        {
             positiveCurrentPriceCheck: check(
                 'positive_current_price',
                 sql`${table.current_price} >= 0`
             ),
-        },
-        {
             storeCategoryCheck: check(
                 'store_category_check',
                 sql`${table.store_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
