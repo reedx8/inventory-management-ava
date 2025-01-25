@@ -77,8 +77,8 @@ export const itemsTable = pgTable(
             ),
         },
         {
-            positiveListPriceCheck: check(
-                'positive_list_price',
+            positiveCurrentPriceCheck: check(
+                'positive_current_price',
                 sql`${table.current_price} >= 0`
             ),
         },
