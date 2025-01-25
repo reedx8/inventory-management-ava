@@ -19,15 +19,20 @@ import { sql } from 'drizzle-orm';
 // import exp from 'constants';
 // import exp from 'constants';
 
-// For orders.status
-const statusEnum = pgEnum('status', [
-    'DUE',
-    'SUBMITTED',
-    'ORDERED',
-    'DELIVERED',
-    'CANCELLED',
+// For order_stage.stage_name
+// The goal is to choose names that clearly indicate the order's current stage without being too vague, overlapping with other stages, or being self referencing (eg "ORDERED": ORDERED stage?, Order table?,order in general?, Each user group believes they "ordered")
+const stagesEnum = pgEnum('stages', [
+    'DUE', // Store managers fill out initial, empty orders via regular automated weekly schedule (ie pending, initiated, etc) (ie always from system/cronjob/button press?)
+    'SOURCING', // Order managers sourcing vendors. Time is when store managers submitted there order
+    'PROCURING', // order managers in the action of sending order to vendor or shopping
+    'PROCESSED', // Order Managers or system commited order qty to vendor, or have shopped it.
+    'DELIVERED', //  Store managers report qty delivered from vendor
+    'CANCELLED', // Order managers cancelled order
+
+    // automated order workflow (automated email, web, cron job, etc): due -> sourcing -> processed -> delivered (+ cancelled)
+    // manual order workflow (kojo and jelena): due -> sourcing -> procuring -> processed -> delivered (+ cancelled)
 ]);
-export const status = statusEnum;
+export const stages = stagesEnum;
 
 // Table of general/internal items Ava Roasteria uses by default, containing operational necessities
 export const itemsTable = pgTable(
@@ -52,7 +57,12 @@ export const itemsTable = pgTable(
         requires_order: boolean('requires_order').notNull(), // whether item requires order
         item_description: text('item_description'), // internal description of item
         vendor_description: text('vendor_description'), // primary vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
-        created_at: timestamp('created_at').notNull().defaultNow(),
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
     },
     (table) => [
         {
@@ -84,7 +94,12 @@ export const storeItemsTable = pgTable(
         active: boolean('active').notNull().default(true), // whether item is active or not
         store_categ: varchar('store_categ', { length: 30 }).notNull(), // categories for store managers
         // location_categ: varchar('location', { length: 30 }).notNull(), // categories for store managers
-        created_at: timestamp('created_at').notNull().defaultNow(),
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
     },
     (table) => [
         {
@@ -173,8 +188,16 @@ export const inventoryTable = pgTable(
             .references(() => storeItemsTable.id),
         // store_id: integer('store_id').notNull(),
         count: decimal('count', { precision: 10, scale: 2 }),
-        date_of_count: timestamp('date_of_count').notNull(),
-        created_at: timestamp('created_at').notNull().defaultNow(),
+        date_of_count: timestamp('date_of_count', {
+            precision: 3,
+            withTimezone: true,
+        }).notNull(),
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
         closed_count: decimal('closed_count', {
             precision: 10,
             scale: 2,
@@ -245,11 +268,18 @@ export const vendorsTable = pgTable('vendors', {
         .default(false), // If in Exclusive Supply Agreement with vendor, eg Sysco atm (non-ccp items if false. ccp = cost controlled product)
     email: varchar('email', { length: 100 }), // email for orders (if any)
     phone: varchar('phone', { length: 20 }), // phone number for orders (if any)
-    website: varchar('website', { length: 200 }), // website for orders (if any)
+    contact_name: varchar('contact_name', { length: 50 }), // name of contact person for orders (if any)
+    website: text('website'), // website for orders (if any)
     logo: varchar('logo', { length: 200 }),
     is_active: boolean('is_active').notNull().default(true),
-    agreement_start_date: timestamp('agreement_start_date'),
-    agreement_end_date: timestamp('agreement_end_date'),
+    agreement_start_date: timestamp('agreement_start_date', {
+        precision: 3,
+        withTimezone: true,
+    }),
+    agreement_end_date: timestamp('agreement_end_date', {
+        precision: 3,
+        withTimezone: true,
+    }),
 });
 
 // History of item orders for every store, serving as a record of truth for orders.
@@ -261,59 +291,40 @@ export const ordersTable = pgTable(
         item_id: integer('item_id')
             .notNull()
             .references(() => storeItemsTable.id),
-        qty_submitted: decimal('qty_submitted', { precision: 10, scale: 2 }), // quantity submitted/requested from store managers
-        qty_ordered: decimal('qty_ordered', {
-            precision: 10,
-            scale: 2,
-        }), // quantity ordered from vendor by kojo/jelena, qty ordered based on current cash flow or current vendor supply
-        qty_delivered: decimal('qty_delivered', { precision: 10, scale: 2 }), // quantity actually delivered/received to store? I dont think this will be reliably updated
-        qty_per_order: varchar('qty_per_order', { length: 50 }), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
-        is_order_change: boolean('is_order_change').notNull().default(false), // If partial/complete order change when ordering from another vendor when vendor invent. insufficient, or cost effectiveness, this will be true. Only applies to CCP items?
-        vendor_id: integer('vendor_id')
+        init_vendor_id: integer('init_vendor_id')
             .notNull()
-            .references(() => vendorsTable.id), // vendor that supplied this item
+            .references(() => vendorsTable.id), // default/predicted vendor of item. Value is copied from items.vendor_id
+        final_vendor_id: integer('final_vendor_id').references(
+            () => vendorsTable.id
+        ), // The single vendor that actually supplied this item if wasnt split (see vendor_split table).
+        qty_per_order: varchar('qty_per_order', { length: 50 }), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
         list_price: decimal('list_price', {
             precision: 10,
             scale: 2,
-        }).notNull(), // Expected price of item at time of order. default value is items.list_price
+        }).notNull(), // Expected price of item. default value is items.list_price
         final_price: decimal('final_price', {
             precision: 10,
             scale: 2,
-        }).notNull(), // final invoiced amount for item, default value = items.list_price
+        }).notNull(), // final invoiced price for item, default value = items.list_price
         adj_price: decimal('adj_price', {
             precision: 10,
             scale: 2,
         }), // average price of item across stores, edge case for ccp items?, to report to stores
-        status: statusEnum('status').notNull().default('DUE'), // status of item in the order chain (eg DUE, SUBMITTED, ORDERED, DELIVERED, CANCELLED)
+        processed_via: varchar('processed_via', { length: 15 }).default(
+            'MANUALLY'
+        ), // How order was eventually processed. Eg manual (shopped in store, manually emailed, etc), email, web, or api
         is_priority_delivery: boolean('is_priority_delivery')
             .notNull()
             .default(false), // whether order is a priority delivery (emergencies, etc)
         is_par_order: boolean('is_par_order').notNull().default(false), // but par values are inaccurate/not used currently
-        comments: text('comments'), // any comments for order
-        submitted_date: timestamp('submitted_date'), // date order submitted from store managers
-        order_date: timestamp('order_date'), // date order placed upon kojo/jelena submit
-        // delivered_date: timestamp('delivery_date'), // I dont think this will be reliably updated
-        created_at: timestamp('created_at').notNull().defaultNow(), // date order originally created
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(), // date order originally created
     },
     (table) => [
-        {
-            posQtySubmittedCheck: check(
-                'positive_qty_submitted',
-                sql`${table.qty_submitted} >= 0`
-            ),
-        },
-        {
-            posQtyDeliveredCheck: check(
-                'positive_qty_delivered',
-                sql`${table.qty_delivered} >= 0`
-            ),
-        },
-        {
-            posQtyOrderedCheck: check(
-                'positive_qty_ordered',
-                sql`${table.qty_ordered} >= 0`
-            ),
-        },
         {
             posQtyPerOrderCheck: check(
                 'positive_qty_per_order',
@@ -336,6 +347,71 @@ export const ordersTable = pgTable(
             posAdjPriceCheck: check(
                 'positive_adj_price',
                 sql`${table.adj_price} >= 0`
+            ),
+        },
+        {
+            checkProcessedVia: check(
+                'check_processed_via',
+                sql`${table.processed_via} IN ('MANUALLY', 'EMAIL', 'WEB', 'API')`
+            ),
+        },
+    ]
+);
+
+// Record of each item's stage in the order workflow/chain  (see stage enum for list of stages))
+// Initial qty sum is when stage_name = sourcing, and final qty sum when stage_name = processed
+export const orderStagesTable = pgTable(
+    'order_stages',
+    {
+        id: serial('id').primaryKey(),
+        order_id: integer('order_id')
+            .notNull()
+            .references(() => ordersTable.id),
+        stage_name: stagesEnum('stage_name').notNull().default('DUE'), // stage of item order in order workflow/chain (DUE, SUBMITTED, ORDERED, DELIVERED, CANCELLED)
+        qty_sum: decimal('qty_sum', { precision: 10, scale: 2 }), // Sum of quantity requested at this stage
+        username: varchar('username', { length: 50 })
+            .notNull()
+            .default('SYSTEM'), // name of user who created this order stage
+        comments: text('comments'),
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(), // date of order stage creation
+    },
+    (table) => [
+        {
+            positiveQtySumCheck: check(
+                'positive_qty_sum',
+                sql`${table.qty_sum} >= 0`
+            ),
+        },
+    ]
+);
+
+// Tracks if an order was split between multiple vendors when processed (if any)
+// Eg: If an item has order_stages.qty_sum = 10 when stage_name=processed, and item's order used 2 vendors, then eg vendor_split.qty = 8, vendor_split.qty = 2 may (and should) be here
+export const vendorSplitTable = pgTable(
+    'vendor_split',
+    {
+        id: serial('id').primaryKey(),
+        order_id: integer('order_id').references(() => ordersTable.id),
+        vendor_id: integer('vendor_id')
+            .notNull()
+            .references(() => vendorsTable.id),
+        qty: decimal('qty', { precision: 10, scale: 2 }),
+        qty_per_order: varchar('qty_per_order', { length: 50 }), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
+        total_price: decimal('total_price', { precision: 10, scale: 2 }),
+    },
+    (table) => [
+        {
+            positiveQtyCheck: check('positive_qty', sql`${table.qty} >= 0`),
+        },
+        {
+            positiveTotalPriceCheck: check(
+                'positive_total_price',
+                sql`${table.total_price} >= 0`
             ),
         },
     ]
@@ -371,7 +447,9 @@ export const historyTable = pgTable('history', {
     field_name: varchar('field_name', { length: 50 }).notNull(),
     old_value: decimal('old_value', { precision: 10, scale: 2 }),
     new_value: decimal('new_value', { precision: 10, scale: 2 }),
-    changed_at: timestamp('changed_at').notNull().defaultNow(),
+    changed_at: timestamp('changed_at', { precision: 3, withTimezone: true })
+        .notNull()
+        .defaultNow(),
 });
 
 // Vendor-specific item details when neccessary, for edge cases where vendors have different names or details for the same general/internal item we use
@@ -392,7 +470,12 @@ export const vendorItemsTable = pgTable(
         brand_code: varchar('item_brand', { length: 100 }), // brand acronym/code of item from vendor (eg AREZIMP or WHLFCLS from Sysco vendor, etc)
         item_description: text('item_description'), // vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
         is_primary: boolean('is_primary').notNull().default(false), // whether this is the primary item for this vendor
-        created_at: timestamp('created_at').notNull().defaultNow(),
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
     },
     (table) => [
         {
@@ -417,7 +500,12 @@ export const parsTable = pgTable(
             .references(() => storeItemsTable.id, { onDelete: 'cascade' }),
         value: decimal('value', { precision: 10, scale: 2 }).notNull(),
         day_of_week: integer('day_of_week').notNull(), // (0-6, where 0 is Sunday)
-        changed_at: timestamp('changed_at').notNull().defaultNow(),
+        changed_at: timestamp('changed_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
     },
     (table) => [
         {
@@ -432,12 +520,14 @@ export const schedulesTable = pgTable('schedules', {
     name: varchar('name', { length: 30 }).notNull().unique(),
     description: text('description'),
     active: boolean('active').notNull().default(true),
-    created_at: timestamp('created_at').notNull().defaultNow(),
+    created_at: timestamp('created_at', { precision: 3, withTimezone: true })
+        .notNull()
+        .defaultNow(),
     exec_time: time('exec_time')
         .notNull()
         .default(sql`'00:00:00'`),
     days_of_week: integer('days_of_week').array().notNull(), // 0-6, where 0 is Sunday
-    last_run: timestamp('last_run'),
+    last_run: timestamp('last_run', { precision: 3, withTimezone: true }),
 });
 
 // Junction table

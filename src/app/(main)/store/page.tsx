@@ -237,7 +237,7 @@ export default function Stores() {
             <div>
                 <h1 className='text-3xl'>Store</h1>
             </div>
-            <div className='mb-4'>
+            <div className='mb-6'>
                 <StoreNavsBar />
             </div>
             {data?.length > 0 ? (
@@ -353,7 +353,7 @@ export default function Stores() {
                 </>
             ) : (
                 // <div className='flex flex-col justify-center'>
-                    <div className='flex flex-col items-center justify-center gap-2'>
+                    <div className='flex flex-col items-center justify-center gap-2 mb-4'>
                         <Image
                             src={baristaPic}
                             alt='complete'
@@ -361,7 +361,7 @@ export default function Stores() {
                             height={175}
                         />
                         <p className="text-xl text-gray-600">No orders due!</p>
-                        <p className="text-sm text-gray-400">Create an order below if you need one</p>
+                        <p className="text-sm text-gray-400">Create an order below if needed</p>
                         <Button size='lg' variant='myTheme'>Create Order</Button>
                     </div>
                 // </div>
