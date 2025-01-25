@@ -45,7 +45,7 @@ export const itemsTable = pgTable(
             .references(() => vendorsTable.id), // the vendor that supplies this item
         qty_per_order: varchar('qty_per_order'), // Items unit from its primary vendor (or bakery), not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc). Just change in csv if vendor changed-to requires different unit
         // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
-        current_price: decimal('current_price', { precision: 10, scale: 2 })
+        list_price: decimal('list_price', { precision: 10, scale: 2 })
             .notNull()
             .default(sql`0.00`), // Vendor's current list price for item
         store_categ: varchar('store_categ').notNull(), // categories for store managers
@@ -72,7 +72,7 @@ export const itemsTable = pgTable(
                 'invoice_categ_check',
                 sql`${table.invoice_categ} IN ('SANDWICH', 'PASTRY', 'FOOD', 'COOLER&EXTRAS', 'BEVERAGE', 'MISC/BATHROOM', 'CHOCOLATE&TEA', 'COFFEE', 'NONE')`
             ),
-            check('positive_current_price', sql`${table.current_price} >= 0`),
+            check('positive_list_price', sql`${table.list_price} >= 0`),
             check(
                 'store_category_check',
                 sql`${table.store_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
@@ -157,7 +157,7 @@ export const ordersTable = pgTable(
         list_price: decimal('list_price', {
             precision: 10,
             scale: 2,
-        }).notNull(), // Expected price of item. default value is items.list_price
+        }).notNull(), // Previous list price of item. Default value is items.list_price
         final_price: decimal('final_price', {
             precision: 10,
             scale: 2,
