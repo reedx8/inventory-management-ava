@@ -1,0 +1,2 @@
+ALTER TABLE "order_item_schedules" ADD CONSTRAINT "order_item_schedules_item_id_schedule_id_pk" PRIMARY KEY("item_id","schedule_id");--> statement-breakpoint
+ALTER TABLE "stock_item_schedules" ADD CONSTRAINT "stock_item_schedules_item_id_schedule_id_pk" PRIMARY KEY("item_id","schedule_id");

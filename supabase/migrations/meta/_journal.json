@@ -183,6 +183,20 @@
       "when": 1737843997816,
       "tag": "0025_black_ted_forrester",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1737844488187,
+      "tag": "0026_moaning_millenium_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1737844714558,
+      "tag": "0027_daily_sentinels",
+      "breakpoints": true
     }
   ]
 }

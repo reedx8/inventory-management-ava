@@ -318,17 +318,17 @@ export const vendorItemsTable = pgTable(
             .notNull()
             .defaultNow(),
     },
-    (table) => [
-        {
+    (table) => {
+        return [
             // can have multiple records with the same vendor and general item but different brands/names
             // Remove item_name if you want 1 item_name per vendor/general item (but using is_primary will alleviate any problems?)
-            vendorItemUnique: uniqueIndex('vendor_item_unique_idx').on(
+            uniqueIndex('vendor_item_unique_idx').on(
                 table.vendor_id,
                 table.item_id,
                 table.item_name
             ),
-        },
-    ]
+        ];
+    }
 );
 
 // Pars table for tracking daily/weekly par values, ie par = replacement level/value
@@ -379,10 +379,8 @@ export const order_item_schedulesTable = pgTable(
     },
     (table) => {
         return [
-            {
-                // composite key
-                pk: primaryKey({ columns: [table.item_id, table.schedule_id] }),
-            },
+            // composite key
+            primaryKey({ columns: [table.item_id, table.schedule_id] }),
         ];
     }
 );
@@ -396,10 +394,8 @@ export const stock_item_schedulesTable = pgTable(
     },
     (table) => {
         return [
-            {
-                // composite key
-                pk: primaryKey({ columns: [table.item_id, table.schedule_id] }),
-            },
+            // composite key
+            primaryKey({ columns: [table.item_id, table.schedule_id] }),
         ];
     }
 );

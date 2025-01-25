@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS "vendor_item_unique_idx" ON "vendor_items" USING btree ("vendor_id","item_id","item_name");
