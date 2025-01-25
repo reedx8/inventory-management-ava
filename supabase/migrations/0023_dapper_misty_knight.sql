@@ -1,0 +1,3 @@
+ALTER TABLE "items" ADD CONSTRAINT "invoice_categ_check" CHECK ("items"."invoice_categ" IN ('SANDWICH', 'PASTRY', 'FOOD', 'COOLER&EXTRAS', 'BEVERAGE', 'MISC/BATHROOM', 'CHOCOLATE&TEA', 'COFFEE', 'NONE'));--> statement-breakpoint
+ALTER TABLE "items" ADD CONSTRAINT "positive_current_price" CHECK ("items"."current_price" >= 0);--> statement-breakpoint
+ALTER TABLE "items" ADD CONSTRAINT "store_category_check" CHECK ("items"."store_categ" IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA'));

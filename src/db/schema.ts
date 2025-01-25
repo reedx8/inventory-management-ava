@@ -8,7 +8,6 @@ import {
     text,
     varchar,
     timestamp,
-    text as pgText,
     time,
     primaryKey,
     check,
@@ -67,22 +66,19 @@ export const itemsTable = pgTable(
             .notNull()
             .defaultNow(),
     },
-    (table) => [
-        {
-            invoiceCategoryCheck: check(
+    (table) => {
+        return [
+            check(
                 'invoice_categ_check',
                 sql`${table.invoice_categ} IN ('SANDWICH', 'PASTRY', 'FOOD', 'COOLER&EXTRAS', 'BEVERAGE', 'MISC/BATHROOM', 'CHOCOLATE&TEA', 'COFFEE', 'NONE')`
             ),
-            positiveCurrentPriceCheck: check(
-                'positive_current_price',
-                sql`${table.current_price} >= 0`
-            ),
-            storeCategoryCheck: check(
+            check('positive_current_price', sql`${table.current_price} >= 0`),
+            check(
                 'store_category_check',
                 sql`${table.store_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
             ),
-        },
-    ]
+        ];
+    }
 );
 
 // Record of stock counts from every store
@@ -126,41 +122,19 @@ export const stockTable = pgTable(
             scale: 2,
         }).default(sql`0.00`),
     },
-    (table) => [
-        {
-            positiveQtyCheck: check('positive_qty', sql`${table.qty} >= 0`),
-        },
-        {
-            positiveClosedCountCheck: check(
-                'positive_closed_count',
-                sql`${table.closed_count} >= 0`
-            ),
-        },
-        {
-            positiveSealedCountCheck: check(
-                'positive_sealed_count',
-                sql`${table.sealed_count} >= 0`
-            ),
-        },
-        {
-            positiveOpenItemsWeightCheck: check(
+    (table) => {
+        return [
+            check('positive_qty', sql`${table.qty} >= 0`),
+            check('positive_closed_count', sql`${table.closed_count} >= 0`),
+            check('positive_sealed_count', sql`${table.sealed_count} >= 0`),
+            check(
                 'open_items_weight_check',
                 sql`${table.open_items_weight} >= 0`
             ),
-        },
-        {
-            positiveExpiredCountCheck: check(
-                'expired_count_check',
-                sql`${table.expired_count} >= 0`
-            ),
-        },
-        {
-            positiveReusedCountCheck: check(
-                'reused_count_check',
-                sql`${table.reused_count} >= 0`
-            ),
-        },
-    ]
+            check('expired_count_check', sql`${table.expired_count} >= 0`),
+            check('reused_count_check', sql`${table.reused_count} >= 0`),
+        ];
+    }
 );
 
 // History of item orders for every store, serving as a record of truth for orders.
@@ -179,7 +153,7 @@ export const ordersTable = pgTable(
         final_vendor_id: integer('final_vendor_id').references(
             () => vendorsTable.id
         ), // The single vendor that actually supplied this item if wasnt split (see vendor_split table).
-        qty_per_order: varchar('qty_per_order', { length: 50 }), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
+        qty_per_order: varchar('qty_per_order'), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
         list_price: decimal('list_price', {
             precision: 10,
             scale: 2,
@@ -192,9 +166,7 @@ export const ordersTable = pgTable(
             precision: 10,
             scale: 2,
         }), // average price of item across stores, edge case for ccp items?, to report to stores
-        processed_via: varchar('processed_via', { length: 15 }).default(
-            'MANUALLY'
-        ), // How order was eventually processed. Eg manual (shopped in store, manually emailed, etc), email, web, or api
+        processed_via: varchar('processed_via').default('MANUALLY'), // How order was eventually processed. Eg manual (shopped in store, manually emailed, etc), email, web, or api
         is_priority_delivery: boolean('is_priority_delivery')
             .notNull()
             .default(false), // whether order is a priority delivery (emergencies, etc)
@@ -206,32 +178,17 @@ export const ordersTable = pgTable(
             .notNull()
             .defaultNow(), // date order originally created
     },
-    (table) => [
-        {
-            posListPriceCheck: check(
-                'positive_list_price',
-                sql`${table.list_price} >= 0`
-            ),
-        },
-        {
-            posFinalPriceCheck: check(
-                'positive_final_price',
-                sql`${table.final_price} >= 0`
-            ),
-        },
-        {
-            posAdjPriceCheck: check(
-                'positive_adj_price',
-                sql`${table.adj_price} >= 0`
-            ),
-        },
-        {
-            checkProcessedVia: check(
+    (table) => {
+        return [
+            check('positive_list_price', sql`${table.list_price} >= 0`),
+            check('positive_final_price', sql`${table.final_price} >= 0`),
+            check('positive_adj_price', sql`${table.adj_price} >= 0`),
+            check(
                 'check_processed_via',
                 sql`${table.processed_via} IN ('MANUALLY', 'EMAIL', 'WEB', 'API')`
             ),
-        },
-    ]
+        ];
+    }
 );
 
 // Record of each item's stage in the order workflow/chain  (see stage enum for list of stages))
@@ -245,9 +202,7 @@ export const orderStagesTable = pgTable(
             .references(() => ordersTable.id),
         stage_name: stagesEnum('stage_name').notNull().default('DUE'), // stage of item order in order workflow/chain (DUE, SUBMITTED, ORDERED, DELIVERED, CANCELLED)
         order_qty: decimal('order_qty', { precision: 10, scale: 2 }), // Sum of quantity requested at this stage from a store
-        username: varchar('username', { length: 50 })
-            .notNull()
-            .default('SYSTEM'), // name of user who created this order stage
+        username: varchar('username').notNull().default('SYSTEM'), // name of user who created this order stage
         comments: text('comments'),
         created_at: timestamp('created_at', {
             precision: 3,
@@ -256,25 +211,20 @@ export const orderStagesTable = pgTable(
             .notNull()
             .defaultNow(), // date of order stage creation
     },
-    (table) => [
-        {
-            positiveOrderQtyCheck: check(
-                'positive_order_qty',
-                sql`${table.order_qty} >= 0`
-            ),
-        },
-    ]
+    (table) => {
+        return [check('positive_order_qty', sql`${table.order_qty} >= 0`)];
+    }
 );
 
 // List of vendors that stores can order from. Lookup table.
 export const vendorsTable = pgTable('vendors', {
     id: serial('id').primaryKey(),
-    name: varchar('name', { length: 100 }).notNull().unique(), // vendors name (Ava Design, Bakery, Sysco, McDonalds, Javastock, Winco, Restaurant Depot, Chef Store, Costco, Grand Central (Jelena), Petes Milk (Jelena), Fred Meyer, and Safeway
-    email: varchar('email', { length: 100 }), // email for orders (if any)
-    phone: varchar('phone', { length: 20 }), // phone number for orders (if any)
-    contact_name: varchar('contact_name', { length: 50 }), // name of contact person for orders (if any)
+    name: varchar('name').notNull().unique(), // vendors name (Ava Design, Bakery, Sysco, McDonalds, Javastock, Winco, Restaurant Depot, Chef Store, Costco, Grand Central (Jelena), Petes Milk (Jelena), Fred Meyer, and Safeway
+    email: varchar('email'), // email for orders (if any)
+    phone: varchar('phone'), // phone number for orders (if any)
+    contact_name: varchar('contact_name'), // name of contact person for orders (if any)
     website: text('website'), // website for orders (if any)
-    logo: varchar('logo', { length: 200 }),
+    logo: varchar('logo'),
     is_active: boolean('is_active').notNull().default(true),
     is_exclusive_supplier: boolean('is_exclusive_supplier')
         .notNull()
@@ -300,20 +250,15 @@ export const vendorSplitTable = pgTable(
             .notNull()
             .references(() => vendorsTable.id),
         qty: decimal('qty', { precision: 10, scale: 2 }),
-        qty_per_order: varchar('qty_per_order', { length: 50 }), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
+        qty_per_order: varchar('qty_per_order'), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
         total_price: decimal('total_price', { precision: 10, scale: 2 }),
     },
-    (table) => [
-        {
-            positiveQtyCheck: check('positive_qty', sql`${table.qty} >= 0`),
-        },
-        {
-            positiveTotalPriceCheck: check(
-                'positive_total_price',
-                sql`${table.total_price} >= 0`
-            ),
-        },
-    ]
+    (table) => {
+        return [
+            check('positive_qty', sql`${table.qty} >= 0`),
+            check('positive_total_price', sql`${table.total_price} >= 0`),
+        ];
+    }
 );
 
 // List of stores at Ava Roasteria. Lookup table.
@@ -321,29 +266,26 @@ export const storesTable = pgTable(
     'stores',
     {
         id: serial('id').primaryKey(),
-        name: varchar('name', { length: 30 }).notNull().unique(), // name of store (eg Hall, Barrows, etc)
+        name: varchar('name').notNull().unique(), // name of store (eg Hall, Barrows, etc)
         weekly_budget: decimal('weekly_budget', {
             precision: 10,
             scale: 2,
         }).default(sql`0.00`), // weekly budget for store
-        logo: varchar('logo', { length: 200 }),
+        logo: varchar('logo'),
     },
-    (table) => [
-        {
-            checkConstraint: check(
-                'positive_weekly_budget',
-                sql`${table.weekly_budget} >= 0`
-            ),
-        },
-    ]
+    (table) => {
+        return [
+            check('positive_weekly_budget', sql`${table.weekly_budget} >= 0`),
+        ];
+    }
 );
 
 // Record table for tracking changes to records across tables
 export const historyTable = pgTable('history', {
     id: serial('id').primaryKey(),
-    table_name: varchar('table_name', { length: 50 }).notNull(),
+    table_name: varchar('table_name').notNull(),
     record_id: integer('record_id').notNull(),
-    field_name: varchar('field_name', { length: 50 }).notNull(),
+    field_name: varchar('field_name').notNull(),
     old_value: decimal('old_value', { precision: 10, scale: 2 }),
     new_value: decimal('new_value', { precision: 10, scale: 2 }),
     changed_at: timestamp('changed_at', { precision: 3, withTimezone: true })
@@ -364,9 +306,9 @@ export const vendorItemsTable = pgTable(
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id),
-        item_name: varchar('item_name', { length: 100 }), // exact name of item vendor needs/uses
-        item_code: varchar('item_code', { length: 50 }), // vendor specific item code/number (SUPC for Sysco, Petes Milk, Grand Central, etc)
-        brand_code: varchar('item_brand', { length: 100 }), // brand acronym/code of item from vendor (eg AREZIMP or WHLFCLS from Sysco vendor, etc)
+        item_name: varchar('item_name'), // exact name of item vendor needs/uses
+        item_code: varchar('item_code'), // vendor specific item code/number (SUPC for Sysco, Petes Milk, Grand Central, etc)
+        brand_code: varchar('item_brand'), // brand acronym/code of item from vendor (eg AREZIMP or WHLFCLS from Sysco vendor, etc)
         item_description: text('item_description'), // vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
         is_primary: boolean('is_primary').notNull().default(false), // whether this is the primary item for this vendor
         created_at: timestamp('created_at', {
@@ -407,17 +349,15 @@ export const parsTable = pgTable(
             .notNull()
             .defaultNow(),
     },
-    (table) => [
-        {
-            checkConstraint: check('positive_value', sql`${table.value} >= 0`),
-        },
-    ]
+    (table) => {
+        return [check('positive_value', sql`${table.value} >= 0`)];
+    }
 );
 
 // Schedules table for scheduling cron jobs (if user-created cron jobs needed)
 export const schedulesTable = pgTable('schedules', {
     id: serial('id').primaryKey(),
-    name: varchar('name', { length: 30 }).notNull().unique(),
+    name: varchar('name').notNull().unique(),
     description: text('description'),
     is_active: boolean('is_active').notNull().default(true),
     created_at: timestamp('created_at', { precision: 3, withTimezone: true })

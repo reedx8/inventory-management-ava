@@ -1,0 +1,22 @@
+ALTER TABLE "history" ALTER COLUMN "table_name" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "history" ALTER COLUMN "field_name" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "order_stages" ALTER COLUMN "username" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "orders" ALTER COLUMN "qty_per_order" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "orders" ALTER COLUMN "processed_via" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "schedules" ALTER COLUMN "name" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "stores" ALTER COLUMN "name" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "stores" ALTER COLUMN "logo" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "vendor_items" ALTER COLUMN "item_name" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "vendor_items" ALTER COLUMN "item_code" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "vendor_items" ALTER COLUMN "item_brand" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "vendor_split" ALTER COLUMN "qty_per_order" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "vendors" ALTER COLUMN "name" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "vendors" ALTER COLUMN "email" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "vendors" ALTER COLUMN "phone" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "vendors" ALTER COLUMN "contact_name" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "vendors" ALTER COLUMN "logo" SET DATA TYPE varchar;--> statement-breakpoint
+ALTER TABLE "order_stages" ADD CONSTRAINT "positive_order_qty" CHECK ("order_stages"."order_qty" >= 0);--> statement-breakpoint
+ALTER TABLE "pars" ADD CONSTRAINT "positive_value" CHECK ("pars"."value" >= 0);--> statement-breakpoint
+ALTER TABLE "stores" ADD CONSTRAINT "positive_weekly_budget" CHECK ("stores"."weekly_budget" >= 0);--> statement-breakpoint
+ALTER TABLE "vendor_split" ADD CONSTRAINT "positive_qty" CHECK ("vendor_split"."qty" >= 0);--> statement-breakpoint
+ALTER TABLE "vendor_split" ADD CONSTRAINT "positive_total_price" CHECK ("vendor_split"."total_price" >= 0);

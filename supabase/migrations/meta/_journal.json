@@ -141,6 +141,48 @@
       "when": 1737802605204,
       "tag": "0019_fix_item_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1737841421015,
+      "tag": "0020_sturdy_human_torch",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1737841802896,
+      "tag": "0021_simple_stardust",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1737842878967,
+      "tag": "0022_adorable_fat_cobra",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1737843806427,
+      "tag": "0023_dapper_misty_knight",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1737843905438,
+      "tag": "0024_nebulous_toad_men",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1737843997816,
+      "tag": "0025_black_ted_forrester",
+      "breakpoints": true
     }
   ]
 }

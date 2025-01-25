@@ -1,0 +1,1 @@
+ALTER TABLE "items" ALTER COLUMN "invoice_categ" DROP DEFAULT;
