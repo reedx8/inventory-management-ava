@@ -35,7 +35,7 @@ const stagesEnum = pgEnum('stages', [
 ]);
 export const stages = stagesEnum;
 
-// Table of general/internal items Ava Roasteria uses by default, containing operational necessities
+// General items of Ava Roasteria for every store
 export const itemsTable = pgTable(
     'items',
     {
@@ -49,15 +49,19 @@ export const itemsTable = pgTable(
         list_price: decimal('list_price', { precision: 10, scale: 2 })
             .notNull()
             .default(sql`0.00`), // Vendor's stated/expected list price for item, before receiving invoice. list_price -> orders.final_price, and eg list_price * orders.qty_ordered.
+        store_categ: varchar('store_categ', { length: 30 }).notNull(), // categories for store managers
         invoice_categ: varchar('invoice_categ', { length: 30 })
             .notNull()
             .default('none'), // accounting category for invoicing
         main_categ: varchar('main_categ', { length: 30 }), // main food category (US food groups + custom groups)
         sub_categ: varchar('sub_categ', { length: 30 }), // food sub category
-        requires_inventory: boolean('requires_inventory').notNull(), // whether item requires inventory
-        requires_order: boolean('requires_order').notNull(), // whether item requires order
+        requires_inventory: boolean('requires_inventory'), // whether item requires inventory
+        requires_order: boolean('requires_order'), // whether item requires order
         item_description: text('item_description'), // internal description of item
         vendor_description: text('vendor_description'), // primary vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
+        is_active: boolean('is_active').notNull().default(true), // whether item is active or not for all stores
+        // is_active_for_store: jsonb('is_active_for_store'), // Store JSON mapping of store IDs to active status, to activate/deactivate items per store (future feature)
+        // store_categories: jsonb('store_categories'), // Store JSON mapping of store IDs to store_categ, to categorize items per store (future feature)
         created_at: timestamp('created_at', {
             precision: 3,
             withTimezone: true,
@@ -69,44 +73,13 @@ export const itemsTable = pgTable(
         {
             invoiceCategoryCheck: check(
                 'invoice_categ_check',
-                sql`${table.invoice_categ} IN ('sandwich', 'pastry', 'food', 'cooler&extras', 'beverage', 'misc/bathroom', 'chocolate&tea', 'coffee', 'none')`
+                sql`${table.invoice_categ} IN ('SANDWICH', 'PASTRY', 'FOOD', 'COOLER&EXTRAS', 'BEVERAGE', 'MISC/BATHROOM', 'CHOCOLATE&TEA', 'COFFEE', 'NONE')`
             ),
         },
         {
-            positiveRawCostCheck: check(
+            positiveListPriceCheck: check(
                 'positive_list_price',
                 sql`${table.list_price} >= 0`
-            ),
-        },
-    ]
-);
-
-// Store-specific items table
-export const storeItemsTable = pgTable(
-    'store_items',
-    {
-        id: serial('id').primaryKey(),
-        item_id: integer('item_id')
-            .notNull()
-            .references(() => itemsTable.id), // name of item
-        store_id: integer('store_id')
-            .notNull()
-            .references(() => storesTable.id), // specific store this item is for
-        is_active: boolean('is_active').notNull().default(true), // whether item is active or not
-        store_categ: varchar('store_categ', { length: 30 }).notNull(), // categories for store managers
-        // location_categ: varchar('location', { length: 30 }).notNull(), // categories for store managers
-        created_at: timestamp('created_at', {
-            precision: 3,
-            withTimezone: true,
-        })
-            .notNull()
-            .defaultNow(),
-    },
-    (table) => [
-        {
-            storeItemUnique: uniqueIndex('store_items_unique_idx').on(
-                table.store_id,
-                table.item_id
             ),
         },
         {
@@ -118,67 +91,6 @@ export const storeItemsTable = pgTable(
     ]
 );
 
-/*
-// Menu of items for every store at Ava Roasteria. Core table.
-export const itemsTable = pgTable(
-    'items',
-    {
-        id: serial('id').primaryKey(),
-        name: varchar('name', { length: 100 }).notNull().unique(),
-        barcode: varchar('barcode', { length: 100 }).unique(),
-        store_id: integer('store_id')
-            .notNull()
-            .references(() => storesTable.id),
-        vendor_id: integer('vendor_id')
-            .notNull()
-            .references(() => vendorsTable.id),
-        raw_cost: decimal('raw_cost', { precision: 10, scale: 2 })
-            .notNull()
-            .default(sql`0.00`), // raw cost = orders.vendor_price
-        unit: varchar('unit', { length: 30 }),
-        unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }),
-        active: boolean('active').notNull().default(true),
-        acc_categ: varchar('acc_category', { length: 10 })
-            .notNull()
-            .default('NONE'), // accounting category for accountant
-        main_categ: varchar('main_categ', { length: 30 }).notNull(), // main item category
-        sub_categ: varchar('sub_categ', { length: 30 }), // sub item category
-        location_categ: varchar('location_categ', { length: 30 }).notNull(), // categories for store managers
-        description: text('description'),
-        created_at: timestamp('created_at').notNull().defaultNow(),
-        // category: varchar('category', { length: 100 }),
-        // order_days: pgText('order_days').array(9),
-        // own_brand: boolean('own_brand').notNull(),
-    },
-    (table) => [
-        {
-            checkConstraint: check(
-                'location_check',
-                sql`${table.location_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
-            ),
-        },
-        {
-            checkConstraint: check(
-                'acc_category_check',
-                sql`${table.acc_categ} IN ('CCP', 'CTC', 'NONE')`
-            ),
-        },
-        {
-            checkConstraint: check(
-                'positive_raw_cost',
-                sql`${table.raw_cost} >= 0`
-            ),
-        },
-        {
-            checkConstraint: check(
-                'positive_unit_qty',
-                sql`${table.unit_qty} >= 0`
-            ),
-        },
-    ]
-);
-*/
-
 // Record of stock counts from every store
 export const stockTable = pgTable(
     'stock',
@@ -186,8 +98,8 @@ export const stockTable = pgTable(
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
-            .references(() => storeItemsTable.id),
-        // store_id: integer('store_id').notNull(),
+            .references(() => itemsTable.id),
+        store_id: integer('store_id').references(() => storesTable.id),
         qty: decimal('qty', { precision: 10, scale: 2 }),
         date_of_count: timestamp('date_of_count', {
             precision: 3,
@@ -257,29 +169,6 @@ export const stockTable = pgTable(
     ]
 );
 
-// List of vendors that stores can order from. Lookup table.
-export const vendorsTable = pgTable('vendors', {
-    id: serial('id').primaryKey(),
-    name: varchar('name', { length: 100 }).notNull().unique(), // vendors name (Ava Design, Bakery, Sysco, McDonalds, Javastock, Winco, Restaurant Depot, Chef Store, Costco, Grand Central (Jelena), Petes Milk (Jelena), Fred Meyer, and Safeway
-    is_exclusive_supplier: boolean('is_exclusive_supplier')
-        .notNull()
-        .default(false), // If in Exclusive Supply Agreement with vendor, eg Sysco atm (non-ccp items if false. ccp = cost controlled product)
-    email: varchar('email', { length: 100 }), // email for orders (if any)
-    phone: varchar('phone', { length: 20 }), // phone number for orders (if any)
-    contact_name: varchar('contact_name', { length: 50 }), // name of contact person for orders (if any)
-    website: text('website'), // website for orders (if any)
-    logo: varchar('logo', { length: 200 }),
-    is_active: boolean('is_active').notNull().default(true),
-    agreement_start_date: timestamp('agreement_start_date', {
-        precision: 3,
-        withTimezone: true,
-    }),
-    agreement_end_date: timestamp('agreement_end_date', {
-        precision: 3,
-        withTimezone: true,
-    }),
-});
-
 // History of item orders for every store, serving as a record of truth for orders.
 // Each record maintains a complete snapshot of how the item was ordered at every store.
 export const ordersTable = pgTable(
@@ -288,7 +177,8 @@ export const ordersTable = pgTable(
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
-            .references(() => storeItemsTable.id),
+            .references(() => itemsTable.id),
+        store_id: integer('store_id').references(() => storesTable.id),
         init_vendor_id: integer('init_vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // default/predicted vendor of item. Value is copied from items.vendor_id
@@ -323,12 +213,6 @@ export const ordersTable = pgTable(
             .defaultNow(), // date order originally created
     },
     (table) => [
-        {
-            posQtyPerOrderCheck: check(
-                'positive_qty_per_order',
-                sql`${table.qty_per_order} >= 0`
-            ),
-        },
         {
             posListPriceCheck: check(
                 'positive_list_price',
@@ -366,7 +250,7 @@ export const orderStagesTable = pgTable(
             .notNull()
             .references(() => ordersTable.id),
         stage_name: stagesEnum('stage_name').notNull().default('DUE'), // stage of item order in order workflow/chain (DUE, SUBMITTED, ORDERED, DELIVERED, CANCELLED)
-        qty_sum: decimal('qty_sum', { precision: 10, scale: 2 }), // Sum of quantity requested at this stage
+        order_qty: decimal('order_qty', { precision: 10, scale: 2 }), // Sum of quantity requested at this stage from a store
         username: varchar('username', { length: 50 })
             .notNull()
             .default('SYSTEM'), // name of user who created this order stage
@@ -380,13 +264,36 @@ export const orderStagesTable = pgTable(
     },
     (table) => [
         {
-            positiveQtySumCheck: check(
-                'positive_qty_sum',
-                sql`${table.qty_sum} >= 0`
+            positiveOrderQtyCheck: check(
+                'positive_order_qty',
+                sql`${table.order_qty} >= 0`
             ),
         },
     ]
 );
+
+// List of vendors that stores can order from. Lookup table.
+export const vendorsTable = pgTable('vendors', {
+    id: serial('id').primaryKey(),
+    name: varchar('name', { length: 100 }).notNull().unique(), // vendors name (Ava Design, Bakery, Sysco, McDonalds, Javastock, Winco, Restaurant Depot, Chef Store, Costco, Grand Central (Jelena), Petes Milk (Jelena), Fred Meyer, and Safeway
+    email: varchar('email', { length: 100 }), // email for orders (if any)
+    phone: varchar('phone', { length: 20 }), // phone number for orders (if any)
+    contact_name: varchar('contact_name', { length: 50 }), // name of contact person for orders (if any)
+    website: text('website'), // website for orders (if any)
+    logo: varchar('logo', { length: 200 }),
+    is_active: boolean('is_active').notNull().default(true),
+    is_exclusive_supplier: boolean('is_exclusive_supplier')
+        .notNull()
+        .default(false), // If in Exclusive Supply Agreement (ESA) with vendor, eg Sysco atm (non-ccp items if false. ccp = cost controlled product)
+    agreement_start_date: timestamp('agreement_start_date', {
+        precision: 3,
+        withTimezone: true,
+    }), // ESA start date for vendor (if any)
+    agreement_end_date: timestamp('agreement_end_date', {
+        precision: 3,
+        withTimezone: true,
+    }), // ESA end date for vendor (if any)
+});
 
 // Tracks if an order was split between multiple vendors when processed (if any)
 // Eg: If an item has order_stages.qty_sum = 10 when stage_name=processed, and item's order used 2 vendors, then eg vendor_split.qty = 8, vendor_split.qty = 2 may (and should) be here
@@ -495,7 +402,8 @@ export const parsTable = pgTable(
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
-            .references(() => storeItemsTable.id, { onDelete: 'cascade' }),
+            .references(() => itemsTable.id, { onDelete: 'cascade' }),
+        store_id: integer('store_id').references(() => storesTable.id),
         value: decimal('value', { precision: 10, scale: 2 }).notNull(),
         day_of_week: integer('day_of_week').notNull(), // (0-6, where 0 is Sunday)
         changed_at: timestamp('changed_at', {
@@ -532,7 +440,7 @@ export const schedulesTable = pgTable('schedules', {
 export const order_item_schedulesTable = pgTable(
     'order_item_schedules',
     {
-        item_id: integer('item_id').references(() => storeItemsTable.id),
+        item_id: integer('item_id').references(() => itemsTable.id),
         schedule_id: integer('schedule_id').references(() => schedulesTable.id),
     },
     (table) => {
@@ -549,7 +457,7 @@ export const order_item_schedulesTable = pgTable(
 export const stock_item_schedulesTable = pgTable(
     'stock_item_schedules',
     {
-        item_id: integer('item_id').references(() => storeItemsTable.id),
+        item_id: integer('item_id').references(() => itemsTable.id),
         schedule_id: integer('schedule_id').references(() => schedulesTable.id),
     },
     (table) => {
@@ -565,9 +473,6 @@ export const stock_item_schedulesTable = pgTable(
 export type InsertItem = typeof itemsTable.$inferInsert;
 export type SelectItem = typeof itemsTable.$inferSelect;
 // export type UpdateItem = typeof itemsTable.$inferUpdate;
-export type InsertStoreItem = typeof storeItemsTable.$inferInsert;
-export type SelectStoreItem = typeof storeItemsTable.$inferSelect;
-// export type UpdateStoreItem = typeof storeItemsTable.$inferUpdate;
 export type InsertStock = typeof stockTable.$inferInsert;
 export type SelectStock = typeof stockTable.$inferSelect;
 // export type UpdateStock = typeof stockTable.$inferUpdate;
@@ -608,3 +513,100 @@ export type InsertStockItemSchedule =
 export type SelectStockItemSchedule =
     typeof stock_item_schedulesTable.$inferSelect;
 // export type UpdateStockItemSchedule = typeof stock_item_schedulesTable.$inferUpdate;
+
+/*
+// Store-specific items table
+export const storeItemsTable = pgTable(
+    'store_items',
+    {
+        id: serial('id').primaryKey(),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id), // name of item
+        store_id: integer('store_id')
+            .notNull()
+            .references(() => storesTable.id), // specific store this item is for
+        is_active: boolean('is_active').notNull().default(true), // whether item is active or not
+        store_categ: varchar('store_categ', { length: 30 }).notNull(), // categories for store managers
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
+    },
+    (table) => [
+        {
+            storeItemUnique: uniqueIndex('store_items_unique_idx').on(
+                table.store_id,
+                table.item_id
+            ),
+        },
+        {
+            storeCategoryCheck: check(
+                'store_category_check',
+                sql`${table.store_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
+            ),
+        },
+    ]
+);
+
+// Menu of items for every store at Ava Roasteria. Core table. First items table created originally in project
+export const itemsTable = pgTable(
+    'items',
+    {
+        id: serial('id').primaryKey(),
+        name: varchar('name', { length: 100 }).notNull().unique(),
+        barcode: varchar('barcode', { length: 100 }).unique(),
+        store_id: integer('store_id')
+            .notNull()
+            .references(() => storesTable.id),
+        vendor_id: integer('vendor_id')
+            .notNull()
+            .references(() => vendorsTable.id),
+        raw_cost: decimal('raw_cost', { precision: 10, scale: 2 })
+            .notNull()
+            .default(sql`0.00`), // raw cost = orders.vendor_price
+        unit: varchar('unit', { length: 30 }),
+        unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }),
+        active: boolean('active').notNull().default(true),
+        acc_categ: varchar('acc_category', { length: 10 })
+            .notNull()
+            .default('NONE'), // accounting category for accountant
+        main_categ: varchar('main_categ', { length: 30 }).notNull(), // main item category
+        sub_categ: varchar('sub_categ', { length: 30 }), // sub item category
+        location_categ: varchar('location_categ', { length: 30 }).notNull(), // categories for store managers
+        description: text('description'),
+        created_at: timestamp('created_at').notNull().defaultNow(),
+        // category: varchar('category', { length: 100 }),
+        // order_days: pgText('order_days').array(9),
+        // own_brand: boolean('own_brand').notNull(),
+    },
+    (table) => [
+        {
+            checkConstraint: check(
+                'location_check',
+                sql`${table.location_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
+            ),
+        },
+        {
+            checkConstraint: check(
+                'acc_category_check',
+                sql`${table.acc_categ} IN ('CCP', 'CTC', 'NONE')`
+            ),
+        },
+        {
+            checkConstraint: check(
+                'positive_raw_cost',
+                sql`${table.raw_cost} >= 0`
+            ),
+        },
+        {
+            checkConstraint: check(
+                'positive_unit_qty',
+                sql`${table.unit_qty} >= 0`
+            ),
+        },
+    ]
+);
+*/
