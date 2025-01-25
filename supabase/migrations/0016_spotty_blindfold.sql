@@ -1,0 +1,1 @@
+ALTER TABLE "items" RENAME COLUMN "list_price" TO "current_price";
