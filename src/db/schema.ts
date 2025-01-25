@@ -1,3 +1,4 @@
+// Schema for Ava Roasteria's Inventory Management System
 import {
     integer,
     decimal,
@@ -91,7 +92,7 @@ export const storeItemsTable = pgTable(
         store_id: integer('store_id')
             .notNull()
             .references(() => storesTable.id), // specific store this item is for
-        active: boolean('active').notNull().default(true), // whether item is active or not
+        is_active: boolean('is_active').notNull().default(true), // whether item is active or not
         store_categ: varchar('store_categ', { length: 30 }).notNull(), // categories for store managers
         // location_categ: varchar('location', { length: 30 }).notNull(), // categories for store managers
         created_at: timestamp('created_at', {
@@ -178,16 +179,16 @@ export const itemsTable = pgTable(
 );
 */
 
-// Record of inventory counts from every store
-export const inventoryTable = pgTable(
-    'inventory',
+// Record of stock counts from every store
+export const stockTable = pgTable(
+    'stock',
     {
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
             .references(() => storeItemsTable.id),
         // store_id: integer('store_id').notNull(),
-        count: decimal('count', { precision: 10, scale: 2 }),
+        qty: decimal('qty', { precision: 10, scale: 2 }),
         date_of_count: timestamp('date_of_count', {
             precision: 3,
             withTimezone: true,
@@ -221,10 +222,7 @@ export const inventoryTable = pgTable(
     },
     (table) => [
         {
-            positiveCountCheck: check(
-                'positive_count',
-                sql`${table.count} >= 0`
-            ),
+            positiveQtyCheck: check('positive_qty', sql`${table.qty} >= 0`),
         },
         {
             positiveClosedCountCheck: check(
@@ -514,12 +512,12 @@ export const parsTable = pgTable(
     ]
 );
 
-// Schedules table for scheduling cron jobs
+// Schedules table for scheduling cron jobs (if user-created cron jobs needed)
 export const schedulesTable = pgTable('schedules', {
     id: serial('id').primaryKey(),
     name: varchar('name', { length: 30 }).notNull().unique(),
     description: text('description'),
-    active: boolean('active').notNull().default(true),
+    is_active: boolean('is_active').notNull().default(true),
     created_at: timestamp('created_at', { precision: 3, withTimezone: true })
         .notNull()
         .defaultNow(),
@@ -530,7 +528,7 @@ export const schedulesTable = pgTable('schedules', {
     last_run: timestamp('last_run', { precision: 3, withTimezone: true }),
 });
 
-// Junction table
+// Junction table for cron job scheduling (orders)
 export const order_item_schedulesTable = pgTable(
     'order_item_schedules',
     {
@@ -547,9 +545,9 @@ export const order_item_schedulesTable = pgTable(
     }
 );
 
-// Junction table
-export const inv_item_schedulesTable = pgTable(
-    'inv_item_schedules',
+// Junction table for cron job scheduling (stock)
+export const stock_item_schedulesTable = pgTable(
+    'stock_item_schedules',
     {
         item_id: integer('item_id').references(() => storeItemsTable.id),
         schedule_id: integer('schedule_id').references(() => schedulesTable.id),
@@ -570,9 +568,9 @@ export type SelectItem = typeof itemsTable.$inferSelect;
 export type InsertStoreItem = typeof storeItemsTable.$inferInsert;
 export type SelectStoreItem = typeof storeItemsTable.$inferSelect;
 // export type UpdateStoreItem = typeof storeItemsTable.$inferUpdate;
-export type InsertInventory = typeof inventoryTable.$inferInsert;
-export type SelectInventory = typeof inventoryTable.$inferSelect;
-// export type UpdateInventory = typeof inventoryTable.$inferUpdate;
+export type InsertStock = typeof stockTable.$inferInsert;
+export type SelectStock = typeof stockTable.$inferSelect;
+// export type UpdateStock = typeof stockTable.$inferUpdate;
 export type InsertVendor = typeof vendorsTable.$inferInsert;
 export type SelectVendor = typeof vendorsTable.$inferSelect;
 // export type UpdateVendor = typeof vendorsTable.$inferUpdate;
@@ -605,6 +603,8 @@ export type InsertOrderItemSchedule =
 export type SelectOrderItemSchedule =
     typeof order_item_schedulesTable.$inferSelect;
 // export type UpdateOrderItemSchedule = typeof order_item_schedulesTable.$inferUpdate;
-export type InsertInvItemSchedule = typeof inv_item_schedulesTable.$inferInsert;
-export type SelectInvItemSchedule = typeof inv_item_schedulesTable.$inferSelect;
-// export type UpdateInvItemSchedule = typeof inv_item_schedulesTable.$inferUpdate;
+export type InsertStockItemSchedule =
+    typeof stock_item_schedulesTable.$inferInsert;
+export type SelectStockItemSchedule =
+    typeof stock_item_schedulesTable.$inferSelect;
+// export type UpdateStockItemSchedule = typeof stock_item_schedulesTable.$inferUpdate;
