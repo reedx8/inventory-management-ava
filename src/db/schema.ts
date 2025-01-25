@@ -50,7 +50,7 @@ export const itemsTable = pgTable(
             .notNull()
             .default(sql`0.00`), // Vendor's current list price for item
         store_categ: varchar('store_categ').notNull(), // categories for store managers
-        invoice_categ: varchar('invoice_categ').notNull().default('none'), // accounting category for invoicing
+        invoice_categ: varchar('invoice_categ').notNull().default('NONE'), // accounting category for invoicing
         main_categ: varchar('main_categ'), // main food category (US food groups + custom groups)
         sub_categ: varchar('sub_categ'), // food sub category
         requires_inventory: boolean('requires_inventory'), // whether item requires inventory

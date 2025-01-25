@@ -127,6 +127,20 @@
       "when": 1737800725999,
       "tag": "0017_fixed_carmella_unuscione",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1737802232050,
+      "tag": "0018_wakeful_meggan",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1737802605204,
+      "tag": "0019_fix_item_constraints",
+      "breakpoints": true
     }
   ]
 }
