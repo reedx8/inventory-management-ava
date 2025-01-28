@@ -4,21 +4,25 @@ import {
     NavigationMenuItem,
     NavigationMenuLink,
     NavigationMenuList,
-    navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 
-const navItems = [
+interface NavItem {
+    title: string;
+    url: string;
+}
+
+const storePages : NavItem[] = [
     {
         title: 'Orders Due',
         url: '/store',
     },
     {
-        title: 'Inventory Due',
-        url: '/store/inventory',
+        title: 'Stock Due',
+        url: '/store/stock',
     },
     // { TODO
     //     title: "Pars",
@@ -30,14 +34,29 @@ const navItems = [
     */
 ];
 
-export default function StoreNavsBar() {
+const orderPages : NavItem[] = [
+    {
+        title: 'Orders',
+        url: '/orders',
+    },
+    {
+        title: 'Milk & Bread',
+        url: '/orders/milkbread',
+    },
+]
+
+export default function PagesNavBar() {
     const [currentPage, setCurrentPage] = useState('/');
+    const [navItems, setNavItems] = useState<NavItem[]>([]);
     const pathname = usePathname();
     useEffect(() => {
-        // console.log("path: " + pathname.split('/')[2]);
-        // console.log("path: " + pathname);
         setCurrentPage(pathname);
-    }, [pathname]);
+        if (pathname.split('/')[1] === 'orders') {
+            setNavItems(orderPages);
+        } else {
+            setNavItems(storePages);
+        }
+    }, [pathname, navItems]);
 
     // console.log(currentPage);
 

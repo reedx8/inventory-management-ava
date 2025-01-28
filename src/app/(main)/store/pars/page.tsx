@@ -1,4 +1,4 @@
-import StoreNavsBar from "@/components/stores-navbar";
+import StoreNavsBar from "@/components/pages-navbar";
 
 export default function Pars(){
     return (

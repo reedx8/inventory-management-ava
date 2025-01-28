@@ -8,11 +8,12 @@ import {
     Home,
     Store,
     CookingPot,
-    NotepadText,
+    // NotepadText,
     Settings2,
     LogOut,
     ChevronUp,
     User,
+    ConciergeBell,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -51,9 +52,10 @@ const items = [
         icon: CookingPot,
     },
     {
-        title: 'Reports',
-        url: '/reports',
-        icon: NotepadText,
+        title: 'Orders',
+        url: '/orders',
+        icon: ConciergeBell,
+        // icon: NotepadText,
     },
     {
         title: 'Manage',

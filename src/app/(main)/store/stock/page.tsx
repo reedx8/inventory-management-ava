@@ -1,5 +1,5 @@
 'use client';
-import PagesNavBar from '@/components/pages-navbar';
+import StoreNavsBar from '@/components/pages-navbar';
 import React, { useState, useEffect } from 'react';
 import {
     Table,
@@ -19,18 +19,15 @@ import {
     useReactTable,
 } from '@tanstack/react-table';
 import { Dot } from 'lucide-react';
-import noOrdersPic from '/public/illustrations/barista.svg';
+import noStockPic from '/public/illustrations/empty.svg';
 import Image from 'next/image';
-// import { getStoreOrders } from '@/db/queries/select';
-// import { init } from 'next/dist/compiled/webpack/webpack';
-// import next from 'next';
 
 interface Item {
     id: number;
     name: string;
     due_date: string;
-    qty_per_order: string;
-    order: number | null;
+    units: string;
+    stock_qty: number | null;
     store_categ: string;
     stage: string;
 }
@@ -48,77 +45,48 @@ const STORE_CATEGORIES = [
 const dummyData : Item[] = [
     {
         id: 1,
-        name: 'Strawberry & Cream Cheese Turnover',
+        name: 'Tomatoes',
         due_date: '2025-06-15',
-        qty_per_order: '1 Pc',
-        order: 0,
-        store_categ: 'PASTRY',
+        units: '1 Pc',
+        stock_qty: 0,
+        store_categ: 'FRIDGE',
         stage: 'DUE',
     },
     {
         id: 2,
-        name: 'Peach & Cream Cheese Turnover',
+        name: 'Semi Sweet Dark Chocolate',
         due_date: '2025-06-15',
-        qty_per_order: '1 Pc',
-        order: 0,
-        store_categ: 'PASTRY',
+        units: '22 lb',
+        stock_qty: 0,
+        store_categ: 'BEANS&TEA',
         stage: 'DUE',
     },
     {
         id: 3,
-        name: 'Cream Cheese Turnover',
+        name: 'AVA Drip Blend',
         due_date: '2025-06-15',
-        qty_per_order: '1 Pc',
-        order: 0,
-        store_categ: 'PASTRY',
+        units: 'Bucket (16 lb)',
+        stock_qty: 0,
+        store_categ: 'BEANS&TEA',
         stage: 'DUE',
     },
     {
         id: 4,
-        name: 'Sesame Bagel',
+        name: 'Black Ice Tea',
         due_date: '2025-06-15',
-        qty_per_order: '4 Pcs/Pack',
-        order: 0,
-        store_categ: 'PASTRY',
-        stage: 'DUE',
-    },
-    {
-        id: 5,
-        name: 'Zu Zus',
-        due_date: '2025-06-15',
-        qty_per_order: '12 Pcs',
-        order: 0,
-        store_categ: 'PASTRY',
-        stage: 'DUE',
-    },
-    {
-        id: 6,
-        name: 'Strawberry Whip Cream Cake (Full)',
-        due_date: '2025-06-15',
-        qty_per_order: '1 cake',
-        order: 0,
-        store_categ: 'PASTRY',
-        stage: 'DUE',
-    },
-    {
-        id: 7,
-        name: 'Strawberry Whip Cream Cake (Half)',
-        due_date: '2025-06-15',
-        qty_per_order: '1/2 cake',
-        order: 0,
-        store_categ: 'PASTRY',
+        units: '50 Pcs/Pack',
+        stock_qty: 0,
+        store_categ: 'BEANS&TEA',
         stage: 'DUE',
     },
 ];
 
-
-export default function Stores() {
+export default function Stock() {
     const [data, setData] = useState<Item[]>([]);
-    // const [ storeData, setStoreData ] = useState<Item[]>([]);
     const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
 
     // Accepts integers only
-    const OrderCell = ({ getValue, row, column, table }) => {
+    const StockCell = ({ getValue, row, column, table }) => {
         const initialValue = getValue();
         const [value, setValue] = useState<string>(
             initialValue?.toString() ?? ''
@@ -206,14 +174,14 @@ export default function Stores() {
             header: 'Due Date',
         },
         {
-            accessorKey: 'qty_per_order',
-            header: 'Qty/Order',
+            accessorKey: 'units',
+            header: 'Units',
         },
         {
-            accessorKey: 'order',
-            header: 'Order',
+            accessorKey: 'stock_qty',
+            header: 'Stock Quantity',
             // size: 200,
-            cell: OrderCell,
+            cell: StockCell,
         },
     ];
 
@@ -249,7 +217,7 @@ export default function Stores() {
     // object lookup for category messages
     const categoryMessage: Record<string, JSX.Element | string> = {
         ALL: '',
-        PASTRY: <p>Pastry item orders due everyday</p>,
+        PASTRY: <p>Pastry stock due every Sunday</p>,
         FRONT: <p>Front counter items</p>,
         GENERAL: <p>General items</p>,
         STOCKROOM: <p>Items in stockroom and its shelves</p>,
@@ -276,27 +244,27 @@ export default function Stores() {
     }
 
     useEffect(() => {
-        const fetchStoreOrders = async () => {
+        const fetchStoresStock = async () => {
             try {
                 // fetch every store (no storeId param in api url)
-                const response = await fetch('/api/v1/store-orders?storeId=2');
+                const response = await fetch('/api/v1/store-stock?storeId=2');
                 const data = await response.json();
                 if (response.ok) {
                     setData(data); // set data to all stores
                     // setStoreData(data);
                 } else {
-                    console.error('Error fetching store orders:', data);
+                    console.error('Error fetching store stock:', data);
                     setData([]);
                     // setStoreData([]);
                 }
             } catch (error) {
-                console.error('Error fetching store orders:', error);
+                console.error('Error fetching store stock:', error);
                 setData([]);
                 // setStoreData([]);
             }
         };
 
-        // fetchStoreOrders();
+        // fetchStoresStock();
     }, []);
 
     return (
@@ -304,8 +272,8 @@ export default function Stores() {
             <div>
                 <h1 className='text-3xl'>Store</h1>
             </div>
-            <div className='mb-6'>
-                <PagesNavBar />
+            <div className="mb-6">
+                <StoreNavsBar />
             </div>
             {data?.length > 0 ? (
                 <>
@@ -348,7 +316,7 @@ export default function Stores() {
                                                             style={{
                                                                 width:
                                                                     header.id ===
-                                                                    'order'
+                                                                    'stock_qty'
                                                                         ? '130px'
                                                                         : 'auto',
                                                             }}
@@ -377,7 +345,7 @@ export default function Stores() {
                                                             width:
                                                                 cell.column
                                                                     .id ===
-                                                                'order'
+                                                                'stock_qty'
                                                                     ? '130px'
                                                                     : 'auto',
                                                         }}
@@ -422,14 +390,14 @@ export default function Stores() {
                 // <div className='flex flex-col justify-center'>
                     <div className='flex flex-col items-center justify-center gap-2 mb-4'>
                         <Image
-                            src={noOrdersPic}
-                            alt='no orders due today pic'
-                            width={175}
-                            height={175}
+                            src={noStockPic}
+                            alt='no stock due today pic'
+                            width={300}
+                            height={300}
                         />
-                        <p className="text-xl text-gray-600">No Orders Due!</p>
-                        <p className="text-sm text-gray-400">Create an order below if needed</p>
-                        <Button size='lg' variant='myTheme'>Create Order</Button>
+                        <p className="text-xl text-gray-600">No Stock Due!</p>
+                        <p className="text-sm text-gray-400">No stock entries due today</p>
+                        {/* <Button size='lg' variant='myTheme'>Create Stock Entry</Button> */}
                     </div>
                 // </div>
             )}
