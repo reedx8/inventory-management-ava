@@ -41,7 +41,7 @@ export default function Manage() {
                         />
                         <p className="text-2xl text-gray-600">No Inventory!</p>
                         <p className="text-sm text-gray-400">No items have been added. Add some!</p>
-                        <Button size='lg' variant='myTheme'>Create Item</Button>
+                        <Button size='lg' variant='myTheme'>Add Item</Button>
                     </div>
                 )
             }
