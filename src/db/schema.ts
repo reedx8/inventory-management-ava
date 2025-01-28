@@ -237,6 +237,7 @@ export const vendorsTable = pgTable('vendors', {
         precision: 3,
         withTimezone: true,
     }), // ESA end date for vendor (if any)
+    comments: text('comments'),
 });
 
 // Tracks if an order was split between multiple vendors when processed (if any)
