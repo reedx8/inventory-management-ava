@@ -56,7 +56,7 @@ export default function Bakery() {
                             width={250}
                             height={250}
                         />
-                        <p className="text-xl text-gray-600">No Pastries Due!</p>
+                        <p className="text-2xl text-gray-600">No Pastries Due!</p>
                         <p className="text-sm text-gray-400">All pastries have been delivered today</p>
                         {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
                     </div>

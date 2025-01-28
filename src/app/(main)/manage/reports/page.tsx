@@ -21,10 +21,10 @@ export default function ManageReports() {
                 <Image
                     src={noReportsPic}
                     alt='no reports pic'
-                    width={300}
-                    height={300}
+                    width={400}
+                    height={400}
                 />
-                <p className='text-xl text-gray-600'>Coming Soon</p>
+                <p className='text-2xl text-gray-600'>Coming Soon</p>
                 <p className='text-sm text-gray-400'>
                     No reports have been created yet
                 </p>

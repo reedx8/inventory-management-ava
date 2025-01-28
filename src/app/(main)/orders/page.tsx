@@ -39,8 +39,8 @@ export default function Orders() {
                         width={250}
                         height={250}
                     />
-                    <p className='text-xl text-gray-600'>
-                        All Orders Complete!
+                    <p className='text-2xl text-gray-600'>
+                        All Orders Processed!
                     </p>
                     <p className='text-sm text-gray-400'>
                         This week's orders have been processed

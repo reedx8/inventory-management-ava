@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import PagesNavBar from "@/components/pages-navbar";
 import { TodaysDate } from "@/components/todays-date";
-import breakfastPic from '/public/illustrations/breakfast.svg';
+import noInventoryPic from '/public/illustrations/breakfast.svg';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
@@ -34,12 +34,12 @@ export default function Manage() {
                 ) : (
                     <div className='flex flex-col items-center justify-center gap-2 mb-4'>
                         <Image
-                            src={breakfastPic}
+                            src={noInventoryPic}
                             alt='no inventory pic'
-                            width={300}
-                            height={300}
+                            width={375}
+                            height={375}
                         />
-                        <p className="text-xl text-gray-600">No Inventory!</p>
+                        <p className="text-2xl text-gray-600">No Inventory!</p>
                         <p className="text-sm text-gray-400">No items have been added. Add some!</p>
                         <Button size='lg' variant='myTheme'>Create Item</Button>
                     </div>

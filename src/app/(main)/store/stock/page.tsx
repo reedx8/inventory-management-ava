@@ -396,8 +396,8 @@ export default function Stock() {
                             width={300}
                             height={300}
                         />
-                        <p className="text-xl text-gray-600">No Stock Due!</p>
-                        <p className="text-sm text-gray-400">No stock entries due today</p>
+                        <p className="text-2xl text-gray-600">No Stock Due!</p>
+                        <p className="text-sm text-gray-400">No stock entries due currently</p>
                         {/* <Button size='lg' variant='myTheme'>Create Stock Entry</Button> */}
                     </div>
                 // </div>

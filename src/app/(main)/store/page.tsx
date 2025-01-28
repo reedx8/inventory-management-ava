@@ -428,7 +428,7 @@ export default function Stores() {
                             width={175}
                             height={175}
                         />
-                        <p className="text-xl text-gray-600">No Orders Due!</p>
+                        <p className="text-2xl text-gray-600">No Orders Due!</p>
                         <p className="text-sm text-gray-400">Create an order below if needed</p>
                         <Button size='lg' variant='myTheme'>Create Order</Button>
                     </div>

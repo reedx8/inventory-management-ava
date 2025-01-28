@@ -16,10 +16,10 @@ export default function ManageHistory() {
                 <Image
                     src={noHistoryPic}
                     alt='no history pic'
-                    width={300}
-                    height={300}
+                    width={400}
+                    height={400}
                 />
-                <p className='text-xl text-gray-600'>Coming Soon</p>
+                <p className='text-2xl text-gray-600'>Coming Soon</p>
                 <p className='text-sm text-gray-400'>
                     No history has been created yet
                 </p>
