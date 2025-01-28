@@ -130,7 +130,7 @@ export default function Home() {
         <Card className="h-full">
           <CardHeader>
             <CardTitle>Due Today</CardTitle>
-            <CardDescription>Orders / Stock Due</CardDescription>
+            <CardDescription>Orders & Stock Due Today</CardDescription>
           </CardHeader>
           <CardContent>
             <p>Content</p>
