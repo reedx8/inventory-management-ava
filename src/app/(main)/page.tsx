@@ -19,6 +19,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { ChevronRight, CalendarDays } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay"
 import { useRef } from "react";
+import { TodaysDate, todaysDay} from "@/components/todays-date";
 
 
 const orderSchedule = [
@@ -100,8 +101,8 @@ function CarouselComponent(){
             <CarouselItem className="h-full">
               <Card className="h-full">
                 <CardHeader>
-                  <CardTitle>Completed Inventory</CardTitle>
-                  <CardDescription>Today's Completed Inventory</CardDescription>
+                  <CardTitle>Completed stock</CardTitle>
+                  <CardDescription>Today's Completed stock</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p>Content</p>
@@ -119,38 +120,17 @@ function CarouselComponent(){
 }
 
 export default function Home() {
-  // get todays day and date
-  function todaysDate(){
-    const today = new Date();
-    // const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const monthsOfYear = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-    // const dayOfWeek = daysOfWeek[today.getDay()];
-    const month = monthsOfYear[today.getMonth()]; 
-    const dayNumber = today.getDate();
-    const year = today.getFullYear();
-
-    return `${todaysDay()} ${month} ${dayNumber}, ${year}`;
-  }
-
-  function todaysDay(){
-    const today = new Date();
-    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const dayOfWeek = daysOfWeek[today.getDay()];
-    return dayOfWeek;
-  }
-
   return (
     <div className="mt-6">
       <div>
-        <h1 className="text-3xl">Home <span className="text-sm p-6">{todaysDate()}</span></h1>
+        <h1 className="text-3xl">Home <TodaysDate/></h1>
       </div>
-      <div className="flex gap-4 mt-3 items-stretch h-auto max-h-[100px] text-sm">
+      <div className="flex gap-4 mt-3 items-stretch text-sm">
         <div className="flex-1 h-full">
         <Card className="h-full">
           <CardHeader>
             <CardTitle>Due Today</CardTitle>
-            <CardDescription>Orders / Inventory Due</CardDescription>
+            <CardDescription>Orders / Stock Due</CardDescription>
           </CardHeader>
           <CardContent>
             <p>Content</p>
@@ -168,7 +148,7 @@ export default function Home() {
                 <Tabs className="text-sm">
                   <TabsList>
                     <TabsTrigger value='orders'>Orders</TabsTrigger>
-                    <TabsTrigger value='inventory'>Inventory</TabsTrigger>
+                    <TabsTrigger value='stock'>Stock</TabsTrigger>
                   </TabsList>
                   <TabsContent value='orders' className="flex flex-col gap-1">
                       {orderSchedule.map((item) => (
@@ -184,7 +164,7 @@ export default function Home() {
                           </div>
                       ))}
                   </TabsContent>
-                  <TabsContent value='inventory' className="flex flex-col gap-1">
+                  <TabsContent value='stock' className="flex flex-col gap-1">
                     {invSchedule.map((item) => (
                       todaysDay() === item.day ?
                       <div key={item.day} className="grid grid-cols-2">

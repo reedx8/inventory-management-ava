@@ -14,6 +14,7 @@ import {
     ChevronUp,
     User,
     ConciergeBell,
+    Contact,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -62,6 +63,12 @@ const items = [
         url: '/manage',
         icon: Settings2,
     },
+    {
+        title: "Contacts",
+        url: "/contacts",
+        icon: Contact,
+
+    }
 ];
 export function AppSidebar() {
     const [userName, setUserName] = useState('');

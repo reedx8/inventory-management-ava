@@ -21,6 +21,7 @@ import {
 // import { Dot } from 'lucide-react';
 import noPastriesPic from '/public/illustrations/cooking.svg';
 import Image from 'next/image';
+import { TodaysDate } from '@/components/todays-date';
 
 interface Item {
     id: number;
@@ -37,7 +38,7 @@ export default function Bakery() {
     return (
         <div className='mt-6'>
             <div>
-                <h1 className='text-3xl'>Bakery</h1>
+                <h1 className='text-3xl'>Bakery <TodaysDate/></h1>
             </div>
             <div className='mb-6'>
                 {/* <StoreNavsBar /> */}

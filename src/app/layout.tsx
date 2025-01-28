@@ -1,10 +1,10 @@
-import { Afacad_Flux } from "next/font/google";
+// import { Afacad_Flux } from "next/font/google";
 import { Montserrat } from "next/font/google";
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+// import localFont from "next/font/local";
 import "./globals.css";
 
-const afacadFlux = Afacad_Flux({ subsets: ["latin"] });
+// const afacadFlux = Afacad_Flux({ subsets: ["latin"] });
 const montserrat = Montserrat({ subsets: ["latin"] });
 
 // const geistSans = localFont({
@@ -31,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       {/* <body className={`${geistSans.variable} ${geistMono.variable}`}> */}
-        <body className={montserrat.className}>
+        <body className={`${montserrat.className}`}>
+        {/* <body className={`${montserrat.className} h-full`}> */}
+        {/* <body className={montserrat.className}> */}
           {children}
       </body>
     </html>

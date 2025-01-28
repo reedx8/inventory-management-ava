@@ -45,6 +45,39 @@ const orderPages : NavItem[] = [
     },
 ]
 
+const managePages : NavItem[] = [
+    {
+        title: 'Inventory',
+        url: '/manage',
+    },
+    {
+        title: 'Reports',
+        // url: '/manage',
+        url: '/manage/reports',
+    },
+    {
+        title: 'Stores',
+        // url: '/manage',
+        url: '/manage/stores',
+    },
+    {
+        title: 'History',
+        // url: '/manage',
+        url: '/manage/history',
+    }
+]
+
+const contactsPages : NavItem[] = [
+    {
+        title: 'Vendors',
+        url: '/contacts',
+    },
+    {
+        title: 'Staff',
+        url: '/contacts/staff',
+    }
+]
+
 export default function PagesNavBar() {
     const [currentPage, setCurrentPage] = useState('/');
     const [navItems, setNavItems] = useState<NavItem[]>([]);
@@ -53,8 +86,14 @@ export default function PagesNavBar() {
         setCurrentPage(pathname);
         if (pathname.split('/')[1] === 'orders') {
             setNavItems(orderPages);
-        } else {
+        } else if (pathname.split('/')[1] === 'store') {
             setNavItems(storePages);
+        } else if (pathname.split('/')[1] === 'manage') {
+            setNavItems(managePages); 
+        } else if (pathname.split('/')[1] === 'contacts') {
+            setNavItems(contactsPages);
+        } else {
+            setNavItems([]);
         }
     }, [pathname, navItems]);
 
