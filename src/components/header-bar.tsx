@@ -1,4 +1,4 @@
-export function TodaysDate(){
+export function HeaderBar({pageName}: {pageName: string}) {
     function getTodaysDate(){
         const today = new Date();
         // const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -13,7 +13,14 @@ export function TodaysDate(){
       }
     
       return (
-        <span className='p-6 text-sm text-gray-500'>{getTodaysDate()}</span>
+        // <span className='text-sm text-gray-500'>{getTodaysDate()}</span>
+        // <div className='text-sm text-gray-500'>{getTodaysDate()}</div>
+        <div className='flex items-baseline'>
+          <div className='w-40'>
+            <h1 className='text-3xl'>{pageName}</h1>
+          </div>
+          <div className='text-sm text-gray-500'>{getTodaysDate()}</div>
+        </div>
       )
 };
 

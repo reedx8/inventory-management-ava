@@ -4,7 +4,7 @@ import noOrdersPic from '/public/illustrations/emptyCart.svg';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import PagesNavBar from '@/components/pages-navbar';
-import { TodaysDate } from '@/components/todays-date';
+import { HeaderBar} from '@/components/header-bar';
 
 interface Item {
     id: number;
@@ -21,9 +21,7 @@ export default function Orders() {
 
     return (
         <div className='mt-6'>
-            <div>
-                <h1 className='text-3xl'>Orders <TodaysDate/></h1>
-            </div>
+            <HeaderBar pageName={'Orders'} />
             <div className='mb-6'>
                 <PagesNavBar />
             </div>

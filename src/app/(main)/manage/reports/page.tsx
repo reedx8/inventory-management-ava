@@ -1,7 +1,7 @@
 // 'use client';
 // import React, { useState, useEffect } from 'react';
 import PagesNavBar from '@/components/pages-navbar';
-import { TodaysDate } from '@/components/todays-date';
+import { HeaderBar } from '@/components/header-bar';
 import noReportsPic from '/public/illustrations/underConstruction.svg';
 import Image from 'next/image';
 
@@ -9,11 +9,7 @@ export default function ManageReports() {
     // const [data, setData] = useState<Item[]>([]);
     return (
         <div className='mt-6'>
-            <div>
-                <h1 className='text-3xl'>
-                    Manage <TodaysDate />
-                </h1>
-            </div>
+            <HeaderBar pageName={'Manage'} />
             <div className='mb-6'>
                 <PagesNavBar />
             </div>

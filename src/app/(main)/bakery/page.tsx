@@ -21,7 +21,7 @@ import {
 // import { Dot } from 'lucide-react';
 import noPastriesPic from '/public/illustrations/cooking.svg';
 import Image from 'next/image';
-import { TodaysDate } from '@/components/todays-date';
+import { HeaderBar } from '@/components/header-bar';
 
 interface Item {
     id: number;
@@ -37,9 +37,7 @@ export default function Bakery() {
     const [data, setData] = useState<Item[]>([]);
     return (
         <div className='mt-6'>
-            <div>
-                <h1 className='text-3xl'>Bakery <TodaysDate/></h1>
-            </div>
+            <HeaderBar pageName={'Bakery'} />
             <div className='mb-6'>
                 {/* <StoreNavsBar /> */}
             </div>

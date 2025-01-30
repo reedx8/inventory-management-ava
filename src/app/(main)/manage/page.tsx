@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import PagesNavBar from "@/components/pages-navbar";
-import { TodaysDate } from "@/components/todays-date";
+import PagesNavBar from '@/components/pages-navbar';
+import { HeaderBar } from '@/components/header-bar';
 import noInventoryPic from '/public/illustrations/breakfast.svg';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -20,31 +20,31 @@ export default function Manage() {
     const [data, setData] = useState<Item[]>([]);
     return (
         <div className='mt-6'>
-            <div>
-                <h1 className='text-3xl'>Manage <TodaysDate/></h1>
-            </div>
+            <HeaderBar pageName={'Manage'} />
             <div className='mb-6'>
-                <PagesNavBar/>
+                <PagesNavBar />
             </div>
-            {
-                data?.length > 0 ? (
-                    <>
-                        <p>Inventory here...</p>
-                    </>
-                ) : (
-                    <div className='flex flex-col items-center justify-center gap-2 mb-4'>
-                        <Image
-                            src={noInventoryPic}
-                            alt='no inventory pic'
-                            width={375}
-                            height={375}
-                        />
-                        <p className="text-2xl text-gray-600">No Inventory!</p>
-                        <p className="text-sm text-gray-400">No items have been added. Add some!</p>
-                        <Button size='lg' variant='myTheme'>Add Item</Button>
-                    </div>
-                )
-            }
+            {data?.length > 0 ? (
+                <>
+                    <p>Inventory here...</p>
+                </>
+            ) : (
+                <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                    <Image
+                        src={noInventoryPic}
+                        alt='no inventory pic'
+                        width={375}
+                        height={375}
+                    />
+                    <p className='text-2xl text-gray-600'>No Inventory!</p>
+                    <p className='text-sm text-gray-400'>
+                        No items have been added. Add some!
+                    </p>
+                    <Button size='lg' variant='myTheme'>
+                        Add Item
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }

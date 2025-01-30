@@ -19,7 +19,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { ChevronRight, CalendarDays } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay"
 import { useRef } from "react";
-import { TodaysDate, todaysDay} from "@/components/todays-date";
+import { HeaderBar, todaysDay} from "@/components/header-bar";
 
 
 const orderSchedule = [
@@ -122,9 +122,7 @@ function CarouselComponent(){
 export default function Home() {
   return (
     <div className="mt-6">
-      <div>
-        <h1 className="text-3xl">Home <TodaysDate/></h1>
-      </div>
+      <HeaderBar pageName={'Home'} />
       <div className="flex gap-4 mt-3 items-stretch text-sm">
         <div className="flex-1 h-full">
         <Card className="h-full">

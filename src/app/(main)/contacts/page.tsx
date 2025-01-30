@@ -1,5 +1,5 @@
 import PagesNavBar from "@/components/pages-navbar";
-import { TodaysDate } from "@/components/todays-date";
+import { HeaderBar } from "@/components/header-bar";
 // import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import noVendorsPic from "/public/illustrations/underConstruction.svg";
 import Image from "next/image";
@@ -7,9 +7,7 @@ import Image from "next/image";
 export default function Contacts() {
     return (
         <div className='mt-6'>
-            <div>
-                <h1 className='text-3xl'>Contacts <TodaysDate/></h1>
-            </div>
+            <HeaderBar pageName={'Contacts'} />
             <div className='mb-6'>
                 <PagesNavBar/>
             </div>
