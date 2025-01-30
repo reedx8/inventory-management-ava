@@ -42,7 +42,7 @@ export const itemsTable = pgTable(
         name: varchar('name').notNull().unique(), // General/internal name of item + size of item (if any). Avoid using brand name, due to vendor_items table, but its ok if you do
         vendor_id: integer('vendor_id')
             .notNull()
-            .references(() => vendorsTable.id), // the vendor that supplies this item
+            .references(() => vendorsTable.id), // default vendor that supplies this item
         qty_per_order: varchar('qty_per_order'), // Items unit from its primary vendor (or bakery), not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc). Just change in csv if vendor changed-to requires different unit
         // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
         list_price: decimal('list_price', { precision: 10, scale: 2 })
