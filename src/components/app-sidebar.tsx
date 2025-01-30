@@ -89,27 +89,32 @@ export function AppSidebar() {
         }
     }
 
-    async function getUserName() {
-        const supabase = createClient();
-        const { data, error } = await supabase.auth.getUser();
-        if (error) {
-            console.error('Error getting user:', error);
-        } else {
-            const name = data.user?.email ?? '';
-            if (name.includes('@')) {
-                const formattedName = name.split('@')[0];
-                setUserName(
-                    formattedName[0].toUpperCase() + formattedName.slice(1)
-                );
-            } else if (name === '') {
-                setUserName('Account');
-            } else {
-                setUserName(name);
-            }
-        }
-    }
+
 
     useEffect(() => {
+        async function getUserName() {
+            const supabase = createClient();
+            // const { data, error } = await supabase.auth.getUser();
+            const { data, error } = await supabase.auth.getSession();
+            if (error) {
+                console.error('Error getting user:', error);
+            } else {
+                // console.log('User data here:', data);
+                const name = data.session?.user?.email ?? '';
+                // const name = data.user?.email ?? '';
+                if (name.includes('@')) {
+                    const formattedName = name.split('@')[0];
+                    setUserName(
+                        formattedName[0].toUpperCase() + formattedName.slice(1)
+                    );
+                } else if (name === '') {
+                    setUserName('Account');
+                } else {
+                    setUserName(name);
+                }
+            }
+        }
+
         getUserName();
     }, []);
 

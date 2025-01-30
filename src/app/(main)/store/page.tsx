@@ -115,6 +115,7 @@ const dummyData : Item[] = [
 
 export default function Stores() {
     const [data, setData] = useState<Item[]>([]);
+    // const [data, setData] = useState<Item[]>(dummyData);
     // const [ storeData, setStoreData ] = useState<Item[]>([]);
     const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
 
