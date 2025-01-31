@@ -22,6 +22,7 @@ import { Dot } from 'lucide-react';
 import noOrdersPic from '/public/illustrations/barista.svg';
 import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
+import { useAuth } from '@/contexts/auth-context';
 // import { getStoreOrders } from '@/db/queries/select';
 // import { init } from 'next/dist/compiled/webpack/webpack';
 // import next from 'next';
@@ -34,6 +35,7 @@ interface Item {
     order: number | null;
     store_categ: string;
     stage: string;
+    store_name: string;
 }
 
 const STORE_CATEGORIES = [
@@ -55,6 +57,7 @@ const dummyData : Item[] = [
         order: 0,
         store_categ: 'PASTRY',
         stage: 'DUE',
+        store_name: 'Hall',
     },
     {
         id: 2,
@@ -64,6 +67,7 @@ const dummyData : Item[] = [
         order: 0,
         store_categ: 'PASTRY',
         stage: 'DUE',
+        store_name: 'Progress',
     },
     {
         id: 3,
@@ -73,6 +77,7 @@ const dummyData : Item[] = [
         order: 0,
         store_categ: 'PASTRY',
         stage: 'DUE',
+        store_name: 'Hall',
     },
     {
         id: 4,
@@ -82,6 +87,7 @@ const dummyData : Item[] = [
         order: 0,
         store_categ: 'PASTRY',
         stage: 'DUE',
+        store_name: 'Barrows',
     },
     {
         id: 5,
@@ -91,6 +97,7 @@ const dummyData : Item[] = [
         order: 0,
         store_categ: 'PASTRY',
         stage: 'DUE',
+        store_name: 'Kruse',
     },
     {
         id: 6,
@@ -100,6 +107,7 @@ const dummyData : Item[] = [
         order: 0,
         store_categ: 'PASTRY',
         stage: 'DUE',
+        store_name: 'Kruse',
     },
     {
         id: 7,
@@ -109,12 +117,14 @@ const dummyData : Item[] = [
         order: 0,
         store_categ: 'PASTRY',
         stage: 'DUE',
+        store_name: 'Orenco',
     },
 ];
 
 
 export default function Stores() {
     const [data, setData] = useState<Item[]>([]);
+    const { userRole, userStoreId } = useAuth();
     // const [data, setData] = useState<Item[]>(dummyData);
     // const [ storeData, setStoreData ] = useState<Item[]>([]);
     const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
@@ -204,8 +214,8 @@ export default function Stores() {
             header: 'Name',
         },
         {
-            accessorKey: 'due_date',
-            header: 'Due Date',
+            accessorKey: 'store_name',
+            header: 'Store',
         },
         {
             accessorKey: 'qty_per_order',
@@ -281,7 +291,12 @@ export default function Stores() {
         const fetchStoreOrders = async () => {
             try {
                 // fetch every store (no storeId param in api url)
-                const response = await fetch('/api/v1/store-orders?storeId=2');
+                let response;
+                if (userRole === 'admin') {
+                    response = await fetch('/api/v1/store-orders');
+                } else {
+                    response = await fetch(`/api/v1/store-orders?storeId=${userStoreId}`);
+                }
                 const data = await response.json();
                 if (response.ok) {
                     setData(data); // set data to all stores
@@ -298,8 +313,9 @@ export default function Stores() {
             }
         };
 
-        // fetchStoreOrders();
-    }, []);
+        fetchStoreOrders();
+        console.log('Store orders fetched');
+    }, [userRole, userStoreId]);
 
     return (
         <div className='mt-6'>

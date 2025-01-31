@@ -1,9 +1,14 @@
 // select queries -- call from /src/app/api folder
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '../index';
-import { ordersTable, itemsTable, orderStagesTable } from '../schema';
+import {
+    ordersTable,
+    itemsTable,
+    orderStagesTable,
+    storesTable,
+} from '../schema';
 
-// Get active store items that are DUE for a specific store (storeId)
+// Get only active items that are DUE for a specific store (storeId)
 export async function getStoreOrders(store_location_id: string | null) {
     const dummyDate: string = '2025-06-15'; // dummy data for now
 
@@ -18,6 +23,7 @@ export async function getStoreOrders(store_location_id: string | null) {
                 stage: orderStagesTable.stage_name,
                 store_categ: itemsTable.store_categ,
                 due_date: sql`${dummyDate}`, // dummy data for now
+                store_name: storesTable.name,
             })
             .from(ordersTable)
             .innerJoin(itemsTable, eq(ordersTable.item_id, itemsTable.id))
@@ -25,6 +31,7 @@ export async function getStoreOrders(store_location_id: string | null) {
                 orderStagesTable,
                 eq(orderStagesTable.order_id, ordersTable.id)
             )
+            .innerJoin(storesTable, eq(storesTable.id, ordersTable.store_id))
             .where(
                 and(
                     eq(ordersTable.store_id, storeId),
@@ -45,7 +52,7 @@ export async function getStoreOrders(store_location_id: string | null) {
                 stage: orderStagesTable.stage_name,
                 store_categ: itemsTable.store_categ,
                 due_date: sql`${dummyDate}`, // dummy data for now
-                // TODO: return store id for admin view
+                store_name: storesTable.name,
             })
             .from(ordersTable)
             .innerJoin(itemsTable, eq(itemsTable.id, ordersTable.item_id))
@@ -53,6 +60,7 @@ export async function getStoreOrders(store_location_id: string | null) {
                 orderStagesTable,
                 eq(orderStagesTable.order_id, ordersTable.id)
             )
+            .innerJoin(storesTable, eq(storesTable.id, ordersTable.store_id))
             .where(
                 and(
                     eq(orderStagesTable.stage_name, 'DUE'),

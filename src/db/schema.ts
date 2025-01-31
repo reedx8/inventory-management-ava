@@ -146,7 +146,9 @@ export const ordersTable = pgTable(
         item_id: integer('item_id')
             .notNull()
             .references(() => itemsTable.id),
-        store_id: integer('store_id').references(() => storesTable.id),
+        store_id: integer('store_id')
+            .notNull()
+            .references(() => storesTable.id),
         init_vendor_id: integer('init_vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // default/predicted vendor of item. Value is copied from items.vendor_id

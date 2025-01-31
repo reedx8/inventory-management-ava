@@ -35,6 +35,7 @@ import {
     DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import React from 'react';
+import { useAuth } from '@/contexts/auth-context';
 
 const items = [
     {
@@ -70,8 +71,10 @@ const items = [
 
     }
 ];
+
 export function AppSidebar() {
-    const [userName, setUserName] = useState('');
+    const { userName } = useAuth();
+    // const [userName, setUserName] = useState('');
     const [currentPage, setCurrentPage] = useState('/');
     const pathname = usePathname();
     useEffect(() => {
@@ -79,7 +82,7 @@ export function AppSidebar() {
     }, [pathname]);
 
     async function signOut() {
-        const supabase = await createClient();
+        const supabase = createClient();
 
         const { error } = await supabase.auth.signOut();
         if (error) {
@@ -89,34 +92,37 @@ export function AppSidebar() {
         }
     }
 
+    // console.log("Role: " + userRole);
+    // console.log("Store: " + userStore);
 
 
-    useEffect(() => {
-        async function getUserName() {
-            const supabase = createClient();
-            // const { data, error } = await supabase.auth.getUser();
-            const { data, error } = await supabase.auth.getSession();
-            if (error) {
-                console.error('Error getting user:', error);
-            } else {
-                // console.log('User data here:', data);
-                const name = data.session?.user?.email ?? '';
-                // const name = data.user?.email ?? '';
-                if (name.includes('@')) {
-                    const formattedName = name.split('@')[0];
-                    setUserName(
-                        formattedName[0].toUpperCase() + formattedName.slice(1)
-                    );
-                } else if (name === '') {
-                    setUserName('Account');
-                } else {
-                    setUserName(name);
-                }
-            }
-        }
 
-        getUserName();
-    }, []);
+    // useEffect(() => {
+        // async function getUserName() {
+        //     const supabase = createClient();
+        //     // const { data, error } = await supabase.auth.getUser();
+        //     const { data, error } = await supabase.auth.getSession();
+        //     if (error) {
+        //         console.error('Error getting user:', error);
+        //     } else {
+        //         // console.log('User data here:', data);
+        //         const name = data.session?.user?.email ?? '';
+        //         // const name = data.user?.email ?? '';
+        //         if (name.includes('@')) {
+        //             const formattedName = name.split('@')[0];
+        //             setUserName(
+        //                 formattedName[0].toUpperCase() + formattedName.slice(1)
+        //             );
+        //         } else if (name === '') {
+        //             setUserName('Account');
+        //         } else {
+        //             setUserName(name);
+        //         }
+        //     }
+        // }
+
+        // getUserName();
+    // }, []);
 
     return (
         <Sidebar>
