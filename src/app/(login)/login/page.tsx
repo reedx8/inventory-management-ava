@@ -18,6 +18,7 @@ import Image from 'next/image';
 import { createClient } from '@/app/utils/supabase/client';
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -74,7 +75,7 @@ export default function LoginPage() {
 
             {/* <div className="flex flex-col items-center justify-center h-screen z-10000"> */}
             <div className='relative flex flex-col items-center justify-center min-h-screen'>
-                <div className='w-full max-w-md bg-myDarkbrown/50 p-8 rounded-xl shadow-lg'>
+                <div className='w-full max-w-sm bg-myDarkbrown/50 p-8 rounded-xl shadow-lg'>
                     <div className='mb-8 flex justify-center'>
                         <Image src={menuLogo} alt='login logo' height={130} />
                     </div>
@@ -99,7 +100,7 @@ export default function LoginPage() {
                                         </FormLabel>
                                         <FormControl>
                                             <Input
-                                                className='focus:border-none text-white bg-white/20 border-none'
+                                                className='focus:border-none text-white/80 bg-white/20 border-none font-semibold'
                                                 placeholder='Enter your email'
                                                 type='email'
                                                 {...field}
@@ -118,7 +119,7 @@ export default function LoginPage() {
                                         </FormLabel>
                                         <FormControl>
                                             <Input
-                                                className='focus:border-none text-white bg-white/20 border-none'
+                                                className='focus:border-none text-white/80 bg-white/20 border-none font-semibold'
                                                 placeholder='Enter your password'
                                                 type='password'
                                                 {...field}
@@ -130,8 +131,12 @@ export default function LoginPage() {
                             <Button
                                 type='submit'
                                 // variant='outline'
-                                className='w-full bg-white hover:bg-white/90 text-black/90 font-semibold'
+                                className='w-full bg-white mt-2 hover:bg-white/90 text-black/90 font-semibold'
+                                disabled={form.formState.isSubmitting}
                             >
+                                {form.formState.isSubmitting && (
+                                    <Loader2 className='animate-spin' />
+                                )}
                                 Log in
                             </Button>
                         </form>
