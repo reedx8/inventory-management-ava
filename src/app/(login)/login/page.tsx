@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import menuLogo from '/public/menuLogo.png';
 // import loginbg from '/public/loginbg.jpg';
 import Image from 'next/image';
-import {createClient} from '@/app/utils/supabase/client';
+import { createClient } from '@/app/utils/supabase/client';
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -39,80 +39,105 @@ export default function LoginPage() {
         formData.append('password', values.password);
         await login(formData);
     }
-    
-    // redirect if already logged in
-    async function checkIfLoggedIn() {
-        const supabase = await createClient();
-        const { data, error } = await supabase.auth.getUser();
-
-        if (!error) {
-            redirect('/');
-        }
-    }
 
     useEffect(() => {
+        // redirect if already logged in
+        async function checkIfLoggedIn() {
+            const supabase = await createClient();
+            const { data, error } = await supabase.auth.getUser();
+
+            if (!error) {
+                redirect('/');
+            }
+        }
         checkIfLoggedIn();
     }, []);
 
     return (
-      <div className="fixed h-screen w-screen overflow-hidden top-0 left-0 -z-10 bg-myBrown">
-        {/* <Image src={loginbg} alt="login background" className="w-full h-full object-cover layout-fill -z-10"/> */}
-        <div className="flex flex-col items-center justify-center h-screen z-100">
-          <Image src={menuLogo} alt="login logo" height={130}/>
-            <Form {...form}>
-                <form
-                    className='flex flex-col gap-4'
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            form.handleSubmit(onSubmit)();
-                        }
-                    }}
-                >
-                    <FormField
-                        control={form.control}
-                        name='email'
-                        render={({ field }) => (
-                            <FormItem className='text-sm'>
-                                <FormLabel htmlFor={field.name}>
-                                    Email
-                                </FormLabel>
-                                <FormControl>
-                                    <Input
-                                        className="focus:border-none"
-                                        placeholder='Enter your email'
-                                        type='email'
-                                        {...field}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name='password'
-                        render={({ field }) => (
-                            <FormItem className='text-sm'>
-                                <FormLabel htmlFor={field.name}>
-                                    Password
-                                </FormLabel>
-                                <FormControl>
-                                    <Input
-                                        className="focus:border-none"
-                                        placeholder='Enter your password'
-                                        type='password'
-                                        {...field}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <Button type='submit' className='bg-darkbrown'>Log in</Button>
-                </form>
-            </Form>
-        </div>
-        {/* <Image src={loginbg} alt="login background" className="left-0 top-0 w-full h-full object-cover z-0"/> */}
+        <div className='relative min-h-screen w-full overflow-hidden bg-black'>
+            <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className='absolute top-0 left-0 w-full h-full object-cover'
+            >
+                <source
+                    src='https://pfgxgvbovzogwfhejjus.supabase.co/storage/v1/object/public/media//bgvid.mp4'
+                    type='video/mp4'
+                />
+                <Image src='/public/fallback.jpg' alt='login background' fill />
+            </video>
+            
+            {/* Overlay */}
+            <div className='absolute top-0 left-0 w-full h-full bg-black/30' />
+
+            {/* <div className="flex flex-col items-center justify-center h-screen z-10000"> */}
+            <div className='relative flex flex-col items-center justify-center min-h-screen'>
+                <div className='w-full max-w-md bg-myDarkbrown/50 p-8 rounded-xl shadow-lg'>
+                    <div className='mb-8 flex justify-center'>
+                        <Image src={menuLogo} alt='login logo' height={130} />
+                    </div>
+                    <Form {...form}>
+                        <form
+                            className='flex flex-col gap-4'
+                            onSubmit={form.handleSubmit(onSubmit)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    form.handleSubmit(onSubmit)();
+                                }
+                            }}
+                        >
+                            <FormField
+                                control={form.control}
+                                name='email'
+                                render={({ field }) => (
+                                    <FormItem className='text-sm text-white/90'>
+                                        <FormLabel htmlFor={field.name}>
+                                            Email
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                className='focus:border-none text-white bg-white/20 border-none'
+                                                placeholder='Enter your email'
+                                                type='email'
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='password'
+                                render={({ field }) => (
+                                    <FormItem className='text-sm text-white/90'>
+                                        <FormLabel htmlFor={field.name}>
+                                            Password
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                className='focus:border-none text-white bg-white/20 border-none'
+                                                placeholder='Enter your password'
+                                                type='password'
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <Button
+                                type='submit'
+                                // variant='outline'
+                                className='w-full bg-white hover:bg-white/90 text-black/90 font-semibold'
+                            >
+                                Log in
+                            </Button>
+                        </form>
+                    </Form>
+                </div>
+            </div>
         </div>
     );
 }
