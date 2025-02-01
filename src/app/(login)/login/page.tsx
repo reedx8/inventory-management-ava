@@ -19,6 +19,7 @@ import { createClient } from '@/app/utils/supabase/client';
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -69,15 +70,29 @@ export default function LoginPage() {
                 />
                 <Image src='/public/fallback.jpg' alt='login background' fill />
             </video>
-            
+
             {/* Overlay */}
             <div className='absolute top-0 left-0 w-full h-full bg-black/30' />
 
             {/* <div className="flex flex-col items-center justify-center h-screen z-10000"> */}
             <div className='relative flex flex-col items-center justify-center min-h-screen'>
-                <div className='w-full max-w-sm bg-myDarkbrown/50 p-8 rounded-xl shadow-lg'>
-                    <div className='mb-8 flex justify-center'>
-                        <Image src={menuLogo} alt='login logo' height={130} />
+                <div className='w-full max-w-sm bg-myDarkbrown/50 p-8 rounded-xl shadow-xl'>
+                    <div className='mb-8 flex flex-col justify-center gap-1'>
+                        <div>
+                            <Image
+                                src={menuLogo}
+                                alt='login logo'
+                                height={130}
+                            />
+                        </div>
+                        <div>
+                            <h1 className='text-myBrown/90 text-sm font-semibold text-center'>
+                                Inventory Management System
+                            </h1>
+                            <p className='text-white/90 text-xs font-semibold text-center'>
+                                Sign in to your account
+                            </p>
+                        </div>
                     </div>
                     <Form {...form}>
                         <form
@@ -94,14 +109,14 @@ export default function LoginPage() {
                                 control={form.control}
                                 name='email'
                                 render={({ field }) => (
-                                    <FormItem className='text-sm text-white/90'>
+                                    <FormItem className='text-xs text-white/90'>
                                         <FormLabel htmlFor={field.name}>
-                                            Email
+                                            Username
                                         </FormLabel>
                                         <FormControl>
                                             <Input
                                                 className='focus:border-none text-white/80 bg-white/20 border-none font-semibold'
-                                                placeholder='Enter your email'
+                                                placeholder='Janedoe@gmail.com'
                                                 type='email'
                                                 {...field}
                                             />
@@ -113,14 +128,14 @@ export default function LoginPage() {
                                 control={form.control}
                                 name='password'
                                 render={({ field }) => (
-                                    <FormItem className='text-sm text-white/90'>
+                                    <FormItem className='text-xs text-white/90'>
                                         <FormLabel htmlFor={field.name}>
-                                            Password
+                                            Account Password
                                         </FormLabel>
                                         <FormControl>
                                             <Input
                                                 className='focus:border-none text-white/80 bg-white/20 border-none font-semibold'
-                                                placeholder='Enter your password'
+                                                placeholder='Password'
                                                 type='password'
                                                 {...field}
                                             />
@@ -128,6 +143,15 @@ export default function LoginPage() {
                                     </FormItem>
                                 )}
                             />
+                            <div className='items-top flex space-x-2'>
+                                <Checkbox id='remember'  className='border-white/60 rounded-sm' />
+                                <label
+                                    htmlFor='remember'
+                                    className='text-xs text-white/90 font-semibold'
+                                >
+                                    Remember for 30 days
+                                </label>
+                            </div>
                             <Button
                                 type='submit'
                                 // variant='outline'
@@ -137,7 +161,7 @@ export default function LoginPage() {
                                 {form.formState.isSubmitting && (
                                     <Loader2 className='animate-spin' />
                                 )}
-                                Log in
+                                Sign in
                             </Button>
                         </form>
                     </Form>
