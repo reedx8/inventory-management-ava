@@ -37,7 +37,72 @@ import {
 import React from 'react';
 import { useAuth } from '@/contexts/auth-context';
 
-const items = [
+// const storePages = ['Home', 'Store', 'Contacts'];
+// const bakeryPages = ['Home', 'Bakery', 'Contacts'];
+// const orderPages = ['Home', 'Orders', 'Contacts'];
+
+type Item = {
+    title: string;
+    url: string;
+    icon: React.ForwardRefExoticComponent<React.PropsWithoutRef<any> & React.RefAttributes<any>>;
+};
+
+const storePages : Item[] = [
+    {
+        title: 'Home',
+        url: '/',
+        icon: Home,
+    },
+    {
+        title: 'Store',
+        url: '/store',
+        icon: Store,
+    },
+    {
+        title: 'Contacts',
+        url: '/contacts',
+        icon: Contact,
+    },
+];
+
+const bakeryPages : Item[] = [
+    {
+        title: 'Home',
+        url: '/',
+        icon: Home,
+    },
+    {
+        title: 'Bakery',
+        url: '/bakery',
+        icon: CookingPot,
+    },
+    {
+        title: 'Contacts',
+        url: '/contacts',
+        icon: Contact,
+    },
+];
+
+const orderPages : Item[] = [
+    {
+        title: 'Home',
+        url: '/',
+        icon: Home,
+    },
+    {
+        title: 'Orders',
+        url: '/orders',
+        icon: ConciergeBell,
+        // icon: NotepadText,
+    },
+    {
+        title: 'Contacts',
+        url: '/contacts',
+        icon: Contact,
+    },
+];
+
+const adminPages : Item[] = [
     {
         title: 'Home',
         url: '/',
@@ -73,20 +138,30 @@ const items = [
 ];
 
 export function AppSidebar() {
-    const { userName } = useAuth();
+    const { userName, userRole } = useAuth();
     // const [userName, setUserName] = useState('');
+    const [items, setItems] = useState<Item[]>([]);
     const [currentPage, setCurrentPage] = useState('/');
     const pathname = usePathname();
     useEffect(() => {
         setCurrentPage(pathname);
-    }, [pathname]);
+        if (userRole === 'admin') {
+            setItems(adminPages);
+        } else if (userRole === 'store_manager') {
+            setItems(storePages);
+        } else if (userRole === 'bakery_manager') {
+            setItems(bakeryPages);
+        } else if (userRole === 'order_manager') {
+            setItems(orderPages);
+        }
+    }, [pathname, userRole]);
 
     async function signOut() {
         const supabase = createClient();
 
         const { error } = await supabase.auth.signOut();
         if (error) {
-            console.error('Error logging out:', error);
+            console.error('Error logging out: ', error);
         } else {
             redirect('/login');
         }
@@ -133,7 +208,7 @@ export function AppSidebar() {
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
-                    {items.map((item) => (
+                    {items?.length > 0 && items.map((item) => (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 asChild

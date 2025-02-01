@@ -294,8 +294,11 @@ export default function Stores() {
                 let response;
                 if (userRole === 'admin') {
                     response = await fetch('/api/v1/store-orders');
-                } else {
+                } else if (userRole === 'store_manager') {
                     response = await fetch(`/api/v1/store-orders?storeId=${userStoreId}`);
+                } else {
+                    // dont fetch orders for other roles
+                    return;
                 }
                 const data = await response.json();
                 if (response.ok) {
@@ -313,19 +316,19 @@ export default function Stores() {
             }
         };
 
-        fetchStoreOrders();
-        console.log('Store orders fetched');
+        // fetchStoreOrders();
+        // console.log('Store orders fetched');
     }, [userRole, userStoreId]);
 
     return (
         <div className='mt-6'>
             <HeaderBar pageName={'Store'} />
-            <div className='mb-6'>
+            <div className='mb-2'>
                 <PagesNavBar />
             </div>
             {data?.length > 0 ? (
                 <>
-                    <div className='flex flex-wrap gap-2'>
+                    <div className='flex flex-wrap gap-x-2 gap-y-0'>
                         {STORE_CATEGORIES.map((category) => (
                             <div
                                 key={category}
