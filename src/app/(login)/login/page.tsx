@@ -143,7 +143,7 @@ export default function LoginPage() {
                                     </FormItem>
                                 )}
                             />
-                            <div className='items-top flex space-x-2'>
+                            {/* <div className='items-top flex space-x-2'>
                                 <Checkbox id='remember'  className='border-white/60 rounded-sm' />
                                 <label
                                     htmlFor='remember'
@@ -151,7 +151,7 @@ export default function LoginPage() {
                                 >
                                     Remember for 30 days
                                 </label>
-                            </div>
+                            </div> */}
                             <Button
                                 type='submit'
                                 // variant='outline'

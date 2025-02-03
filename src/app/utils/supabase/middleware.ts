@@ -39,6 +39,8 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
+    // console.log('User: ', user);
+
     if (
         !user &&
         !request.nextUrl.pathname.startsWith('/login') &&
@@ -47,6 +49,42 @@ export async function updateSession(request: NextRequest) {
         // no user, potentially respond by redirecting the user to the login page
         const url = request.nextUrl.clone();
         url.pathname = '/login';
+        return NextResponse.redirect(url);
+    }
+
+    // Protect routes:
+    if (
+        user?.user_metadata.role !== 'admin' &&
+        request.nextUrl.pathname.startsWith('/manage')
+    ) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+    }
+
+    if (
+        user?.user_metadata.role === 'order_manager' &&
+        (request.nextUrl.pathname.startsWith('/bakery') ||
+            request.nextUrl.pathname.startsWith('/store'))
+    ) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+    } else if (
+        user?.user_metadata.role === 'store_manager' &&
+        (request.nextUrl.pathname.startsWith('/bakery') ||
+            request.nextUrl.pathname.startsWith('/orders'))
+    ) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+    } else if (
+        user?.user_metadata.role === 'bakery_manager' &&
+        (request.nextUrl.pathname.startsWith('/store') ||
+            request.nextUrl.pathname.startsWith('/orders'))
+    ) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
         return NextResponse.redirect(url);
     }
 
