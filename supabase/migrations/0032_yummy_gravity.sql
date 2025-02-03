@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD CONSTRAINT "positive_group_order_no" CHECK ("orders"."group_order_no" >= 0);

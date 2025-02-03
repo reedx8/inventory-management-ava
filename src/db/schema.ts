@@ -168,6 +168,7 @@ export const ordersTable = pgTable(
             precision: 10,
             scale: 2,
         }), // average price of item across stores, edge case for ccp items?, to report to stores
+        group_order_no: integer('group_order_no'), // group order number for orders that are grouped together (eg for a weekly order)
         processed_via: varchar('processed_via').default('MANUALLY'), // How order was eventually processed. Eg manual (shopped in store, manually emailed, etc), email, web, or api
         is_priority_delivery: boolean('is_priority_delivery')
             .notNull()
@@ -189,6 +190,7 @@ export const ordersTable = pgTable(
                 'check_processed_via',
                 sql`${table.processed_via} IN ('MANUALLY', 'EMAIL', 'WEB', 'API')`
             ),
+            check('positive_group_order_no', sql`${table.group_order_no} >= 0`),
         ];
     }
 );
