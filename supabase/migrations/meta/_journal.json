@@ -232,6 +232,20 @@
       "when": 1738626396406,
       "tag": "0032_yummy_gravity",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1738701861942,
+      "tag": "0033_dapper_jack_murdock",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1738703111823,
+      "tag": "0034_wooden_mariko_yashida",
+      "breakpoints": true
     }
   ]
 }

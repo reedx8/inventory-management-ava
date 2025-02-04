@@ -11,28 +11,9 @@ import {
     time,
     primaryKey,
     check,
-    pgEnum,
     uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-// import { create } from 'domain';
-// import exp from 'constants';
-// import exp from 'constants';
-
-// For order_stage.stage_name
-// The goal is to choose names that clearly indicate the order's current stage without being too vague, overlapping with other stages, or being self referencing (eg "ORDERED": ORDERED stage?, Order table?,order in general?, Each user group believes they "ordered")
-const stagesEnum = pgEnum('stages', [
-    'DUE', // Store managers fill out initial, empty orders via regular automated weekly schedule (ie pending, initiated, etc) (ie always from system/cronjob/button press?)
-    'SOURCING', // Order managers sourcing vendors. Time is when store managers submitted there order
-    'PROCURING', // order managers in the action of sending order to vendor or shopping
-    'PROCESSED', // Order Managers or system commited order qty to vendor, or have shopped it.
-    'DELIVERED', //  Store managers report qty delivered from vendor
-    'CANCELLED', // Order managers cancelled order
-
-    // automated order workflow (automated email, web, cron job, etc): due -> sourcing -> processed -> delivered (+ cancelled)
-    // manual order workflow (kojo and jelena): due -> sourcing -> procuring -> processed -> delivered (+ cancelled)
-]);
-export const stages = stagesEnum;
 
 // General items of Ava Roasteria for every store
 export const itemsTable = pgTable(
@@ -137,8 +118,7 @@ export const stockTable = pgTable(
     }
 );
 
-// History of item orders for every store, serving as a record of truth for orders.
-// Each record maintains a complete snapshot of how the item was ordered at every store.
+// History of orders per item. Orders per store are in store_orders table
 export const ordersTable = pgTable(
     'orders',
     {
@@ -149,13 +129,20 @@ export const ordersTable = pgTable(
         store_id: integer('store_id')
             .notNull()
             .references(() => storesTable.id),
-        init_vendor_id: integer('init_vendor_id')
+        tot_qty_store: decimal('tot_qty_store', { precision: 10, scale: 2 }),
+        tot_qty_vendor: decimal('tot_qty_vendor', { precision: 10, scale: 2 }),
+        tot_qty_delivered: decimal('tot_qty_delivered', {
+            precision: 10,
+            scale: 2,
+        }),
+        vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // default/predicted vendor of item. Value is copied from items.vendor_id
-        final_vendor_id: integer('final_vendor_id').references(
-            () => vendorsTable.id
-        ), // The single vendor that actually supplied this item if wasnt split (see vendor_split table).
         qty_per_order: varchar('qty_per_order'), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
+        due_date: timestamp('due_date', {
+            precision: 3,
+            withTimezone: true,
+        }).notNull(),
         list_price: decimal('list_price', {
             precision: 10,
             scale: 2,
@@ -169,54 +156,69 @@ export const ordersTable = pgTable(
             scale: 2,
         }), // average price of item across stores, edge case for ccp items?, to report to stores
         group_order_no: integer('group_order_no'), // group order number for orders that are grouped together (eg for a weekly order)
-        processed_via: varchar('processed_via').default('MANUALLY'), // How order was eventually processed. Eg manual (shopped in store, manually emailed, etc), email, web, or api
-        is_priority_delivery: boolean('is_priority_delivery')
-            .notNull()
-            .default(false), // whether order is a priority delivery (emergencies, etc)
-        is_par_order: boolean('is_par_order').notNull().default(false), // but par values are inaccurate/not used currently
+        ordered_via: varchar('ordered_via').default('MANUALLY'), // How order was eventually processed. Eg manual (shopped in store, manually emailed, etc), email, web, or api
         created_at: timestamp('created_at', {
             precision: 3,
             withTimezone: true,
         })
             .notNull()
             .defaultNow(), // date order originally created
+        updated_at: timestamp('updated_at', {
+            precision: 3,
+            withTimezone: true,
+        }),
     },
     (table) => {
         return [
+            check('tot_qty_store_check', sql`${table.tot_qty_store} >= 0`),
+            check('tot_qty_vendor_check', sql`${table.tot_qty_vendor} >= 0`),
+            check(
+                'tot_qty_delivered_check',
+                sql`${table.tot_qty_delivered} >= 0`
+            ),
             check('positive_list_price', sql`${table.list_price} >= 0`),
             check('positive_final_price', sql`${table.final_price} >= 0`),
             check('positive_adj_price', sql`${table.adj_price} >= 0`),
             check(
-                'check_processed_via',
-                sql`${table.processed_via} IN ('MANUALLY', 'EMAIL', 'WEB', 'API')`
+                'check_ordered_via',
+                sql`${table.ordered_via} IN ('MANUALLY', 'EMAIL', 'WEB', 'API')`
             ),
             check('positive_group_order_no', sql`${table.group_order_no} >= 0`),
         ];
     }
 );
 
-// Record of each item's stage in the order workflow/chain  (see stage enum for list of stages))
-// Initial qty sum is when stage_name = sourcing, and final qty sum when stage_name = processed
-export const orderStagesTable = pgTable(
-    'order_stages',
+// History of store orders for every store
+export const storeOrdersTable = pgTable(
+    'store_orders',
     {
         id: serial('id').primaryKey(),
         order_id: integer('order_id')
             .notNull()
             .references(() => ordersTable.id),
-        stage_name: stagesEnum('stage_name').notNull().default('DUE'), // stage of item order in order workflow/chain (DUE, SUBMITTED, ORDERED, DELIVERED, CANCELLED)
-        order_qty: decimal('order_qty', { precision: 10, scale: 2 }), // Sum of quantity requested at this stage from a store
-        username: varchar('username').notNull().default('SYSTEM'), // name of user who created this order stage
-        comments: text('comments'),
+        store_id: integer('store_id')
+            .notNull()
+            .references(() => storesTable.id),
+        qty: decimal('qty', { precision: 10, scale: 2 }),
+        is_par_submit: boolean('is_par_submit').notNull().default(false),
+        is_priority_delivery: boolean('is_priority_delivery')
+            .notNull()
+            .default(false),
+        comments: text('comments'), // store's comments
+        // created_by: varchar('created_by').notNull().default('SYSTEM'),
         created_at: timestamp('created_at', {
             precision: 3,
             withTimezone: true,
         })
             .notNull()
-            .defaultNow(), // date of order stage creation
+            .defaultNow(),
+        updated_at: timestamp('updated_at', {
+            precision: 3,
+            withTimezone: true,
+        }),
     },
     (table) => {
-        return [check('positive_order_qty', sql`${table.order_qty} >= 0`)];
+        return [check('positive_qty', sql`${table.qty} >= 0`)];
     }
 );
 
@@ -256,12 +258,12 @@ export const vendorSplitTable = pgTable(
             .references(() => vendorsTable.id),
         qty: decimal('qty', { precision: 10, scale: 2 }),
         qty_per_order: varchar('qty_per_order'), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
-        total_price: decimal('total_price', { precision: 10, scale: 2 }),
+        total_spent: decimal('total_spent', { precision: 10, scale: 2 }),
     },
     (table) => {
         return [
             check('positive_qty', sql`${table.qty} >= 0`),
-            check('positive_total_price', sql`${table.total_price} >= 0`),
+            check('positive_total_spent', sql`${table.total_spent} >= 0`),
         ];
     }
 );
@@ -417,9 +419,9 @@ export type SelectVendor = typeof vendorsTable.$inferSelect;
 export type InsertOrder = typeof ordersTable.$inferInsert;
 export type SelectOrder = typeof ordersTable.$inferSelect;
 // export type UpdateOrder = typeof ordersTable.$inferUpdate;
-export type InsertOrderStage = typeof orderStagesTable.$inferInsert;
-export type SelectOrderStage = typeof orderStagesTable.$inferSelect;
-// export type UpdateOrderStage = typeof orderStagesTable.$inferUpdate;
+export type InsertStoreOrder = typeof storeOrdersTable.$inferInsert;
+export type SelectStoreOrder = typeof storeOrdersTable.$inferSelect;
+// export type UpdateStoreOrder = typeof storeOrdersTable.$inferUpdate;
 export type InsertVendorSplit = typeof vendorSplitTable.$inferInsert;
 export type SelectVendorSplit = typeof vendorSplitTable.$inferSelect;
 // export type UpdateVendorSplit = typeof vendorSplitTable.$inferUpdate;
