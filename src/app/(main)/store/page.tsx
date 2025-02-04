@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     flexRender,
     getCoreRowModel,
@@ -23,32 +24,32 @@ import noOrdersPic from '/public/illustrations/barista.svg';
 import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
 import { useAuth } from '@/contexts/auth-context';
+import OrderTable from './components/order-table';
 // import { getStoreOrders } from '@/db/queries/select';
 // import { init } from 'next/dist/compiled/webpack/webpack';
 // import next from 'next';
 
-interface Item {
+interface OrderItem {
     id: number;
     name: string;
     due_date: string;
     qty_per_order: string;
     order: number | null;
     store_categ: string;
-    stage: string;
     store_name: string;
 }
 
-const STORE_CATEGORIES = [
-    'ALL',
-    'PASTRY',
-    'FRONT',
-    'GENERAL',
-    'FRIDGE',
-    'STOCKROOM',
-    'BEANS&TEA',
-] as const;
+// const STORE_CATEGORIES = [
+//     'ALL',
+//     'PASTRY',
+//     'FRONT',
+//     'GENERAL',
+//     'FRIDGE',
+//     'STOCKROOM',
+//     'BEANS&TEA',
+// ] as const;
 
-const dummyData : Item[] = [
+const dummyData: OrderItem[] = [
     {
         id: 1,
         name: 'Strawberry & Cream Cheese Turnover',
@@ -56,7 +57,6 @@ const dummyData : Item[] = [
         qty_per_order: '1 Pc',
         order: 0,
         store_categ: 'PASTRY',
-        stage: 'DUE',
         store_name: 'Hall',
     },
     {
@@ -66,7 +66,6 @@ const dummyData : Item[] = [
         qty_per_order: '1 Pc',
         order: 0,
         store_categ: 'PASTRY',
-        stage: 'DUE',
         store_name: 'Progress',
     },
     {
@@ -76,7 +75,6 @@ const dummyData : Item[] = [
         qty_per_order: '1 Pc',
         order: 0,
         store_categ: 'PASTRY',
-        stage: 'DUE',
         store_name: 'Hall',
     },
     {
@@ -86,7 +84,6 @@ const dummyData : Item[] = [
         qty_per_order: '4 Pcs/Pack',
         order: 0,
         store_categ: 'PASTRY',
-        stage: 'DUE',
         store_name: 'Barrows',
     },
     {
@@ -96,7 +93,6 @@ const dummyData : Item[] = [
         qty_per_order: '12 Pcs',
         order: 0,
         store_categ: 'PASTRY',
-        stage: 'DUE',
         store_name: 'Kruse',
     },
     {
@@ -106,7 +102,6 @@ const dummyData : Item[] = [
         qty_per_order: '1 cake',
         order: 0,
         store_categ: 'PASTRY',
-        stage: 'DUE',
         store_name: 'Kruse',
     },
     {
@@ -116,18 +111,17 @@ const dummyData : Item[] = [
         qty_per_order: '1/2 cake',
         order: 0,
         store_categ: 'PASTRY',
-        stage: 'DUE',
         store_name: 'Orenco',
     },
 ];
 
-
 export default function Stores() {
-    const [data, setData] = useState<Item[]>([]);
+    const [data, setData] = useState<OrderItem[] | undefined>(dummyData);
     const { userRole, userStoreId } = useAuth();
-    // const [data, setData] = useState<Item[]>(dummyData);
-    // const [ storeData, setStoreData ] = useState<Item[]>([]);
-    const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
+    // const [data, setData] = useState<OrderItem[]>(dummyData);
+    // const [ storeData, setStoreData ] = useState<OrderItem[]>([]);
+    // const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     // Accepts integers only
     const OrderCell = ({ getValue, row, column, table }) => {
@@ -229,34 +223,34 @@ export default function Stores() {
         },
     ];
 
-    const table = useReactTable({
-        data,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        state: {
-            globalFilter: activeCateg === 'ALL' ? undefined : activeCateg,
-        },
-        globalFilterFn: (row, columnId, filterValue) => {
-            return row.original.store_categ === filterValue;
-        },
-        meta: {
-            updateData: (rowIndex, columnId, value) => {
-                setData((old) =>
-                    old.map((row, index) => {
-                        if (index === rowIndex) {
-                            return {
-                                ...old[rowIndex],
-                                [columnId]: value,
-                            };
-                        }
-                        return row;
-                    })
-                );
-            },
-        },
-    });
+    // const table = useReactTable({
+    //     data,
+    //     columns,
+    //     getCoreRowModel: getCoreRowModel(),
+    //     getPaginationRowModel: getPaginationRowModel(),
+    //     getFilteredRowModel: getFilteredRowModel(),
+    //     state: {
+    //         globalFilter: activeCateg === 'ALL' ? undefined : activeCateg,
+    //     },
+    //     globalFilterFn: (row, columnId, filterValue) => {
+    //         return row.original.store_categ === filterValue;
+    //     },
+    //     meta: {
+    //         updateData: (rowIndex, columnId, value) => {
+    //             setData((old) =>
+    //                 old.map((row, index) => {
+    //                     if (index === rowIndex) {
+    //                         return {
+    //                             ...old[rowIndex],
+    //                             [columnId]: value,
+    //                         };
+    //                     }
+    //                     return row;
+    //                 })
+    //             );
+    //         },
+    //     },
+    // });
 
     // object lookup for category messages
     const categoryMessage: Record<string, JSX.Element | string> = {
@@ -270,22 +264,25 @@ export default function Stores() {
     };
 
     // render red dot if any item is due in the category
-    function renderRedDot(category: string) {
-        const items = data.filter((item) => item.store_categ === category);
+    // function renderRedDot(category: string) {
+    //     const items = data.filter((item) => item.store_categ === category);
 
-        if (items.length > 0) {
-            // Check if any item has stage 'DUE'
-            const hasDueItems = items.some((item) => item.stage === 'DUE');
-            if (hasDueItems) {
-                return (
-                    // <p>test</p>
-                    // <div className='bg-red-500 rounded-full w-2 h-2 absolute top-0 right-0'></div>
-                    <Dot className='text-red-500 w-8 h-8' />
-                );
-            }
-        }
-        return <div></div>;
-    }
+    //     if (items.length > 0) {
+    //         return <Dot className='text-red-500 w-8 h-8' />;
+    //         /*
+    //         // Check if any item has stage 'DUE'
+    //         const hasDueItems = items.some((item) => item.stage === 'DUE');
+    //         if (hasDueItems) {
+    //             return (
+    //                 <Dot className='text-red-500 w-8 h-8' />
+    //             );
+    //         }
+    //         */
+    //     } else if (category === 'ALL' && data.length > 0) {
+    //         return <Dot className='text-red-500 w-8 h-8' />;
+    //     }
+    //     return <div></div>;
+    // }
 
     useEffect(() => {
         const fetchStoreOrders = async () => {
@@ -295,7 +292,9 @@ export default function Stores() {
                 if (userRole === 'admin') {
                     response = await fetch('/api/v1/store-orders');
                 } else if (userRole === 'store_manager') {
-                    response = await fetch(`/api/v1/store-orders?storeId=${userStoreId}`);
+                    response = await fetch(
+                        `/api/v1/store-orders?storeId=${userStoreId}`
+                    );
                 } else {
                     // dont fetch orders for other roles
                     return;
@@ -314,9 +313,12 @@ export default function Stores() {
                 setData([]);
                 // setStoreData([]);
             }
+            setIsLoading(false);
         };
 
         // fetchStoreOrders();
+        // setData([]); // testing
+        setIsLoading(false);
         // console.log('Store orders fetched');
     }, [userRole, userStoreId]);
 
@@ -326,130 +328,155 @@ export default function Stores() {
             <div className='mb-2'>
                 <PagesNavBar />
             </div>
-            {data?.length > 0 ? (
-                <>
-                    <div className='flex flex-wrap gap-x-2 gap-y-0'>
-                        {STORE_CATEGORIES.map((category) => (
-                            <div
-                                key={category}
-                                className='flex flex-col items-center'
-                            >
-                                <Button
-                                    key={category}
-                                    variant={
-                                        activeCateg === category
-                                            ? 'myTheme'
-                                            : 'outline'
-                                    }
-                                    onClick={() => setActiveCateg(category)}
-                                >
-                                    {category}
-                                </Button>
-                                <div>{renderRedDot(category)}</div>
-                            </div>
-                        ))}
+            {data === undefined && isLoading && (
+                <div className='flex flex-col w-[90%] gap-3'>
+                    <div className='space-y-2'>
+                        <Skeleton className='h-6 w-[100%] rounded-md' />
+                        {/* <Skeleton className='h-4 w-[200px]' /> */}
                     </div>
-                    <div className='mb-2 text-sm'>
-                        {categoryMessage[activeCateg]}
+                    <Skeleton className='h-[175px] w-[100%] rounded-md' />
+                    <div className='flex gap-2 self-end'>
+                        <Skeleton className='h-6 w-[75px] round-md' />
+                        <Skeleton className='h-6 w-[75px] round-md' />
                     </div>
-                    <div className='flex flex-col mr-2'>
-                        <div className='rounded-lg border'>
-                            <Table>
-                                <TableHeader className='bg-gray-200'>
-                                    {table
-                                        .getHeaderGroups()
-                                        .map((headerGroup) => (
-                                            <TableRow key={headerGroup.id}>
-                                                {headerGroup.headers.map(
-                                                    (header) => (
-                                                        <TableHead
-                                                            key={header.id}
-                                                            style={{
-                                                                width:
-                                                                    header.id ===
-                                                                    'order'
-                                                                        ? '130px'
-                                                                        : 'auto',
-                                                            }}
-                                                        >
-                                                            {flexRender(
-                                                                header.column
-                                                                    .columnDef
-                                                                    .header,
-                                                                header.getContext()
-                                                            )}
-                                                        </TableHead>
-                                                    )
-                                                )}
-                                            </TableRow>
-                                        ))}
-                                </TableHeader>
-                                <TableBody>
-                                    {table.getRowModel().rows.map((row) => (
-                                        <TableRow key={row.id}>
-                                            {row
-                                                .getVisibleCells()
-                                                .map((cell) => (
-                                                    <TableCell
-                                                        key={cell.id}
-                                                        style={{
-                                                            width:
-                                                                cell.column
-                                                                    .id ===
-                                                                'order'
-                                                                    ? '130px'
-                                                                    : 'auto',
-                                                        }}
-                                                    >
-                                                        {flexRender(
-                                                            cell.column
-                                                                .columnDef.cell,
-                                                            cell.getContext()
-                                                        )}
-                                                    </TableCell>
-                                                ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                        <div>
-                            {' '}
-                            {/* Pagination: 10 items per page */}
-                            <div className='flex items-center justify-end space-x-2 py-4'>
-                                <Button
-                                    variant='outline'
-                                    size='sm'
-                                    onClick={() => table.previousPage()}
-                                    disabled={!table.getCanPreviousPage()}
-                                >
-                                    Previous
-                                </Button>
-                                <Button
-                                    variant='outline'
-                                    size='sm'
-                                    onClick={() => table.nextPage()}
-                                    disabled={!table.getCanNextPage()}
-                                >
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            ) : (
+                </div>
+                // <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                // <p className='text-2xl text-gray-600'>Loading...</p>
+                // </div>
+            )}
+            {data && !isLoading && data?.length > 0 && (
+                <OrderTable data={data} setData={setData} />
+                // <>
+                //     <div className='flex flex-wrap gap-x-2 gap-y-0'>
+                //         {STORE_CATEGORIES.map((category) => (
+                //             <div
+                //                 key={category}
+                //                 className='flex flex-col items-center'
+                //             >
+                //                 <Button
+                //                     key={category}
+                //                     variant={
+                //                         activeCateg === category
+                //                             ? 'myTheme'
+                //                             : 'outline'
+                //                     }
+                //                     onClick={() => setActiveCateg(category)}
+                //                 >
+                //                     {category}
+                //                 </Button>
+                //                 <div>{renderRedDot(category)}</div>
+                //             </div>
+                //         ))}
+                //     </div>
+                //     <div className='mb-2 text-sm'>
+                //         {categoryMessage[activeCateg]}
+                //     </div>
+                //     <div className='flex flex-col mr-2'>
+                //         <div className='rounded-lg border'>
+                //             <Table>
+                //                 <TableHeader className='bg-gray-200'>
+                //                     {table
+                //                         .getHeaderGroups()
+                //                         .map((headerGroup) => (
+                //                             <TableRow key={headerGroup.id}>
+                //                                 {headerGroup.headers.map(
+                //                                     (header) => (
+                //                                         <TableHead
+                //                                             key={header.id}
+                //                                             style={{
+                //                                                 width:
+                //                                                     header.id ===
+                //                                                     'order'
+                //                                                         ? '130px'
+                //                                                         : 'auto',
+                //                                             }}
+                //                                         >
+                //                                             {flexRender(
+                //                                                 header.column
+                //                                                     .columnDef
+                //                                                     .header,
+                //                                                 header.getContext()
+                //                                             )}
+                //                                         </TableHead>
+                //                                     )
+                //                                 )}
+                //                             </TableRow>
+                //                         ))}
+                //                 </TableHeader>
+                //                 <TableBody>
+                //                     {table.getRowModel().rows.map((row) => (
+                //                         <TableRow key={row.id}>
+                //                             {row
+                //                                 .getVisibleCells()
+                //                                 .map((cell) => (
+                //                                     <TableCell
+                //                                         key={cell.id}
+                //                                         style={{
+                //                                             width:
+                //                                                 cell.column
+                //                                                     .id ===
+                //                                                 'order'
+                //                                                     ? '130px'
+                //                                                     : 'auto',
+                //                                         }}
+                //                                     >
+                //                                         {flexRender(
+                //                                             cell.column
+                //                                                 .columnDef.cell,
+                //                                             cell.getContext()
+                //                                         )}
+                //                                     </TableCell>
+                //                                 ))}
+                //                         </TableRow>
+                //                     ))}
+                //                 </TableBody>
+                //             </Table>
+                //         </div>
+                //         <div>
+                //             {' '}
+                //             {/* Pagination: 10 items per page */}
+                //             <div className='flex items-center justify-end space-x-2 py-4'>
+                //                 <Button
+                //                     variant='outline'
+                //                     size='sm'
+                //                     onClick={() => table.previousPage()}
+                //                     disabled={!table.getCanPreviousPage()}
+                //                 >
+                //                     Previous
+                //                 </Button>
+                //                 <Button
+                //                     variant='outline'
+                //                     size='sm'
+                //                     onClick={() => table.nextPage()}
+                //                     disabled={!table.getCanNextPage()}
+                //                 >
+                //                     Next
+                //                 </Button>
+                //             </div>
+                //         </div>
+                //     </div>
+                // </>
+            )}
+            {!isLoading && data?.length === 0 && (
                 // <div className='flex flex-col justify-center'>
-                    <div className='flex flex-col items-center justify-center gap-2 mb-4'>
-                        <Image
-                            src={noOrdersPic}
-                            alt='no orders due today pic'
-                            width={175}
-                            height={175}
-                        />
-                        <p className="text-2xl text-gray-600">No Orders Due!</p>
-                        <p className="text-sm text-gray-400">Create an order below if needed</p>
-                        <Button size='lg' variant='myTheme'>Create Order</Button>
-                    </div>
+                <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                    <Image
+                        src={noOrdersPic}
+                        alt='no orders due today pic'
+                        width={175}
+                        height={175}
+                    />
+                    <p className='text-2xl text-gray-600'>No Orders Due!</p>
+                    <p className='text-sm text-gray-400'>
+                        All orders have been sent
+                    </p>
+                    {/* <p className='text-sm text-gray-400'>
+                        Create an order below if needed
+                    </p>
+                    <Button size='lg' variant='myTheme'>
+                        Create Order
+                    </Button> */}
+                </div>
                 // </div>
             )}
         </div>

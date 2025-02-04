@@ -1,5 +1,5 @@
 'use client';
-import StoreNavsBar from '@/components/pages-navbar';
+// import StoreNavsBar from '@/components/pages-navbar';
 import React, { useState, useEffect } from 'react';
 import {
     Table,
@@ -22,15 +22,20 @@ import { Dot } from 'lucide-react';
 import noStockPic from '/public/illustrations/empty.svg';
 import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
+import { useAuth } from '@/contexts/auth-context';
+import PagesNavBar from '@/components/pages-navbar';
+import { Skeleton } from '@/components/ui/skeleton';
+// import ItemsTable from '@/components/items-table';
+import StockTable from './components/stock-table';
 
-interface Item {
+interface StockItem {
     id: number;
     name: string;
     due_date: string;
     units: string;
-    stock_qty: number | null;
+    count: number | null;
     store_categ: string;
-    stage: string;
+    store_name: string;
 }
 
 const STORE_CATEGORIES = [
@@ -43,363 +48,160 @@ const STORE_CATEGORIES = [
     'BEANS&TEA',
 ] as const;
 
-const dummyData : Item[] = [
+const dummyData : StockItem[] = [
     {
         id: 1,
-        name: 'Tomatoes',
+        name: 'TOUCHSTONE WHOLE',
         due_date: '2025-06-15',
         units: '1 Pc',
-        stock_qty: 0,
+        count: 0,
         store_categ: 'FRIDGE',
-        stage: 'DUE',
+        store_name: "Progress",
     },
     {
         id: 2,
-        name: 'Semi Sweet Dark Chocolate',
+        name: 'TOUCHSTONE 2%',
         due_date: '2025-06-15',
         units: '22 lb',
-        stock_qty: 0,
-        store_categ: 'BEANS&TEA',
-        stage: 'DUE',
+        count: 0,
+        store_categ: 'FRIDGE',
+        store_name: 'Orenco',
     },
     {
         id: 3,
-        name: 'AVA Drip Blend',
+        name: 'TOUCHSTONE FAT-FREE',
         due_date: '2025-06-15',
         units: 'Bucket (16 lb)',
-        stock_qty: 0,
-        store_categ: 'BEANS&TEA',
-        stage: 'DUE',
+        count: 0,
+        store_categ: 'FRIDGE',
+        store_name: 'Progress',
     },
     {
         id: 4,
-        name: 'Black Ice Tea',
+        name: 'Ciabbatte Rolls',
         due_date: '2025-06-15',
-        units: '50 Pcs/Pack',
-        stock_qty: 0,
-        store_categ: 'BEANS&TEA',
-        stage: 'DUE',
+        units: '12/pack',
+        count: 0,
+        store_categ: 'FRIDGE',
+        store_name: 'Progress',
     },
+    {
+        id: 5,
+        name: 'Olive Oil',
+        due_date: '2025-06-15',
+        units: '1 bottle',
+        count: 0,
+        store_categ: 'GENERAL',
+        store_name: 'Orenco',
+    },
+    {
+        id: 6,
+        name: 'Potato Chips',
+        due_date: '2025-06-15',
+        units: '1.5 oz',
+        count: 0,
+        store_categ: 'STOCKROOM',
+        store_name: 'Orenco',
+    },
+    {
+        id: 7,
+        name: 'Sumatra',
+        due_date: '2025-06-15',
+        units: '1 lb',
+        count: 0,
+        store_categ: 'BEANS&TEA',
+        store_name: 'Progress',
+    }
 ];
 
 export default function Stock() {
-    const [data, setData] = useState<Item[]>([]);
-    const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
+    const [data, setData] = useState<StockItem[] | undefined>(dummyData);
+    const { userRole, userStoreId } = useAuth();
+    // const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    // Accepts integers only
-    const StockCell = ({ getValue, row, column, table }) => {
-        const initialValue = getValue();
-        const [value, setValue] = useState<string>(
-            initialValue?.toString() ?? ''
-        );
-        // const inputRef = useRef<HTMLInputElement>(null);
-
-        const handleBlur = () => {
-            const numValue = value === '' ? null : parseInt(value);
-            table.options.meta?.updateData(row.index, column.id, numValue);
-
-            // table.options.meta?.updateData(row.index, column.id, value);
-        };
-
-        const focusNextInput = (currentRowIndex: number) => {
-            const nextRowIndex = currentRowIndex + 1;
-
-            // Use setTimeout to ensure DOM is ready
-            setTimeout(() => {
-                try {
-                    // Try to find next input directly by row index
-                    const nextInput = document.querySelector(
-                        `input[data-row-index="${nextRowIndex}"][data-column-id="${column.id}"]`
-                    ) as HTMLInputElement;
-
-                    if (nextInput) {
-                        nextInput.focus();
-                        nextInput.select(); // Optional: select the text
-                    } else {
-                        console.log('No next input found');
-                    }
-                } catch (error) {
-                    console.error('Focus error:', error);
-                }
-            }, 10);
-        };
-
-        const handleKeyDown = (
-            event: React.KeyboardEvent<HTMLInputElement>
-        ) => {
-            if (event.key === 'Enter' || event.key === 'Tab') {
-                event.preventDefault();
-                event.stopPropagation();
-
-                // Save the current value
-                const numValue = value === '' ? null : parseInt(value);
-                table.options.meta?.updateData(row.index, column.id, numValue);
-
-                // Focus next input
-                focusNextInput(row.index);
-            }
-        };
-
-        return (
-            <Input
-                type='number'
-                // ref={inputRef}
-                // value={value}
-                // value={value ?? ''}
-                value={value !== null ? value : ''}
-                onChange={(e) =>
-                    e.target.value.includes('.')
-                        ? setValue('')
-                        : setValue(e.target.value)
-                }
-                // onKeyDown=""
-                onBlur={handleBlur}
-                onKeyDown={handleKeyDown}
-                data-row-index={row.index}
-                data-column-id={column.id}
-                className='h-6 text-center'
-                min='0'
-                // step="0.5"
-                placeholder='0'
-            />
-        );
-    };
-
-    const columns = [
-        {
-            accessorKey: 'name', // accessorKey matches to the property name in initialData[], thereby rendering the appropriate data
-            header: 'Name',
-        },
-        {
-            accessorKey: 'due_date',
-            header: 'Due Date',
-        },
-        {
-            accessorKey: 'units',
-            header: 'Units',
-        },
-        {
-            accessorKey: 'stock_qty',
-            header: 'Stock Quantity',
-            // size: 200,
-            cell: StockCell,
-        },
-    ];
-
-    const table = useReactTable({
-        data,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        state: {
-            globalFilter: activeCateg === 'ALL' ? undefined : activeCateg,
-        },
-        globalFilterFn: (row, columnId, filterValue) => {
-            return row.original.store_categ === filterValue;
-        },
-        meta: {
-            updateData: (rowIndex, columnId, value) => {
-                setData((old) =>
-                    old.map((row, index) => {
-                        if (index === rowIndex) {
-                            return {
-                                ...old[rowIndex],
-                                [columnId]: value,
-                            };
-                        }
-                        return row;
-                    })
-                );
-            },
-        },
-    });
-
-    // object lookup for category messages
-    const categoryMessage: Record<string, JSX.Element | string> = {
-        ALL: '',
-        PASTRY: <p>Pastry stock due every Sunday</p>,
-        FRONT: <p>Front counter items</p>,
-        GENERAL: <p>General items</p>,
-        STOCKROOM: <p>Items in stockroom and its shelves</p>,
-        FRIDGE: <p>Items in all fridges and freezers</p>,
-        'BEANS&TEA': <p>Coffee bean and tea items</p>,
-    };
-
-    // render red dot if any item is due in the category
-    function renderRedDot(category: string) {
-        const items = data.filter((item) => item.store_categ === category);
-
-        if (items.length > 0) {
-            // Check if any item has stage 'DUE'
-            const hasDueItems = items.some((item) => item.stage === 'DUE');
-            if (hasDueItems) {
-                return (
-                    // <p>test</p>
-                    // <div className='bg-red-500 rounded-full w-2 h-2 absolute top-0 right-0'></div>
-                    <Dot className='text-red-500 w-8 h-8' />
-                );
-            }
-        }
-        return <div></div>;
-    }
 
     useEffect(() => {
         const fetchStoresStock = async () => {
             try {
                 // fetch every store (no storeId param in api url)
-                const response = await fetch('/api/v1/store-stock?storeId=2');
+                let response;
+                if (userRole === 'admin') {
+                    response = await fetch('/api/v1/store-orders');
+                } else if (userRole === 'store_manager') {
+                    response = await fetch(
+                        `/api/v1/store-stock?storeId=${userStoreId}`
+                    );
+                } else {
+                    // dont fetch stock for other roles
+                    return;
+                }
                 const data = await response.json();
                 if (response.ok) {
                     setData(data); // set data to all stores
                     // setStoreData(data);
                 } else {
-                    console.error('Error fetching store stock:', data);
+                    console.error('Error fetching stock: ', data);
                     setData([]);
                     // setStoreData([]);
                 }
             } catch (error) {
-                console.error('Error fetching store stock:', error);
+                console.error('Error fetching stock: ', error);
                 setData([]);
                 // setStoreData([]);
             }
+            setIsLoading(false);
         };
 
-        // fetchStoresStock();
-    }, []);
+        // fetchStoreStock();
+        // setData([]); // testing
+        setIsLoading(false);
+        // console.log('Store stock fetched');
+
+    }, [userRole, userStoreId]);
 
     return (
         <div className='mt-6'>
             <HeaderBar pageName={'Store'} />
-            <div className="mb-6">
-                <StoreNavsBar />
+            <div className='mb-2'>
+                <PagesNavBar />
             </div>
-            {data?.length > 0 ? (
-                <>
-                    <div className='flex flex-wrap gap-2'>
-                        {STORE_CATEGORIES.map((category) => (
-                            <div
-                                key={category}
-                                className='flex flex-col items-center'
-                            >
-                                <Button
-                                    key={category}
-                                    variant={
-                                        activeCateg === category
-                                            ? 'myTheme'
-                                            : 'outline'
-                                    }
-                                    onClick={() => setActiveCateg(category)}
-                                >
-                                    {category}
-                                </Button>
-                                <div>{renderRedDot(category)}</div>
-                            </div>
-                        ))}
+            {data === undefined && isLoading && (
+                <div className='flex flex-col w-[90%] gap-3'>
+                    <div className='space-y-2'>
+                        <Skeleton className='h-6 w-[100%] rounded-md' />
+                        {/* <Skeleton className='h-4 w-[200px]' /> */}
                     </div>
-                    <div className='mb-2 text-sm'>
-                        {categoryMessage[activeCateg]}
+                    <Skeleton className='h-[175px] w-[100%] rounded-md' />
+                    <div className='flex gap-2 self-end'>
+                        <Skeleton className='h-6 w-[75px] round-md' />
+                        <Skeleton className='h-6 w-[75px] round-md' />
                     </div>
-                    <div className='flex flex-col mr-2'>
-                        <div className='rounded-lg border'>
-                            <Table>
-                                <TableHeader className='bg-gray-200'>
-                                    {table
-                                        .getHeaderGroups()
-                                        .map((headerGroup) => (
-                                            <TableRow key={headerGroup.id}>
-                                                {headerGroup.headers.map(
-                                                    (header) => (
-                                                        <TableHead
-                                                            key={header.id}
-                                                            style={{
-                                                                width:
-                                                                    header.id ===
-                                                                    'stock_qty'
-                                                                        ? '130px'
-                                                                        : 'auto',
-                                                            }}
-                                                        >
-                                                            {flexRender(
-                                                                header.column
-                                                                    .columnDef
-                                                                    .header,
-                                                                header.getContext()
-                                                            )}
-                                                        </TableHead>
-                                                    )
-                                                )}
-                                            </TableRow>
-                                        ))}
-                                </TableHeader>
-                                <TableBody>
-                                    {table.getRowModel().rows.map((row) => (
-                                        <TableRow key={row.id}>
-                                            {row
-                                                .getVisibleCells()
-                                                .map((cell) => (
-                                                    <TableCell
-                                                        key={cell.id}
-                                                        style={{
-                                                            width:
-                                                                cell.column
-                                                                    .id ===
-                                                                'stock_qty'
-                                                                    ? '130px'
-                                                                    : 'auto',
-                                                        }}
-                                                    >
-                                                        {flexRender(
-                                                            cell.column
-                                                                .columnDef.cell,
-                                                            cell.getContext()
-                                                        )}
-                                                    </TableCell>
-                                                ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                        <div>
-                            {' '}
-                            {/* Pagination: 10 items per page */}
-                            <div className='flex items-center justify-end space-x-2 py-4'>
-                                <Button
-                                    variant='outline'
-                                    size='sm'
-                                    onClick={() => table.previousPage()}
-                                    disabled={!table.getCanPreviousPage()}
-                                >
-                                    Previous
-                                </Button>
-                                <Button
-                                    variant='outline'
-                                    size='sm'
-                                    onClick={() => table.nextPage()}
-                                    disabled={!table.getCanNextPage()}
-                                >
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            ) : (
+                </div>
+                // <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                // <p className='text-2xl text-gray-600'>Loading...</p>
+                // </div>
+            )}
+            {data && !isLoading && data?.length > 0 && (
+                <StockTable data={data} setData={setData} />
+            )}
+            {!isLoading && data?.length === 0 && (
                 // <div className='flex flex-col justify-center'>
-                    <div className='flex flex-col items-center justify-center gap-2 mb-4'>
-                        <Image
-                            src={noStockPic}
-                            alt='no stock due today pic'
-                            width={300}
-                            height={300}
-                        />
-                        <p className="text-2xl text-gray-600">No Stock Due!</p>
-                        <p className="text-sm text-gray-400">No stock entries due currently</p>
-                        {/* <Button size='lg' variant='myTheme'>Create Stock Entry</Button> */}
-                    </div>
+                <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                    <Image
+                        src={noStockPic}
+                        alt='no stock counts due today pic'
+                        width={300}
+                        height={300}
+                    />
+                    <p className='text-2xl text-gray-600'>No Stock Due!</p>
+                    <p className='text-sm text-gray-400'>
+                        All stock counts have been sent
+                    </p>
+                </div>
                 // </div>
             )}
         </div>
     );
+
 }
