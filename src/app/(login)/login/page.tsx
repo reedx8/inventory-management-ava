@@ -86,10 +86,10 @@ export default function LoginPage() {
                             />
                         </div>
                         <div>
-                            <h1 className='text-myBrown/90 text-sm font-semibold text-center'>
+                            <h1 className='text-myBrown/90 text-sm text-center font-semibold'>
                                 Inventory Management System
                             </h1>
-                            <p className='text-white/90 text-xs font-semibold text-center'>
+                            <p className='text-white/90 text-xs text-center font-medium'>
                                 Sign in to your account
                             </p>
                         </div>
@@ -115,7 +115,7 @@ export default function LoginPage() {
                                         </FormLabel>
                                         <FormControl>
                                             <Input
-                                                className='focus:border-none text-white/80 bg-white/20 border-none font-semibold'
+                                                className='focus:border-none text-white/80 bg-white/20 border-none'
                                                 placeholder='Janedoe@gmail.com'
                                                 type='email'
                                                 {...field}
@@ -134,7 +134,7 @@ export default function LoginPage() {
                                         </FormLabel>
                                         <FormControl>
                                             <Input
-                                                className='focus:border-none text-white/80 bg-white/20 border-none font-semibold'
+                                                className='focus:border-none text-white/80 bg-white/20 border-none'
                                                 placeholder='Password'
                                                 type='password'
                                                 {...field}
