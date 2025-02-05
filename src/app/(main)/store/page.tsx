@@ -57,7 +57,7 @@ const dummyData: OrderItem[] = [
         qty_per_order: '1 Pc',
         order: 0,
         store_categ: 'PASTRY',
-        store_name: 'Hall',
+        store_name: 'Progress',
     },
     {
         id: 2,
@@ -75,7 +75,7 @@ const dummyData: OrderItem[] = [
         qty_per_order: '1 Pc',
         order: 0,
         store_categ: 'PASTRY',
-        store_name: 'Hall',
+        store_name: 'Orenco',
     },
     {
         id: 4,
@@ -84,7 +84,7 @@ const dummyData: OrderItem[] = [
         qty_per_order: '4 Pcs/Pack',
         order: 0,
         store_categ: 'PASTRY',
-        store_name: 'Barrows',
+        store_name: 'Orenco',
     },
     {
         id: 5,
@@ -93,7 +93,7 @@ const dummyData: OrderItem[] = [
         qty_per_order: '12 Pcs',
         order: 0,
         store_categ: 'PASTRY',
-        store_name: 'Kruse',
+        store_name: 'Progress',
     },
     {
         id: 6,
@@ -102,7 +102,7 @@ const dummyData: OrderItem[] = [
         qty_per_order: '1 cake',
         order: 0,
         store_categ: 'PASTRY',
-        store_name: 'Kruse',
+        store_name: 'Progress',
     },
     {
         id: 7,
@@ -116,8 +116,8 @@ const dummyData: OrderItem[] = [
 ];
 
 export default function Stores() {
-    const [data, setData] = useState<OrderItem[] | undefined>(dummyData);
     const { userRole, userStoreId } = useAuth();
+    const [data, setData] = useState<OrderItem[] | undefined>(dummyData);
     // const [data, setData] = useState<OrderItem[]>(dummyData);
     // const [ storeData, setStoreData ] = useState<OrderItem[]>([]);
     // const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
