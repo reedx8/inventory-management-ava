@@ -192,7 +192,7 @@ function renderRedDot(category: string) {
     const items = data.filter((item) => item.store_categ === category);
 
     if (items.length > 0) {
-        return <Dot className='text-red-500 w-8 h-8' />;
+        return <Dot className='text-myDarkbrown w-8 h-8' />;
         /*
             // Check if any item has stage 'DUE'
             const hasDueItems = items.some((item) => item.stage === 'DUE');
@@ -203,7 +203,7 @@ function renderRedDot(category: string) {
             }
             */
     } else if (category === 'ALL' && data.length > 0) {
-        return <Dot className='text-red-500 w-8 h-8' />;
+        return <Dot className='text-myDarkbrown w-8 h-8' />;
     }
     return <div></div>;
 }
