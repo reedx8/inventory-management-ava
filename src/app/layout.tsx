@@ -1,11 +1,11 @@
-// import { Afacad_Flux } from "next/font/google";
-import { Montserrat } from "next/font/google";
+import { Montserrat, Geist, Jost } from "next/font/google";
 import type { Metadata } from "next";
 // import localFont from "next/font/local";
 import "./globals.css";
 
-// const afacadFlux = Afacad_Flux({ subsets: ["latin"] });
-const montserrat = Montserrat({ subsets: ["latin"] });
+// const customFont = Montserrat({ subsets: ["latin"], weight: "500" });
+const customFont = Geist({ subsets: ["latin"], weight: "400" });
+// const customFont = Jost({ subsets: ["latin"], weight: "400" });
 
 // const geistSans = localFont({
 //   src: "./fonts/GeistVF.woff",
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       {/* <body className={`${geistSans.variable} ${geistMono.variable}`}> */}
-        <body className={`${montserrat.className}`}>
+        <body className={`${customFont.className}`}>
         {/* <body className={`${montserrat.className} h-full`}> */}
         {/* <body className={montserrat.className}> */}
           {children}

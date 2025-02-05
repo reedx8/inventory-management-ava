@@ -11,8 +11,9 @@ export default function MainLayout({
         <AuthProvider>
             <SidebarProvider>
                 <AppSidebar />
-                <SidebarTrigger />
+                {/* <SidebarTrigger /> */}
                 <div className='w-full min-h-screen mx-3'>
+                    <SidebarTrigger />
                     {/* <div className="w-full min-h-screen mx-3 bg-[url('../../public/leaves.png')] bg-no-repeat bg-[right_-100px_bottom_-100px] bg-fixed"> */}
                     {children}
                 </div>

@@ -200,7 +200,7 @@ export function AppSidebar() {
     // }, []);
 
     return (
-        <Sidebar>
+        <Sidebar collapsible='icon'>
             <SidebarHeader>
                 <Link href='/' className='pointer-events-none'>
                     <Image src={menuLogo} alt='menu logo' />
@@ -218,6 +218,7 @@ export function AppSidebar() {
                                     item.url.split('/')[1]
                                 }
                                 variant='myTheme'
+                                className='h-10'
                                 // className={`hover:bg-myBrown ${currentPage === item.url ? 'text-brown' : ''}`}
                             >
                                 <Link href={item.url}>

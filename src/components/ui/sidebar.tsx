@@ -24,7 +24,8 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 const SIDEBAR_COOKIE_NAME = "sidebar:state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_MOBILE = "18rem"
+const SIDEBAR_WIDTH_MOBILE = "14rem"
+// const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
@@ -276,7 +277,8 @@ const SidebarTrigger = React.forwardRef<
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn("h-10 w-10 [&>svg]:!h-6 [&>svg]:!w-6", className)}
+      className={cn("h-10 w-10 [&>svg]:!h-5 [&>svg]:!w-5", className)}
+      // className={cn("h-7 w-7", className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
@@ -525,7 +527,7 @@ const sidebarMenuButtonVariants = cva(
         default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
         outline:
           "bg-white shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))] dark:bg-neutral-950",
-        myTheme: "hover:bg-myBrown data-[active=true]:bg-myBrown",
+        myTheme: "hover:bg-myBrown data-[active=true]:bg-myBrown data-[active=true]:drop-shadow-md hover:drop-shadow-md",
       },
       size: {
         default: "h-8 text-sm",

@@ -76,7 +76,7 @@ export default function LoginPage() {
 
             {/* <div className="flex flex-col items-center justify-center h-screen z-10000"> */}
             <div className='relative flex flex-col items-center justify-center min-h-screen'>
-                <div className='w-full max-w-sm bg-myDarkbrown/50 p-8 rounded-xl shadow-xl'>
+                <div className='w-full max-w-sm bg-myDarkbrown/50 p-8 rounded-xl shadow-xl backdrop-blur-lg'>
                     <div className='mb-8 flex flex-col justify-center gap-1'>
                         <div>
                             <Image
