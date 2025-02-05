@@ -115,20 +115,21 @@ const dummyData : StockItem[] = [
 ];
 
 export default function Stock() {
-    const [data, setData] = useState<StockItem[] | undefined>(dummyData);
+    const [data, setData] = useState<StockItem[] | undefined>();
     const { userRole, userStoreId } = useAuth();
     // const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
 
     useEffect(() => {
-        const fetchStoresStock = async () => {
+        const fetchWeeklyStock = async () => {
             try {
-                // fetch every store (no storeId param in api url)
                 let response;
                 if (userRole === 'admin') {
-                    response = await fetch('/api/v1/store-orders');
+                    // fetch every store (no storeId param in api url)
+                    response = await fetch('/api/v1/store-stock');
                 } else if (userRole === 'store_manager') {
+                    // fetch single store
                     response = await fetch(
                         `/api/v1/store-stock?storeId=${userStoreId}`
                     );
@@ -153,18 +154,26 @@ export default function Stock() {
             setIsLoading(false);
         };
 
-        // fetchStoreStock();
-        // setData([]); // testing
+        // fetchWeeklyStock();
+
+        // testing:
+        setData([]);
         setIsLoading(false);
         // console.log('Store stock fetched');
 
     }, [userRole, userStoreId]);
 
+    // testing:
+    // console.log('the data: ', data);
+
     return (
         <div className='mt-6'>
             <HeaderBar pageName={'Store'} />
-            <div className='mb-2'>
+            <div className='mb-2 flex justify-between items-center'>
                 <PagesNavBar />
+                <Button size='sm' variant='myTheme'>
+                   Sunday Close 
+                </Button>
             </div>
             {data === undefined && isLoading && (
                 <div className='flex flex-col w-[90%] gap-3'>

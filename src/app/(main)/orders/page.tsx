@@ -17,7 +17,7 @@ interface Item {
 }
 
 export default function Orders() {
-    const [data, setData] = useState<Item[]>([]);
+    const [data, setData] = useState<Item[]>();
 
     return (
         <div className='mt-6'>
@@ -25,7 +25,7 @@ export default function Orders() {
             <div className='mb-6'>
                 <PagesNavBar />
             </div>
-            {data?.length > 0 ? (
+            {data && data?.length > 0 ? (
                 <>
                     <p>Orders here...</p>
                 </>
@@ -41,7 +41,7 @@ export default function Orders() {
                         All Orders Processed!
                     </p>
                     <p className='text-sm text-gray-400'>
-                        This week's orders have been processed
+                        {`This week's orders have been processed`}
                     </p>
                     <Button size='lg' variant='myTheme'>Create Order</Button>
                 </div>

@@ -5,6 +5,7 @@ import {
     ordersTable,
     itemsTable,
     storesTable,
+    stockTable,
     // storeOrdersTable,
 } from '../schema';
 
@@ -18,7 +19,7 @@ export async function getStoreOrders(store_location_id: string | null) {
             .select({
                 id: ordersTable.id,
                 name: itemsTable.name,
-                qty_per_order: ordersTable.qty_per_order,
+                qty_per_order: itemsTable.units,
                 order: sql`0::integer`,
                 // stage: orderStagesTable.stage_name,
                 store_categ: itemsTable.store_categ,
@@ -44,7 +45,7 @@ export async function getStoreOrders(store_location_id: string | null) {
             .select({
                 id: ordersTable.id,
                 name: itemsTable.name,
-                qty_per_order: ordersTable.qty_per_order,
+                qty_per_order: itemsTable.units,
                 // order: orderStagesTable.order_qty,
                 // stage: orderStagesTable.stage_name,
                 store_categ: itemsTable.store_categ,
@@ -56,6 +57,64 @@ export async function getStoreOrders(store_location_id: string | null) {
             .innerJoin(itemsTable, eq(itemsTable.id, ordersTable.item_id))
             .innerJoin(storesTable, eq(storesTable.id, ordersTable.store_id))
             .where(and(eq(itemsTable.is_active, true)));
+        // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+
+        return result;
+    }
+
+    // return result;
+}
+
+export async function getWeeklyStock(store_location_id: string | null) {
+    // const dummyDate: string = '2025-06-15'; // dummy data for now
+
+    if (store_location_id) {
+        const storeId = parseInt(store_location_id);
+        const result = await db
+            .select({
+                id: stockTable.id,
+                name: itemsTable.name,
+                units: itemsTable.units,
+                count: sql`0::integer`,
+                store_categ: itemsTable.store_categ,
+                // due_date: sql`${dummyDate}`, // dummy data for now
+                due_date: stockTable.due_date,
+                store_name: storesTable.name,
+            })
+            .from(stockTable)
+            .innerJoin(itemsTable, eq(itemsTable.id, stockTable.item_id))
+            .innerJoin(storesTable, eq(storesTable.id, stockTable.store_id))
+            .where(
+                and(
+                    eq(stockTable.store_id, storeId),
+                    eq(itemsTable.is_active, true),
+                    eq(itemsTable.is_weekly_stock, true)
+                )
+            );
+        // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+        return result;
+    } else {
+        // Return ALL stock items
+        const result = await db
+            .select({
+                id: stockTable.id,
+                name: itemsTable.name,
+                units: itemsTable.units,
+                count: sql`0::integer`,
+                store_categ: itemsTable.store_categ,
+                // due_date: sql`${dummyDate}`, // dummy data for now
+                due_date: stockTable.due_date,
+                store_name: storesTable.name,
+            })
+            .from(stockTable)
+            .innerJoin(itemsTable, eq(itemsTable.id, stockTable.item_id))
+            .innerJoin(storesTable, eq(storesTable.id, stockTable.store_id))
+            .where(
+                and(
+                    eq(itemsTable.is_active, true),
+                    eq(itemsTable.is_weekly_stock, true)
+                )
+            );
         // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
 
         return result;

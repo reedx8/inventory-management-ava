@@ -1,0 +1,1 @@
+ALTER TABLE "items" RENAME COLUMN "qty_per_order" TO "units";

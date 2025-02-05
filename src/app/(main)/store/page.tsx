@@ -317,7 +317,9 @@ export default function Stores() {
         };
 
         // fetchStoreOrders();
-        // setData([]); // testing
+
+        // testing:
+        setData([]);
         setIsLoading(false);
         // console.log('Store orders fetched');
     }, [userRole, userStoreId]);

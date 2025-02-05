@@ -24,7 +24,7 @@ export const itemsTable = pgTable(
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // default vendor that supplies this item
-        qty_per_order: varchar('qty_per_order'), // Items unit from its primary vendor (or bakery), not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc). Just change in csv if vendor changed-to requires different unit
+        units: varchar('units'), // Items unit from its primary vendor (or bakery), ie quantity of order for ordering, not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc). Just change in csv if vendor changed-to requires different unit
         // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
         list_price: decimal('list_price', { precision: 10, scale: 2 })
             .notNull()
@@ -33,8 +33,10 @@ export const itemsTable = pgTable(
         invoice_categ: varchar('invoice_categ').notNull().default('NONE'), // accounting category for invoicing
         main_categ: varchar('main_categ'), // main food category (US food groups + custom groups)
         sub_categ: varchar('sub_categ'), // food sub category
-        requires_inventory: boolean('requires_inventory'), // whether item requires inventory
-        requires_order: boolean('requires_order'), // whether item requires order
+        is_weekly_stock: boolean('is_weekly_stock').notNull().default(false), // whether item is part of weekly stock count routine or not
+        is_sunday_stock: boolean('is_sunday_stock').notNull().default(false), // whether item is part of sunday stock count routine or not
+        // requires_inventory: boolean('requires_inventory'), // whether item requires inventory
+        // requires_order: boolean('requires_order'), // whether item requires order
         item_description: text('item_description'), // internal description of item
         vendor_description: text('vendor_description'), // primary vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
         is_active: boolean('is_active').notNull().default(true), // whether item is active or not for all stores
@@ -70,42 +72,49 @@ export const stockTable = pgTable(
         item_id: integer('item_id')
             .notNull()
             .references(() => itemsTable.id),
-        store_id: integer('store_id').references(() => storesTable.id),
-        qty: decimal('qty', { precision: 10, scale: 2 }),
-        date_of_count: timestamp('date_of_count', {
+        store_id: integer('store_id')
+            .notNull()
+            .references(() => storesTable.id),
+        count: decimal('count', { precision: 10, scale: 2 }),
+        units: varchar('units'),
+        closed_count: decimal('closed_count', {
+            precision: 10,
+            scale: 2,
+        }),
+        sealed_count: decimal('sealed_count', {
+            precision: 10,
+            scale: 2,
+        }),
+        open_items_weight: decimal('open_items_weight', {
+            precision: 10,
+            scale: 2,
+        }), // oz
+        expired_count: decimal('expired_count', {
+            precision: 10,
+            scale: 2,
+        }),
+        reused_count: decimal('reused_count', {
+            precision: 10,
+            scale: 2,
+        }),
+        due_date: timestamp('due_date', {
             precision: 3,
             withTimezone: true,
         }).notNull(),
+        date_of_count: timestamp('date_of_count', {
+            precision: 3,
+            withTimezone: true,
+        }),
         created_at: timestamp('created_at', {
             precision: 3,
             withTimezone: true,
         })
             .notNull()
             .defaultNow(),
-        closed_count: decimal('closed_count', {
-            precision: 10,
-            scale: 2,
-        }).default(sql`0.00`),
-        sealed_count: decimal('sealed_count', {
-            precision: 10,
-            scale: 2,
-        }).default(sql`0.00`),
-        open_items_weight: decimal('open_items_weight', {
-            precision: 10,
-            scale: 2,
-        }).default(sql`0.00`), // oz
-        expired_count: decimal('expired_count', {
-            precision: 10,
-            scale: 2,
-        }).default(sql`0.00`),
-        reused_count: decimal('reused_count', {
-            precision: 10,
-            scale: 2,
-        }).default(sql`0.00`),
     },
     (table) => {
         return [
-            check('positive_qty', sql`${table.qty} >= 0`),
+            check('positive_count', sql`${table.count} >= 0`),
             check('positive_closed_count', sql`${table.closed_count} >= 0`),
             check('positive_sealed_count', sql`${table.sealed_count} >= 0`),
             check(
@@ -138,7 +147,7 @@ export const ordersTable = pgTable(
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id), // default/predicted vendor of item. Value is copied from items.vendor_id
-        qty_per_order: varchar('qty_per_order'), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
+        units: varchar('units'), // quantity per order, copied from orders.units (unless changed at time of vendor order)
         due_date: timestamp('due_date', {
             precision: 3,
             withTimezone: true,

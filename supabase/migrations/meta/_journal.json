@@ -246,6 +246,48 @@
       "when": 1738703111823,
       "tag": "0034_wooden_mariko_yashida",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1738789176817,
+      "tag": "0035_gorgeous_captain_midlands",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1738789706747,
+      "tag": "0036_fix_not_null",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1738790945630,
+      "tag": "0037_wakeful_tempest",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1738792735675,
+      "tag": "0038_rapid_luke_cage",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1738792961833,
+      "tag": "0039_black_ravenous",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1738793408936,
+      "tag": "0040_sudden_black_knight",
+      "breakpoints": true
     }
   ]
 }

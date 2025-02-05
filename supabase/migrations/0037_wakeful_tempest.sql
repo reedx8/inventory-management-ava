@@ -1,0 +1,1 @@
+ALTER TABLE "stock" ADD COLUMN "due_date" timestamp (3) with time zone NOT NULL;
