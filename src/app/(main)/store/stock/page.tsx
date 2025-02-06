@@ -28,6 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // import ItemsTable from '@/components/items-table';
 import StockTable from './components/stock-table';
 import SundayCloseSheet from './components/sunday-close-sheet';
+import MondayThursSheet from './components/monday-thurs-sheet';
 
 interface StockItem {
     id: number;
@@ -160,7 +161,10 @@ export default function Stock() {
             <HeaderBar pageName={'Store'} />
             <div className='mb-2 flex justify-between items-center'>
                 <PagesNavBar />
-                <SundayCloseSheet />
+                <div className='flex gap-2'>
+                    <MondayThursSheet />
+                    <SundayCloseSheet />
+                </div>
             </div>
             {data === undefined && isLoading && (
                 <div className='flex flex-col w-[90%] gap-3'>
