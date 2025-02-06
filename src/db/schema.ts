@@ -33,7 +33,7 @@ export const itemsTable = pgTable(
         invoice_categ: varchar('invoice_categ').notNull().default('NONE'), // accounting category for invoicing
         main_categ: varchar('main_categ'), // main food category (US food groups + custom groups)
         sub_categ: varchar('sub_categ'), // food sub category
-        cron_categ: varchar('cron_categ'), // cron category for inventory schedule and cron jobs
+        cron_categ: varchar('cron_categ').default('NONE'), // convenient categories exclusively for inventory schedule and cron jobs
         // is_weekly_stock: boolean('is_weekly_stock').notNull().default(false), // whether item is part of weekly stock count routine or not
         // is_sunday_stock: boolean('is_sunday_stock').notNull().default(false), // whether item is part of sunday stock count routine or not
         // requires_inventory: boolean('requires_inventory'), // whether item requires inventory
@@ -60,6 +60,10 @@ export const itemsTable = pgTable(
             check(
                 'store_category_check',
                 sql`${table.store_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
+            ),
+            check(
+                'cron_category_check',
+                sql`${table.cron_categ} IN ('PASTRIES', 'MILK', 'BREAD', 'RETAILBEANS', 'MEATS', 'NONE')`
             ),
         ];
     }
@@ -232,13 +236,14 @@ export const storeOrdersTable = pgTable(
     }
 );
 
-
 // Schedules table for scheduling cron jobs and outlining ava's complex ordering/stock schedule (item-level). More customizable/nuanced than junction table approach
 export const inventorySchedule = pgTable(
     'inventory_schedule',
     {
         id: serial('id').primaryKey(),
-        item_id: integer('item_id').notNull().references(() => itemsTable.id),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id),
         is_order_sched: boolean('is_order_sched').notNull(), // schedule type 1/2
         is_stock_sched: boolean('is_stock_sched').notNull(), // schedule type 2/2
         frequency: varchar('frequency').notNull(),
@@ -252,14 +257,15 @@ export const inventorySchedule = pgTable(
                 'positive_weekly_freq',
                 sql`${table.weekly_freq} >= 1 AND ${table.weekly_freq} <= 7`
             ),
-            check('exclusive_schedule_type',
+            check(
+                'exclusive_schedule_type',
                 sql`(${table.is_order_sched} AND NOT ${table.is_stock_sched}) OR 
                     (${table.is_stock_sched} AND NOT ${table.is_order_sched})`
-              ),
+            ),
             check(
                 'check_frequency',
                 sql`${table.frequency} IN ('WEEKLY', 'DAILY')`
-            )
+            ),
         ];
     }
 );

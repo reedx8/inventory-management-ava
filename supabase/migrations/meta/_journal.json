@@ -316,6 +316,13 @@
       "when": 1738829387172,
       "tag": "0044_bright_dragon_lord",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1738831090369,
+      "tag": "0045_sticky_mole_man",
+      "breakpoints": true
     }
   ]
 }
