@@ -237,6 +237,8 @@ export const storeOrdersTable = pgTable(
 );
 
 // Schedules table for scheduling cron jobs and outlining ava's complex ordering/stock schedule (item-level). More customizable/nuanced than junction table approach
+// Schedule largely dictated by vendor (eg Petes milk), shelf life (eg daily pastry orders, or most orders since most items on avg have a week-long shelf life hence weekly batched orders), or tracking waste purposes (eg sunday close inventory)
+// schedule days largely dictated by store manager schedules (eg most dont work on monday hence orders placed by tuesdays mostly)
 export const inventorySchedule = pgTable(
     'inventory_schedule',
     {
@@ -295,7 +297,7 @@ export const vendorsTable = pgTable('vendors', {
 });
 
 // Tracks if an order was split between multiple vendors when processed (if any)
-// Eg: If an item has order_stages.qty_sum = 10 when stage_name=processed, and item's order used 2 vendors, then eg vendor_split.qty = 8, vendor_split.qty = 2 may (and should) be here
+// Eg: if an item has orders.tot_qty_vendor = 10 when order delivered, and item's order used 2 vendors, then eg vendor_split.qty = 8, vendor_split.qty = 2 may (and should) be here (or any valid sum combination)
 export const vendorSplitTable = pgTable(
     'vendor_split',
     {
@@ -305,7 +307,7 @@ export const vendorSplitTable = pgTable(
             .notNull()
             .references(() => vendorsTable.id),
         qty: decimal('qty', { precision: 10, scale: 2 }),
-        qty_per_order: varchar('qty_per_order'), // quantity per order, copied from orders.qty_per_order (unless changed at time of vendor order)
+        units: varchar('units'), // quantity per order, copied from orders.units (unless changed at time of vendor order)
         total_spent: decimal('total_spent', { precision: 10, scale: 2 }),
     },
     (table) => {

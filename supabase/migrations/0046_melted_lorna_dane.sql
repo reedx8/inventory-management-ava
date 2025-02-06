@@ -1,0 +1,1 @@
+ALTER TABLE "vendor_split" RENAME COLUMN "qty_per_order" TO "units";
