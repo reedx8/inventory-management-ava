@@ -33,8 +33,9 @@ export const itemsTable = pgTable(
         invoice_categ: varchar('invoice_categ').notNull().default('NONE'), // accounting category for invoicing
         main_categ: varchar('main_categ'), // main food category (US food groups + custom groups)
         sub_categ: varchar('sub_categ'), // food sub category
-        is_weekly_stock: boolean('is_weekly_stock').notNull().default(false), // whether item is part of weekly stock count routine or not
-        is_sunday_stock: boolean('is_sunday_stock').notNull().default(false), // whether item is part of sunday stock count routine or not
+        cron_categ: varchar('cron_categ'), // cron category for inventory schedule and cron jobs
+        // is_weekly_stock: boolean('is_weekly_stock').notNull().default(false), // whether item is part of weekly stock count routine or not
+        // is_sunday_stock: boolean('is_sunday_stock').notNull().default(false), // whether item is part of sunday stock count routine or not
         // requires_inventory: boolean('requires_inventory'), // whether item requires inventory
         // requires_order: boolean('requires_order'), // whether item requires order
         item_description: text('item_description'), // internal description of item
@@ -231,6 +232,38 @@ export const storeOrdersTable = pgTable(
     }
 );
 
+
+// Schedules table for scheduling cron jobs and outlining ava's complex ordering/stock schedule (item-level). More customizable/nuanced than junction table approach
+export const inventorySchedule = pgTable(
+    'inventory_schedule',
+    {
+        id: serial('id').primaryKey(),
+        item_id: integer('item_id').notNull().references(() => itemsTable.id),
+        is_order_sched: boolean('is_order_sched').notNull(), // schedule type 1/2
+        is_stock_sched: boolean('is_stock_sched').notNull(), // schedule type 2/2
+        frequency: varchar('frequency').notNull(),
+        weekly_freq: integer('weekly_freq').notNull(),
+        start_day: integer('start_day').array().notNull(), // check for valid days in application layer (subquery in migration file errors, altern solutions complex)
+        end_day: integer('end_day').array().notNull(), // check for valid days in application layer
+    },
+    (table) => {
+        return [
+            check(
+                'positive_weekly_freq',
+                sql`${table.weekly_freq} >= 1 AND ${table.weekly_freq} <= 7`
+            ),
+            check('exclusive_schedule_type',
+                sql`(${table.is_order_sched} AND NOT ${table.is_stock_sched}) OR 
+                    (${table.is_stock_sched} AND NOT ${table.is_order_sched})`
+              ),
+            check(
+                'check_frequency',
+                sql`${table.frequency} IN ('WEEKLY', 'DAILY')`
+            )
+        ];
+    }
+);
+
 // List of vendors that stores can order from. Lookup table.
 export const vendorsTable = pgTable('vendors', {
     id: serial('id').primaryKey(),
@@ -370,7 +403,7 @@ export const parsTable = pgTable(
     }
 );
 
-// Schedules table for scheduling cron jobs (if user-created cron jobs needed)
+// Schedules table for scheduling cron jobs (schedule-type level) (if user-created cron jobs needed). TODO: MAY DELETE (duplicate prurpose essentially to inventory_schedule table)
 export const schedulesTable = pgTable('schedules', {
     id: serial('id').primaryKey(),
     name: varchar('name').notNull().unique(),
@@ -386,7 +419,7 @@ export const schedulesTable = pgTable('schedules', {
     last_run: timestamp('last_run', { precision: 3, withTimezone: true }),
 });
 
-// Junction table for cron job scheduling (orders)
+// Junction table for cron job scheduling (orders). TODO: MAY DELETE
 export const order_item_schedulesTable = pgTable(
     'order_item_schedules',
     {
@@ -401,7 +434,7 @@ export const order_item_schedulesTable = pgTable(
     }
 );
 
-// Junction table for cron job scheduling (stock)
+// Junction table for cron job scheduling (stock). TODO: MAY DELETE
 export const stock_item_schedulesTable = pgTable(
     'stock_item_schedules',
     {
@@ -431,6 +464,9 @@ export type SelectOrder = typeof ordersTable.$inferSelect;
 export type InsertStoreOrder = typeof storeOrdersTable.$inferInsert;
 export type SelectStoreOrder = typeof storeOrdersTable.$inferSelect;
 // export type UpdateStoreOrder = typeof storeOrdersTable.$inferUpdate;
+export type InsertInventorySchedule = typeof inventorySchedule.$inferInsert;
+export type SelectInventorySchedule = typeof inventorySchedule.$inferSelect;
+// export type UpdateInventorySchedule = typeof inventorySchedule.$inferUpdate;
 export type InsertVendorSplit = typeof vendorSplitTable.$inferInsert;
 export type SelectVendorSplit = typeof vendorSplitTable.$inferSelect;
 // export type UpdateVendorSplit = typeof vendorSplitTable.$inferUpdate;

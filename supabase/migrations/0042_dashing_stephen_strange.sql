@@ -1,0 +1,1 @@
+ALTER TABLE "items" RENAME COLUMN "cron_category" TO "cron_categ";

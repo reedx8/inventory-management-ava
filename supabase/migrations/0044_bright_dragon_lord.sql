@@ -1,0 +1,1 @@
+ALTER TABLE "inventory_schedule" ALTER COLUMN "item_id" SET NOT NULL;

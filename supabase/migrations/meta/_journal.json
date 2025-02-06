@@ -288,6 +288,34 @@
       "when": 1738793408936,
       "tag": "0040_sudden_black_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1738824538553,
+      "tag": "0041_lying_stryfe",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1738824621443,
+      "tag": "0042_dashing_stephen_strange",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1738829072731,
+      "tag": "0043_swift_alice",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1738829387172,
+      "tag": "0044_bright_dragon_lord",
+      "breakpoints": true
     }
   ]
 }
