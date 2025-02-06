@@ -18,7 +18,7 @@ import {
     getPaginationRowModel,
     useReactTable,
 } from '@tanstack/react-table';
-import { Dot } from 'lucide-react';
+// import { Dot } from 'lucide-react';
 import noStockPic from '/public/illustrations/empty.svg';
 import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
@@ -27,6 +27,7 @@ import PagesNavBar from '@/components/pages-navbar';
 import { Skeleton } from '@/components/ui/skeleton';
 // import ItemsTable from '@/components/items-table';
 import StockTable from './components/stock-table';
+import SundayCloseSheet from './components/sunday-close-sheet';
 
 interface StockItem {
     id: number;
@@ -38,17 +39,7 @@ interface StockItem {
     store_name: string;
 }
 
-const STORE_CATEGORIES = [
-    'ALL',
-    'PASTRY',
-    'FRONT',
-    'GENERAL',
-    'FRIDGE',
-    'STOCKROOM',
-    'BEANS&TEA',
-] as const;
-
-const dummyData : StockItem[] = [
+const dummyData: StockItem[] = [
     {
         id: 1,
         name: 'TOUCHSTONE WHOLE',
@@ -56,7 +47,7 @@ const dummyData : StockItem[] = [
         units: '1 Pc',
         count: 0,
         store_categ: 'FRIDGE',
-        store_name: "Progress",
+        store_name: 'Progress',
     },
     {
         id: 2,
@@ -111,7 +102,7 @@ const dummyData : StockItem[] = [
         count: 0,
         store_categ: 'BEANS&TEA',
         store_name: 'Progress',
-    }
+    },
 ];
 
 export default function Stock() {
@@ -119,7 +110,6 @@ export default function Stock() {
     const { userRole, userStoreId } = useAuth();
     // const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
     const [isLoading, setIsLoading] = useState<boolean>(true);
-
 
     useEffect(() => {
         const fetchWeeklyStock = async () => {
@@ -160,7 +150,6 @@ export default function Stock() {
         setData([]);
         setIsLoading(false);
         // console.log('Store stock fetched');
-
     }, [userRole, userStoreId]);
 
     // testing:
@@ -171,9 +160,7 @@ export default function Stock() {
             <HeaderBar pageName={'Store'} />
             <div className='mb-2 flex justify-between items-center'>
                 <PagesNavBar />
-                <Button size='sm' variant='myTheme'>
-                   Sunday Close 
-                </Button>
+                <SundayCloseSheet />
             </div>
             {data === undefined && isLoading && (
                 <div className='flex flex-col w-[90%] gap-3'>
@@ -212,5 +199,4 @@ export default function Stock() {
             )}
         </div>
     );
-
 }
