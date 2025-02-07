@@ -27,8 +27,8 @@ import PagesNavBar from '@/components/pages-navbar';
 import { Skeleton } from '@/components/ui/skeleton';
 // import ItemsTable from '@/components/items-table';
 import StockTable from './components/stock-table';
-import SundayCloseSheet from './components/sunday-close-sheet';
-import MondayThursSheet from './components/monday-thurs-sheet';
+import SundayCloseSheet from './components/track-waste-sheet';
+import MondayThursSheet from './components/milk-bread-sheet';
 
 interface StockItem {
     id: number;

@@ -8,7 +8,6 @@ import {
     text,
     varchar,
     timestamp,
-    time,
     primaryKey,
     check,
     uniqueIndex,
@@ -34,6 +33,7 @@ export const itemsTable = pgTable(
         main_categ: varchar('main_categ'), // main food category (US food groups + custom groups)
         sub_categ: varchar('sub_categ'), // food sub category
         cron_categ: varchar('cron_categ').default('NONE'), // convenient categories exclusively for inventory schedule and cron jobs
+        is_waste_tracked: boolean('is_waste_tracked').default(false),
         // is_weekly_stock: boolean('is_weekly_stock').notNull().default(false), // whether item is part of weekly stock count routine or not
         // is_sunday_stock: boolean('is_sunday_stock').notNull().default(false), // whether item is part of sunday stock count routine or not
         // requires_inventory: boolean('requires_inventory'), // whether item requires inventory
@@ -82,6 +82,7 @@ export const stockTable = pgTable(
             .references(() => storesTable.id),
         count: decimal('count', { precision: 10, scale: 2 }),
         units: varchar('units'),
+        is_waste_track: boolean('is_waste_track').notNull().default(false),
         closed_count: decimal('closed_count', {
             precision: 10,
             scale: 2,
@@ -105,7 +106,7 @@ export const stockTable = pgTable(
         due_date: timestamp('due_date', {
             precision: 3,
             withTimezone: true,
-        }).notNull(),
+        }),
         date_of_count: timestamp('date_of_count', {
             precision: 3,
             withTimezone: true,
@@ -366,8 +367,10 @@ export const vendorItemsTable = pgTable(
         item_name: varchar('item_name'), // exact name of item vendor needs/uses
         item_code: varchar('item_code'), // vendor specific item code/number (SUPC for Sysco, Petes Milk, Grand Central, etc)
         brand_code: varchar('item_brand'), // brand acronym/code of item from vendor (eg AREZIMP or WHLFCLS from Sysco vendor, etc)
-        item_description: text('item_description'), // vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
+        units: varchar('units'),
+        is_active: boolean('is_active').notNull().default(true),
         is_primary: boolean('is_primary').notNull().default(false), // whether this is the primary item for this vendor
+        item_description: text('item_description'), // vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
         created_at: timestamp('created_at', {
             precision: 3,
             withTimezone: true,
@@ -383,6 +386,11 @@ export const vendorItemsTable = pgTable(
                 table.vendor_id,
                 table.item_id,
                 table.item_name
+            ),
+            uniqueIndex('single_primary_vendor_item').on(
+                table.vendor_id,
+                table.item_id,
+                table.is_primary
             ),
         ];
     }
@@ -420,9 +428,7 @@ export const schedulesTable = pgTable('schedules', {
     created_at: timestamp('created_at', { precision: 3, withTimezone: true })
         .notNull()
         .defaultNow(),
-    exec_time: time('exec_time')
-        .notNull()
-        .default(sql`'00:00:00'`),
+    exec_time: timestamp('exec_time', { precision: 3, withTimezone: true }),
     days_of_week: integer('days_of_week').array().notNull(), // 0-6, where 0 is Sunday
     last_run: timestamp('last_run', { precision: 3, withTimezone: true }),
 });

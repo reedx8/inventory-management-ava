@@ -1,0 +1,1 @@
+ALTER TABLE "stock" ADD COLUMN "is_waste_track" boolean DEFAULT false NOT NULL;

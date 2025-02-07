@@ -200,7 +200,7 @@ export function AppSidebar() {
     // }, []);
 
     return (
-        <Sidebar collapsible='icon'>
+        <Sidebar collapsible='icon' variant='floating'>
             <SidebarHeader>
                 <Link href='/' className='pointer-events-none'>
                     <Image src={menuLogo} alt='menu logo' />

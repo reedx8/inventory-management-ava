@@ -1,0 +1,1 @@
+ALTER TABLE "schedules" ALTER COLUMN "exec_time" SET DATA TYPE time(3) with time zone;

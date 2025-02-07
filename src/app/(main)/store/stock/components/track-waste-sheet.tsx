@@ -54,14 +54,14 @@ export default function SundayCloseSheet() {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant='myTheme'>Sunday Stock</Button>
+                <Button variant='myTheme'>Track Waste</Button>
             </SheetTrigger>
             <SheetContent>
                 <SheetHeader>
-                    <SheetTitle>Sunday Close Stock</SheetTitle>
+                    <SheetTitle>Track Inventory Waste</SheetTitle>
                     <SheetDescription>
                         Perform stock counts on the following items at the end
-                        of every Sunday
+                        of every Sunday to track waste of our inventory
                     </SheetDescription>
                     <Collapsible className='border rounded-md p-2'>
                         <div className='flex justify-between items-center'>

@@ -1,0 +1,1 @@
+ALTER TABLE "stock" ALTER COLUMN "due_date" DROP NOT NULL;
