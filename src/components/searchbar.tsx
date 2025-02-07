@@ -39,7 +39,7 @@ export default function SearchBar() {
                 </DialogTrigger>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Search Ava's Items</DialogTitle>
+                        <DialogTitle>{`Search Ava's Items`}</DialogTitle>
                         {/* <DialogDescription>
                             This action cannot be undone. This will permanently
                             delete your account and remove your data from our
@@ -47,7 +47,7 @@ export default function SearchBar() {
                         </DialogDescription> */}
                     </DialogHeader>
                     <Input
-                        placeholder='Type an item name..'
+                        placeholder='Type an item name...'
                         className='w-full'
                         onChange={(e) => handleChange(e)}
                         onKeyDown={(e) => handleEnter(e)}
