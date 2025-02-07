@@ -36,7 +36,8 @@ import completePic from '/public/illustrations/complete.svg';
 import underConstructionPic from '/public/illustrations/underConstruction.svg';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import { set } from 'zod';
+import starPic from '/public/star.png';
+// import { set } from 'zod';
 // import { Controller } from 'react-hook-form';
 // import { count } from 'console';
 
@@ -105,7 +106,7 @@ type MilkBreadItems = {
 //     },
 // ];
 
-export default function MondayThursSheet() {
+export default function MilkBreadSheet() {
     const [data, setData] = useState<MilkBreadItems[] | undefined>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -116,9 +117,10 @@ export default function MondayThursSheet() {
 
     // Handler to update count for a specific item
     const handleCountChange = (itemId: number, newCount: string) => {
+        const count = Math.max(0, parseInt(newCount) || 0);
         setItemCounts((prev) => ({
             ...prev,
-            [itemId]: Number(newCount),
+            [itemId]: count,
         }));
     };
 
@@ -142,19 +144,55 @@ export default function MondayThursSheet() {
     //     console.log(values);
     // }
 
-    const handleSubmit = async () => {
+    async function getMilkBread() {
+        try {
+            const res = await fetch(
+                `/api/v1/store-stock?stockType=milkBread&storeId=${userStoreId}`
+            );
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+
+            const data = await res.json();
+            setData(data);
+
+            // Initialize itemCounts with 0 for each item
+            const initialCounts = data.reduce((acc, item) => {
+                acc[item.id] = 0; // Set initial value to 0 for each item
+                return acc;
+            }, {});
+            setItemCounts(initialCounts);
+
+            setError(null);
+        } catch (error) {
+            console.error('Failed to fetch stock data: ', error);
+            setData([]);
+            setError(error.message);
+            toast({
+                title: 'Error',
+                description: 'Failed to fetch stock data',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
         setIsSubmitting(true);
 
         try {
             const response = await fetch(
-                '/api/v1/store-stock?stockType=milkBread&storeId=2',
+                `/api/v1/store-stock?stockType=milkBread&storeId=${userStoreId}`,
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        storeId: 2,
+                        storeId: userStoreId,
                         items: Object.entries(itemCounts).map(
                             ([id, count]) => ({
                                 itemId: Number(id),
@@ -170,20 +208,23 @@ export default function MondayThursSheet() {
                 throw new Error(data.error || 'Failed to submit item(s)');
 
             // Clear counts after successful submission
-            setItemCounts({});
-            setError(null);
+            // setItemCounts({});
+            // setError(null);
             toast({
                 title: 'Submitted!',
                 description: 'Stock counts submitted successfully',
                 className: 'border shadow-lg',
             });
+
+            // Refresh view after successful submission
+            await getMilkBread();
         } catch (error) {
             // console.error('Error submitting counts:', error);
             // console.log('error: ', error);
             setError(error.message);
             toast({
                 title: 'Submission Failed',
-                description: `${error.message}`,
+                description: error.message,
                 variant: 'destructive',
             });
         } finally {
@@ -192,45 +233,13 @@ export default function MondayThursSheet() {
     };
 
     useEffect(() => {
-        async function getMilkBread() {
-            try {
-                const res = await fetch(
-                    `/api/v1/store-stock?stockType=milkBread&storeId=2`
-                );
-
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-
-                const data = await res.json();
-                setData(data);
-
-                // Initialize itemCounts with 0 for each item
-                const initialCounts = data.reduce((acc, item) => {
-                    acc[item.id] = 0; // Set initial value to 0 for each item
-                    return acc;
-                }, {});
-                setItemCounts(initialCounts);
-
-                setError(null);
-            } catch (error) {
-                console.error('Error fetching milk & bread stock: ', error);
-                setData([]);
-                setError(error.message);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        /*
         if (userRole !== 'store_manager') {
             setData([]);
             setIsLoading(false);
         } else {
             getMilkBread();
         }
-        */
-        getMilkBread();
+        // getMilkBread();
 
         // test:
         // setData(dummyData);
@@ -244,7 +253,7 @@ export default function MondayThursSheet() {
             </SheetTrigger>
             <SheetContent>
                 <SheetHeader>
-                    <SheetTitle className='font-medium'>
+                    <SheetTitle className='text-xl'>
                         Milk & Bread Stock
                     </SheetTitle>
                     <SheetDescription>
@@ -310,6 +319,10 @@ export default function MondayThursSheet() {
                             >
                                 <Label htmlFor={item.id.toString()}>
                                     {item.itemName}
+                                    <span className='text-neutral-500 text-xs'>
+                                        {' '}
+                                        ({item.units})
+                                    </span>
                                 </Label>
                                 <Input
                                     type='number'
@@ -333,6 +346,7 @@ export default function MondayThursSheet() {
                             type='submit'
                             variant='myTheme'
                             disabled={isSubmitting}
+                            className='z-1000'
                         >
                             {isSubmitting && (
                                 <Loader2 className='mr-2 animate-spin' />
@@ -342,6 +356,13 @@ export default function MondayThursSheet() {
                         </Button>
                     </div>
                 )}
+                <Image
+                    src={starPic}
+                    alt='star'
+                    width={200}
+                    height={200}
+                    className='fixed bottom-[-30px] right-[-30px] opacity-30 z-[-1]'
+                />
             </SheetContent>
         </Sheet>
     );

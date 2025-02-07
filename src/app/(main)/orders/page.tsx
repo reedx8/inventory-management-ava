@@ -38,12 +38,12 @@ export default function Orders() {
                         height={250}
                     />
                     <p className='text-2xl text-gray-600'>
-                        All Orders Processed!
+                        All Orders Completed!
                     </p>
                     <p className='text-sm text-gray-400'>
-                        {`This week's orders have been processed`}
+                        {`This week's orders have been completed`}
                     </p>
-                    <Button size='lg' variant='myTheme'>Create Order</Button>
+                    {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
                 </div>
             )}
         </div>

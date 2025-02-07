@@ -27,8 +27,8 @@ import PagesNavBar from '@/components/pages-navbar';
 import { Skeleton } from '@/components/ui/skeleton';
 // import ItemsTable from '@/components/items-table';
 import StockTable from './components/stock-table';
-import SundayCloseSheet from './components/track-waste-sheet';
-import MondayThursSheet from './components/milk-bread-sheet';
+import TrackWasteSheet from './components/track-waste-sheet';
+import MilkBreadSheet from './components/milk-bread-sheet';
 
 interface StockItem {
     id: number;
@@ -162,8 +162,8 @@ export default function Stock() {
             <div className='mb-2 flex justify-between items-center'>
                 <PagesNavBar />
                 <div className='flex gap-2'>
-                    <MondayThursSheet />
-                    <SundayCloseSheet />
+                    <MilkBreadSheet />
+                    <TrackWasteSheet />
                 </div>
             </div>
             {data === undefined && isLoading && (

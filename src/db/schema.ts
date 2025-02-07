@@ -107,10 +107,7 @@ export const stockTable = pgTable(
             precision: 3,
             withTimezone: true,
         }),
-        date_of_count: timestamp('date_of_count', {
-            precision: 3,
-            withTimezone: true,
-        }),
+        submitted_at: timestamp('submitted_at', { precision: 3, withTimezone: true }),
         created_at: timestamp('created_at', {
             precision: 3,
             withTimezone: true,

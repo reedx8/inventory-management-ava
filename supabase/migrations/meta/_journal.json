@@ -372,6 +372,20 @@
       "when": 1738873751116,
       "tag": "0052_fixed_mongoose",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1738887669690,
+      "tag": "0053_calm_black_bolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1738887932092,
+      "tag": "0054_lush_maverick",
+      "breakpoints": true
     }
   ]
 }

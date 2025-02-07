@@ -1,5 +1,5 @@
 // select queries -- call from /src/app/api folder
-import { eq, and, sql, gt, or } from 'drizzle-orm';
+import { eq, and, sql, gt, or, is, isNull } from 'drizzle-orm';
 import { db } from '../index';
 import {
     ordersTable,
@@ -146,7 +146,8 @@ export async function getMilkBreadStock(store_location_id: string) {
                     eq(stockTable.store_id, storeId),
                     eq(itemsTable.is_active, true),
                     eq(vendorItemsTable.is_active, true),
-                    gt(stockTable.created_at, sql`now() - interval '2 days'`),
+                    isNull(stockTable.submitted_at),
+                    gt(stockTable.created_at, sql`now() - interval '1 day'`),
                     or(
                         eq(itemsTable.cron_categ, 'MILK'),
                         eq(itemsTable.cron_categ, 'BREAD')
@@ -176,7 +177,7 @@ export async function getWasteStock(store_location_id: string) {
                     eq(stockTable.store_id, storeId),
                     eq(itemsTable.is_active, true),
                     eq(itemsTable.is_waste_tracked, true),
-                    gt(stockTable.created_at, sql`now() - interval '2 days'`),
+                    gt(stockTable.created_at, sql`now() - interval '1 day'`),
                 ),
             );
         // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))

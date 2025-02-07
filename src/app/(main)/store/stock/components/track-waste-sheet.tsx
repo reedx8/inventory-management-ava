@@ -29,13 +29,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
+import starPic from '/public/star.png';
+import Image from 'next/image';
 
 const formSchema = z.object({
     itemName: z.string(),
     count: z.number(),
 });
 
-export default function SundayCloseSheet() {
+export default function TrackWasteSheet() {
     const [isOpen, setIsOpen] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -58,7 +60,7 @@ export default function SundayCloseSheet() {
             </SheetTrigger>
             <SheetContent>
                 <SheetHeader>
-                    <SheetTitle>Track Inventory Waste</SheetTitle>
+                    <SheetTitle className='text-xl'>Track Inventory Waste</SheetTitle>
                     <SheetDescription>
                         Perform stock counts on the following items at the end
                         of every Sunday to track waste of our inventory
@@ -122,6 +124,13 @@ export default function SundayCloseSheet() {
                         <Button type='submit'>Submit</Button>
                     </form>
                 </Form>
+                <Image
+                    src={starPic}
+                    alt='star'
+                    width={200}
+                    height={200}
+                    className='fixed bottom-[-30px] right-[-30px] opacity-30 z-[-1]'
+                />
             </SheetContent>
         </Sheet>
     );

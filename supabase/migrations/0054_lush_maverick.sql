@@ -1,0 +1,1 @@
+ALTER TABLE "stock" DROP COLUMN IF EXISTS "is_complete";

@@ -39,7 +39,7 @@ export default function MilkBread(){
                             height={250}
                         />
                         <p className="text-2xl text-gray-600">No Milk & Bread Orders!</p>
-                        <p className="text-sm text-gray-400">All orders have been processed</p>
+                        <p className="text-sm text-gray-400">All orders have been completed</p>
                         {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
                     </div>
                 )

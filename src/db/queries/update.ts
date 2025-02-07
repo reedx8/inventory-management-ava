@@ -10,6 +10,7 @@ import {
 } from '../schema';
 // import { parse } from 'path';
 
+// Post milk break stock counts
 export async function postMilkBreadStock(
     store_location_id: string,
     data: {
@@ -26,7 +27,7 @@ export async function postMilkBreadStock(
                     try {
                         const updated = await trx
                             .update(stockTable)
-                            .set({ count: sql`${item.count}::decimal` })
+                            .set({ count: sql`${item.count}::decimal`, submitted_at: sql`now()` })
                             .where(
                                 and(
                                     eq(stockTable.id, item.itemId),
