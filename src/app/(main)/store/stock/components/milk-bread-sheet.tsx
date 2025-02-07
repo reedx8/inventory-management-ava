@@ -35,7 +35,7 @@ import Image from 'next/image';
 import completePic from '/public/illustrations/complete.svg';
 import underConstructionPic from '/public/illustrations/underConstruction.svg';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Milk } from 'lucide-react';
 import starPic from '/public/star.png';
 // import { set } from 'zod';
 // import { Controller } from 'react-hook-form';
@@ -249,7 +249,7 @@ export default function MilkBreadSheet() {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant='myTheme'>Milk / Bread</Button>
+                <Button variant='myTheme'><Milk className='h-4 w-4'/> Milk / Bread</Button>
             </SheetTrigger>
             <SheetContent>
                 <SheetHeader>

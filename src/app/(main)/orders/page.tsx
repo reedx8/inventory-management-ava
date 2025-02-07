@@ -36,6 +36,7 @@ export default function Orders() {
                         alt='all orders complete pic'
                         width={250}
                         height={250}
+                        className='drop-shadow-lg rounded-3xl'
                     />
                     <p className='text-2xl text-gray-600'>
                         All Orders Completed!

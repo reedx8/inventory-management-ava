@@ -24,13 +24,14 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Separator } from "@/components/ui/separator"
-import { ChevronsUpDown } from 'lucide-react';
+import { ChevronsUpDown, Trash, Trash2 } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import starPic from '/public/star.png';
 import Image from 'next/image';
+import { SendHorizontal } from 'lucide-react';
 
 const formSchema = z.object({
     itemName: z.string(),
@@ -56,7 +57,7 @@ export default function TrackWasteSheet() {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant='myTheme'>Track Waste</Button>
+                <Button variant='myTheme'><Trash className='h-4 w-4'/> Track Waste</Button>
             </SheetTrigger>
             <SheetContent>
                 <SheetHeader>
@@ -121,7 +122,7 @@ export default function TrackWasteSheet() {
                                 </FormItem>
                             )}
                         />
-                        <Button type='submit'>Submit</Button>
+                        <Button type='submit'>Submit <SendHorizontal className='ml-2 h-4 w-4'/></Button>
                     </form>
                 </Form>
                 <Image

@@ -29,6 +29,8 @@ module.exports = {
                 },
                 myBrown: '#EFD6B9',
                 myDarkbrown: '#412716',
+                myPink: '#ff6884',
+                myPurple: '#3f3c56',
                 transparent: 'transparent',
                 current: 'currentColor',
                 offwhite: '#FEFBF0',

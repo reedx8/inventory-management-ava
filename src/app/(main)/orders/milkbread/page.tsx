@@ -37,6 +37,7 @@ export default function MilkBread(){
                             alt='no milk & bread orders pic'
                             width={250}
                             height={250}
+                            className='drop-shadow-lg'
                         />
                         <p className="text-2xl text-gray-600">No Milk & Bread Orders!</p>
                         <p className="text-sm text-gray-400">All orders have been completed</p>

@@ -53,6 +53,7 @@ export default function Bakery() {
                             alt='no pastries pic'
                             width={250}
                             height={250}
+                            className='drop-shadow-lg'
                         />
                         <p className="text-2xl text-gray-600">No Pastries Due!</p>
                         <p className="text-sm text-gray-400">All pastries have been delivered today</p>

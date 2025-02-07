@@ -35,6 +35,7 @@ export default function Manage() {
                         alt='no inventory pic'
                         width={375}
                         height={375}
+                        className='drop-shadow-lg'
                     />
                     <p className='text-2xl text-gray-600'>No Inventory!</p>
                     <p className='text-sm text-gray-400'>

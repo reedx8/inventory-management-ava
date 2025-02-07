@@ -84,10 +84,10 @@ function CarouselComponent(){
       >
           <CarouselContent className='h-full'>
             <CarouselItem className="h-full">
-              <Card className="h-full">
+              <Card className="h-full" >
                 <CardHeader>
                   <CardTitle>Completed Orders</CardTitle>
-                  <CardDescription>Today's Completed Store Orders</CardDescription>
+                  <CardDescription>{`Today's Completed Store Orders`}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <p>Content</p>
@@ -102,7 +102,7 @@ function CarouselComponent(){
               <Card className="h-full">
                 <CardHeader>
                   <CardTitle>Completed stock</CardTitle>
-                  <CardDescription>Today's Completed stock</CardDescription>
+                  <CardDescription>{`Today's Completed stock`}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p>Content</p>

@@ -467,6 +467,7 @@ export default function Stores() {
                         alt='no orders due today pic'
                         width={175}
                         height={175}
+                        className='drop-shadow-lg'
                     />
                     <p className='text-2xl text-gray-600'>No Orders Due!</p>
                     <p className='text-sm text-gray-400'>
