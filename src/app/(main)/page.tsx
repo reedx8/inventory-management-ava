@@ -72,56 +72,9 @@ const invSchedule = [
   }
 ]
 
-function CarouselComponent(){
-  const plugin = useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true })
-  )
-
-  return (
-    <Carousel
-        className="h-full"
-        plugins={[plugin.current]}
-      >
-          <CarouselContent className='h-full'>
-            <CarouselItem className="h-full">
-              <Card className="h-full" >
-                <CardHeader>
-                  <CardTitle>Completed Orders</CardTitle>
-                  <CardDescription>{`Today's Completed Store Orders`}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <p>Content</p>
-                  <p>Content</p>
-                </CardContent>
-                <CardFooter>
-                  <p>Footer</p>
-                </CardFooter>
-              </Card>
-            </CarouselItem>
-            <CarouselItem className="h-full">
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle>Completed stock</CardTitle>
-                  <CardDescription>{`Today's Completed stock`}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p>Content</p>
-                </CardContent>
-                <CardFooter>
-                  <p>Footer</p>
-                </CardFooter>
-              </Card>
-            </CarouselItem>
-          </CarouselContent>
-          {/* <CarouselPrevious/> */}
-          {/* <CarouselNext/> */}
-      </Carousel>
-  )
-}
-
 export default function Home() {
   return (
-    <div className="mt-6">
+    <main>
       <HeaderBar pageName={'Home'} />
       <div className="flex gap-4 mt-3 items-stretch text-sm">
         <div className="flex-1 h-full">
@@ -189,6 +142,53 @@ export default function Home() {
           {CarouselComponent()}
         </div>
       </div>
-    </div>
+    </main>
   );
+}
+
+function CarouselComponent(){
+  const plugin = useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  )
+
+  return (
+    <Carousel
+        className="h-full"
+        plugins={[plugin.current]}
+      >
+          <CarouselContent className='h-full'>
+            <CarouselItem className="h-full">
+              <Card className="h-full" >
+                <CardHeader>
+                  <CardTitle>Completed Orders</CardTitle>
+                  <CardDescription>{`Today's Completed Store Orders`}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <p>Content</p>
+                  <p>Content</p>
+                </CardContent>
+                <CardFooter>
+                  <p>Footer</p>
+                </CardFooter>
+              </Card>
+            </CarouselItem>
+            <CarouselItem className="h-full">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle>Completed stock</CardTitle>
+                  <CardDescription>{`Today's Completed stock`}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>Content</p>
+                </CardContent>
+                <CardFooter>
+                  <p>Footer</p>
+                </CardFooter>
+              </Card>
+            </CarouselItem>
+          </CarouselContent>
+          {/* <CarouselPrevious/> */}
+          {/* <CarouselNext/> */}
+      </Carousel>
+  )
 }

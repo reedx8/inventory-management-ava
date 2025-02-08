@@ -20,17 +20,17 @@ export default function Orders() {
     const [data, setData] = useState<Item[]>();
 
     return (
-        <div className='mt-6'>
+        <main>
             <HeaderBar pageName={'Orders'} />
-            <div className='mb-6'>
+            <section>
                 <PagesNavBar />
-            </div>
+            </section>
             {data && data?.length > 0 ? (
                 <>
                     <p>Orders here...</p>
                 </>
             ) : (
-                <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                <section className='flex flex-col items-center justify-center gap-2 mb-4'>
                     <Image
                         src={noOrdersPic}
                         alt='all orders complete pic'
@@ -45,8 +45,8 @@ export default function Orders() {
                         {`This week's orders have been completed`}
                     </p>
                     {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
-                </div>
+                </section>
             )}
-        </div>
+        </main>
     );
 }

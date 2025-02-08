@@ -157,17 +157,17 @@ export default function Stock() {
     // console.log('the data: ', data);
 
     return (
-        <div className='mt-6'>
+        <main>
             <HeaderBar pageName={'Store'} />
-            <div className='mb-2 flex justify-between items-center'>
+            <section className='flex justify-between items-center'>
                 <PagesNavBar />
                 <div className='flex gap-2'>
                     <MilkBreadSheet />
                     <TrackWasteSheet />
                 </div>
-            </div>
+            </section>
             {data === undefined && isLoading && (
-                <div className='flex flex-col w-[90%] gap-3'>
+                <section className='flex flex-col w-[90%] gap-3'>
                     <div className='space-y-2'>
                         <Skeleton className='h-6 w-[100%] rounded-md' />
                         {/* <Skeleton className='h-4 w-[200px]' /> */}
@@ -177,7 +177,7 @@ export default function Stock() {
                         <Skeleton className='h-6 w-[75px] round-md' />
                         <Skeleton className='h-6 w-[75px] round-md' />
                     </div>
-                </div>
+                </section>
                 // <div className='flex flex-col items-center justify-center gap-2 mb-4'>
                 // <p className='text-2xl text-gray-600'>Loading...</p>
                 // </div>
@@ -187,7 +187,7 @@ export default function Stock() {
             )}
             {!isLoading && data?.length === 0 && (
                 // <div className='flex flex-col justify-center'>
-                <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                <section className='flex flex-col items-center justify-center gap-2 mb-4'>
                     <Image
                         src={noStockPic}
                         alt='no stock counts due today pic'
@@ -199,9 +199,9 @@ export default function Stock() {
                     <p className='text-sm text-gray-400'>
                         All stock counts have been sent
                     </p>
-                </div>
+                </section>
                 // </div>
             )}
-        </div>
+        </main>
     );
 }

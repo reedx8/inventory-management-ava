@@ -14,8 +14,7 @@ export default function MainLayout({
             <SidebarProvider>
                 <AppSidebar />
                 <SidebarTrigger />
-                <div className='w-full min-h-screen mx-3'>
-                    <SearchBar />
+                <div className='w-full min-h-screen mx-3 mt-5'>
                     {children}
                 </div>
                 <Toaster />

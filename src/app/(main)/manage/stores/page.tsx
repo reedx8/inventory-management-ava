@@ -5,12 +5,12 @@ import Image from 'next/image';
 
 export default function ManageStores() {
     return (
-        <div className='mt-6'>
+        <main>
             <HeaderBar pageName={'Manage'} />
-            <div className='mb-6'>
+            <section>
                 <PagesNavBar/>
-            </div>
-            <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+            </section>
+            <section className='flex flex-col items-center justify-center gap-2 mb-4'>
                 <Image
                     src={noStoresPic}
                     alt='no stores pic'
@@ -21,7 +21,7 @@ export default function ManageStores() {
                 <p className='text-sm text-gray-400'>
                     No stores have been created yet
                 </p>
-            </div>
-        </div>
+            </section>
+        </main>
     );
 };

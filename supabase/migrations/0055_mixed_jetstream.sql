@@ -1,0 +1,1 @@
+ALTER TABLE "stock" ADD COLUMN "completed_at" timestamp (3) with time zone;

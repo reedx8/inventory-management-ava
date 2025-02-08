@@ -10,6 +10,14 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 
+const PAGE_NAMES = [
+    '/home',
+    '/store',
+    '/bakery',
+    '/orders',
+    '/manage',
+    '/contact',
+] as const;
 interface NavItem {
     title: string;
     url: string;
@@ -18,11 +26,11 @@ interface NavItem {
 const storePages : NavItem[] = [
     {
         title: 'Orders Due',
-        url: '/store',
+        url: PAGE_NAMES[1],
     },
     {
         title: 'Stock Due',
-        url: '/store/stock',
+        url: PAGE_NAMES[1] + '/stock',
     },
     // { TODO
     //     title: "Pars",
@@ -52,29 +60,26 @@ const managePages : NavItem[] = [
     },
     {
         title: 'Reports',
-        // url: '/manage',
         url: '/manage/reports',
     },
     {
         title: 'Stores',
-        // url: '/manage',
         url: '/manage/stores',
     },
     {
         title: 'History',
-        // url: '/manage',
         url: '/manage/history',
     }
 ]
 
-const contactsPages : NavItem[] = [
+const contactPages : NavItem[] = [
     {
         title: 'Vendors',
-        url: '/contacts',
+        url: '/contact',
     },
     {
         title: 'Staff',
-        url: '/contacts/staff',
+        url: '/contact/staff',
     }
 ]
 
@@ -90,8 +95,8 @@ export default function PagesNavBar() {
             setNavItems(storePages);
         } else if (pathname.split('/')[1] === 'manage') {
             setNavItems(managePages); 
-        } else if (pathname.split('/')[1] === 'contacts') {
-            setNavItems(contactsPages);
+        } else if (pathname.split('/')[1] === 'contact') {
+            setNavItems(contactPages);
         } else {
             setNavItems([]);
         }
@@ -100,7 +105,7 @@ export default function PagesNavBar() {
     // console.log(currentPage);
 
     return (
-        <NavigationMenu className='my-4 border rounded-sm p-2'>
+        <NavigationMenu className='my-2 border rounded-sm p-2 mb-4'>
             <NavigationMenuList>
                 {navItems.map((item) => (
                     <NavigationMenuItem key={item.title}>

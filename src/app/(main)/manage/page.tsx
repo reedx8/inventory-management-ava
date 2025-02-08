@@ -19,17 +19,17 @@ interface Item {
 export default function Manage() {
     const [data, setData] = useState<Item[]>([]);
     return (
-        <div className='mt-6'>
+        <main>
             <HeaderBar pageName={'Manage'} />
-            <div className='mb-6'>
+            <section>
                 <PagesNavBar />
-            </div>
+            </section>
             {data?.length > 0 ? (
                 <>
                     <p>Inventory here...</p>
                 </>
             ) : (
-                <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                <section className='flex flex-col items-center justify-center gap-2 mb-4'>
                     <Image
                         src={noInventoryPic}
                         alt='no inventory pic'
@@ -44,8 +44,8 @@ export default function Manage() {
                     {/* <Button size='lg' variant='myTheme'>
                         Add Item
                     </Button> */}
-                </div>
+                </section>
             )}
-        </div>
+        </main>
     );
 }

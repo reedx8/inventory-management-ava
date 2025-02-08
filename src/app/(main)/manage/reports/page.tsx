@@ -8,12 +8,12 @@ import Image from 'next/image';
 export default function ManageReports() {
     // const [data, setData] = useState<Item[]>([]);
     return (
-        <div className='mt-6'>
+        <main>
             <HeaderBar pageName={'Manage'} />
-            <div className='mb-6'>
+            <section>
                 <PagesNavBar />
-            </div>
-            <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+            </section>
+            <section className='flex flex-col items-center justify-center gap-2 mb-4'>
                 <Image
                     src={noReportsPic}
                     alt='no reports pic'
@@ -25,7 +25,7 @@ export default function ManageReports() {
                     No reports have been created yet
                 </p>
                 {/* <Button size='lg' variant='myTheme'>Create Report</Button> */}
-            </div>
-        </div>
+            </section>
+        </main>
     );
 }

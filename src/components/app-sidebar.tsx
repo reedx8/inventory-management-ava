@@ -37,10 +37,6 @@ import {
 import React from 'react';
 import { useAuth } from '@/contexts/auth-context';
 
-// const storePages = ['Home', 'Store', 'Contacts'];
-// const bakeryPages = ['Home', 'Bakery', 'Contacts'];
-// const orderPages = ['Home', 'Orders', 'Contacts'];
-
 type Item = {
     title: string;
     url: string;
@@ -59,8 +55,8 @@ const storePages : Item[] = [
         icon: Store,
     },
     {
-        title: 'Contacts',
-        url: '/contacts',
+        title: 'Contact',
+        url: '/contact',
         icon: Contact,
     },
 ];
@@ -77,8 +73,8 @@ const bakeryPages : Item[] = [
         icon: CookingPot,
     },
     {
-        title: 'Contacts',
-        url: '/contacts',
+        title: 'Contact',
+        url: '/contact',
         icon: Contact,
     },
 ];
@@ -96,8 +92,8 @@ const orderPages : Item[] = [
         // icon: NotepadText,
     },
     {
-        title: 'Contacts',
-        url: '/contacts',
+        title: 'Contact',
+        url: '/contact',
         icon: Contact,
     },
 ];
@@ -130,8 +126,8 @@ const adminPages : Item[] = [
         icon: Settings2,
     },
     {
-        title: "Contacts",
-        url: "/contacts",
+        title: "Contact",
+        url: "/contact",
         icon: Contact,
 
     }

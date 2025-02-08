@@ -4,7 +4,7 @@ import { Search } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
+    // DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -17,7 +17,7 @@ export default function SearchBar() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(e.target.value);
-        // console.log(query);
+        console.log(query);
     };
 
     const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -27,14 +27,14 @@ export default function SearchBar() {
     };
 
     return (
-        <div className='flex flex-col gap-2 items-center mt-4'>
+        <div>
             <Dialog>
                 <DialogTrigger asChild>
                     <Button
-                        className='h-8 w-60 bg-gray-50 text-neutral-500'
+                        className='h-8 bg-gray-50 text-neutral-500'
                         variant='outline'
                     >
-                        <Search /> Search...
+                        <Search />
                     </Button>
                 </DialogTrigger>
                 <DialogContent>

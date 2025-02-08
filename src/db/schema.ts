@@ -69,7 +69,7 @@ export const itemsTable = pgTable(
     }
 );
 
-// Record of stock counts from every store
+// Record of stock counts from every store. Stock used to order Milk And Bread items, as well as track waste
 export const stockTable = pgTable(
     'stock',
     {
@@ -82,38 +82,45 @@ export const stockTable = pgTable(
             .references(() => storesTable.id),
         count: decimal('count', { precision: 10, scale: 2 }),
         units: varchar('units'),
-        is_waste_track: boolean('is_waste_track').notNull().default(false),
+        is_waste_track: boolean('is_waste_track').notNull().default(false), // For sunday close stock counts (waste)
         closed_count: decimal('closed_count', {
             precision: 10,
             scale: 2,
-        }),
+        }), // to track waste
         sealed_count: decimal('sealed_count', {
             precision: 10,
             scale: 2,
-        }),
+        }), // to track waste
         open_items_weight: decimal('open_items_weight', {
             precision: 10,
             scale: 2,
-        }), // oz
+        }), // To track waste. oz
         expired_count: decimal('expired_count', {
             precision: 10,
             scale: 2,
-        }),
+        }), // To track waste
         reused_count: decimal('reused_count', {
             precision: 10,
             scale: 2,
-        }),
+        }), // To track waste
         due_date: timestamp('due_date', {
             precision: 3,
             withTimezone: true,
         }),
-        submitted_at: timestamp('submitted_at', { precision: 3, withTimezone: true }),
+        submitted_at: timestamp('submitted_at', {
+            precision: 3,
+            withTimezone: true,
+        }), // When item's stock count was submitted by store managers
+        completed_at: timestamp('completed_at', {
+            precision: 3,
+            withTimezone: true,
+        }), // (Optional, May Delete) When order managers either submitted order to vendors or finalized order, given stock count received
         created_at: timestamp('created_at', {
             precision: 3,
             withTimezone: true,
         })
             .notNull()
-            .defaultNow(),
+            .defaultNow(), // when empty stock entry was originally created (cron job)
     },
     (table) => {
         return [
@@ -130,7 +137,8 @@ export const stockTable = pgTable(
     }
 );
 
-// History of orders per item. Orders per store are in store_orders table
+// History of item orders. Orders per store are instead in store_orders table
+// Order stages are tracked via tot_qty_* fields (order stages = store's submit, submit orders to vendor, then delivered)
 export const ordersTable = pgTable(
     'orders',
     {
@@ -138,9 +146,9 @@ export const ordersTable = pgTable(
         item_id: integer('item_id')
             .notNull()
             .references(() => itemsTable.id),
-        store_id: integer('store_id')
-            .notNull()
-            .references(() => storesTable.id),
+        // store_id: integer('store_id')
+        //     .notNull()
+        //     .references(() => storesTable.id),
         tot_qty_store: decimal('tot_qty_store', { precision: 10, scale: 2 }),
         tot_qty_vendor: decimal('tot_qty_vendor', { precision: 10, scale: 2 }),
         tot_qty_delivered: decimal('tot_qty_delivered', {

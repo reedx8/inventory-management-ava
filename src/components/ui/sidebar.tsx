@@ -277,7 +277,7 @@ const SidebarTrigger = React.forwardRef<
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn("h-10 w-10 [&>svg]:!h-5 [&>svg]:!w-5", className)}
+      className={cn("h-10 w-10 [&>svg]:!h-5 [&>svg]:!w-5 mt-5", className)}
       // className={cn("h-7 w-7", className)}
       onClick={(event) => {
         onClick?.(event)

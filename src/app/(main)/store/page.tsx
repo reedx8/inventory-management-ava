@@ -325,13 +325,13 @@ export default function Stores() {
     }, [userRole, userStoreId]);
 
     return (
-        <div className='mt-6'>
+        <main>
             <HeaderBar pageName={'Store'} />
-            <div className='mb-2'>
+            <section>
                 <PagesNavBar />
-            </div>
+            </section>
             {data === undefined && isLoading && (
-                <div className='flex flex-col w-[90%] gap-3'>
+                <section className='flex flex-col w-[90%] gap-3'>
                     <div className='space-y-2'>
                         <Skeleton className='h-6 w-[100%] rounded-md' />
                         {/* <Skeleton className='h-4 w-[200px]' /> */}
@@ -341,7 +341,7 @@ export default function Stores() {
                         <Skeleton className='h-6 w-[75px] round-md' />
                         <Skeleton className='h-6 w-[75px] round-md' />
                     </div>
-                </div>
+                </section>
                 // <div className='flex flex-col items-center justify-center gap-2 mb-4'>
                 // <p className='text-2xl text-gray-600'>Loading...</p>
                 // </div>
@@ -461,7 +461,7 @@ export default function Stores() {
             )}
             {!isLoading && data?.length === 0 && (
                 // <div className='flex flex-col justify-center'>
-                <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                <section className='flex flex-col items-center justify-center gap-2 mb-4'>
                     <Image
                         src={noOrdersPic}
                         alt='no orders due today pic'
@@ -479,9 +479,9 @@ export default function Stores() {
                     <Button size='lg' variant='myTheme'>
                         Create Order
                     </Button> */}
-                </div>
+                </section>
                 // </div>
             )}
-        </div>
+        </main>
     );
 }

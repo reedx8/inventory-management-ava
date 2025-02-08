@@ -36,31 +36,29 @@ interface Item {
 export default function Bakery() {
     const [data, setData] = useState<Item[]>([]);
     return (
-        <div className='mt-6'>
+        <main>
             <HeaderBar pageName={'Bakery'} />
-            <div className='mb-6'>
-                {/* <StoreNavsBar /> */}
-            </div>
-            {
-                data?.length > 0 ? (
-                    <>
+            <div className='mb-6'>{/* <StoreNavsBar /> */}</div>
+            {data?.length > 0 ? (
+                <>
                     <p>Pastries here</p>
-                    </>
-                ) : (
-                    <div className='flex flex-col items-center justify-center gap-2 mb-4'>
-                        <Image
-                            src={noPastriesPic}
-                            alt='no pastries pic'
-                            width={250}
-                            height={250}
-                            className='drop-shadow-lg'
-                        />
-                        <p className="text-2xl text-gray-600">No Pastries Due!</p>
-                        <p className="text-sm text-gray-400">All pastries have been delivered today</p>
-                        {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
-                    </div>
-                )
-            }
-        </div>
+                </>
+            ) : (
+                <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+                    <Image
+                        src={noPastriesPic}
+                        alt='no pastries pic'
+                        width={250}
+                        height={250}
+                        className='drop-shadow-lg'
+                    />
+                    <p className='text-2xl text-gray-600'>No Pastries Due!</p>
+                    <p className='text-sm text-gray-400'>
+                        All pastries have been delivered today
+                    </p>
+                    {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
+                </div>
+            )}
+        </main>
     );
 }

@@ -5,12 +5,12 @@ import Image from 'next/image';
 
 export default function ManageHistory() {
     return (
-        <div className='mt-6'>
+        <main>
             <HeaderBar pageName={'Manage'} />
-            <div className='mb-6'>
+            <section>
                 <PagesNavBar/>
-            </div>
-            <div className='flex flex-col items-center justify-center gap-2 mb-4'>
+            </section>
+            <section className='flex flex-col items-center justify-center gap-2 mb-4'>
                 <Image
                     src={noHistoryPic}
                     alt='no history pic'
@@ -21,7 +21,7 @@ export default function ManageHistory() {
                 <p className='text-sm text-gray-400'>
                     No history has been created yet
                 </p>
-            </div>
-        </div>
+            </section>
+        </main>
     );
 };
