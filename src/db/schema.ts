@@ -80,7 +80,8 @@ export const stockTable = pgTable(
         store_id: integer('store_id')
             .notNull()
             .references(() => storesTable.id),
-        count: decimal('count', { precision: 10, scale: 2 }),
+        qty_on_hand: decimal('qty_on_hand', { precision: 10, scale: 2 }),
+        qty_received: decimal('qty_received', { precision: 10, scale: 2 }),
         units: varchar('units'),
         is_waste_track: boolean('is_waste_track').notNull().default(false), // For sunday close stock counts (waste)
         closed_count: decimal('closed_count', {
@@ -124,7 +125,8 @@ export const stockTable = pgTable(
     },
     (table) => {
         return [
-            check('positive_count', sql`${table.count} >= 0`),
+            check('positive_qty_on_hand', sql`${table.qty_on_hand} >= 0`),
+            check('positive_qty_received', sql`${table.qty_received} >= 0`),
             check('positive_closed_count', sql`${table.closed_count} >= 0`),
             check('positive_sealed_count', sql`${table.sealed_count} >= 0`),
             check(
@@ -402,15 +404,18 @@ export const vendorItemsTable = pgTable(
 );
 
 // Pars table for tracking daily/weekly par values, ie par = replacement level/value
-export const parsTable = pgTable(
-    'pars',
+// TODO: may need a unique index/primary key on store_id, item_id (+ maybe day_of_week), or primary key on item_id and store_id
+export const storeParLevelsTable = pgTable(
+    'store_par_levels',
     {
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
             .references(() => itemsTable.id, { onDelete: 'cascade' }),
         store_id: integer('store_id').references(() => storesTable.id),
-        value: decimal('value', { precision: 10, scale: 2 }).notNull(),
+        min_qty: decimal('min_qty', { precision: 10, scale: 2 }).notNull(), // Absolute minimum stock you want to have, Emergency buffer, should rarely hit this level
+        max_qty: decimal('max_qty', { precision: 10, scale: 2 }).notNull(),
+        reorder_point: decimal('reorder_point', { precision: 10, scale: 2 }), // Usually HIGHER than min_qty, Accounts for "lead time" (time between ordering and receiving)
         day_of_week: integer('day_of_week').notNull(), // (0-6, where 0 is Sunday)
         changed_at: timestamp('changed_at', {
             precision: 3,
@@ -420,7 +425,11 @@ export const parsTable = pgTable(
             .defaultNow(),
     },
     (table) => {
-        return [check('positive_value', sql`${table.value} >= 0`)];
+        return [
+            check('positive_min_qty', sql`${table.min_qty} >= 0`),
+            check('positive_max_qty', sql`${table.max_qty} >= 0`),
+            check('positive_reorder_point', sql`${table.reorder_point} >= 0`),
+        ];
     }
 );
 
@@ -498,9 +507,9 @@ export type SelectStore = typeof storesTable.$inferSelect;
 export type InsertVendorItem = typeof vendorItemsTable.$inferInsert;
 export type SelectVendorItem = typeof vendorItemsTable.$inferSelect;
 // export type UpdateVendorItem = typeof vendorItemsTable.$inferUpdate;
-export type InsertPars = typeof parsTable.$inferInsert;
-export type SelectPars = typeof parsTable.$inferSelect;
-// export type UpdatePars = typeof parsTable.$inferUpdate;
+export type InsertStoreParLevels = typeof storeParLevelsTable.$inferInsert;
+export type SelectStoreParLevels = typeof storeParLevelsTable.$inferSelect;
+// export type UpdateStoreParLevels = typeof storeParLevelsTable.$inferUpdate;
 export type InsertSchedule = typeof schedulesTable.$inferInsert;
 export type SelectSchedule = typeof schedulesTable.$inferSelect;
 // export type UpdateSchedule = typeof schedulesTable.$inferUpdate;

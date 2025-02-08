@@ -27,7 +27,7 @@ export async function postMilkBreadStock(
                     try {
                         const updated = await trx
                             .update(stockTable)
-                            .set({ count: sql`${item.count}::decimal`, submitted_at: sql`now()` })
+                            .set({ qty_on_hand: sql`${item.count}::decimal`, submitted_at: sql`now()` })
                             .where(
                                 and(
                                     eq(stockTable.id, item.itemId),
