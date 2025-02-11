@@ -128,6 +128,7 @@ export async function getWeeklyStock(store_location_id: string | null) {
     // return result;
 }
 
+// Output empty milk and bread items for store managers to fill in their stock counts
 export async function getMilkBreadStock(store_location_id: string) {
     // const dummyDate: string = '2025-06-15'; // dummy data for now
 
@@ -192,6 +193,7 @@ export async function getWasteStock(store_location_id: string) {
     return result;
 }
 
+// Get day's orders for bakery staff
 export async function getBakerysOrders() {
     // TODO: query for todays orders only, add index
     const result = db
@@ -214,6 +216,7 @@ export async function getBakerysOrders() {
     return result;
 }
 
+// search items by name (search bar)
 export async function searchItems(query: string) {
     query = query.trim().toLowerCase();
 
