@@ -1,5 +1,5 @@
 // select queries -- call from /src/app/api folder
-import { eq, and, sql, gt, or, is, isNull } from 'drizzle-orm';
+import { eq, and, sql, gt, or, is, isNull, like } from 'drizzle-orm';
 import { db } from '../index';
 import {
     ordersTable,
@@ -9,8 +9,10 @@ import {
     vendorItemsTable,
     bakeryOrdersTable,
     storeBakeryOrdersTable,
+    vendorsTable,
     // storeOrdersTable,
 } from '../schema';
+import { PgColumn } from 'drizzle-orm/pg-core';
 
 // Get only active items that are due for a specific store (storeId)
 export async function getStoreOrders(store_location_id: string | null) {
@@ -210,4 +212,33 @@ export async function getBakerysOrders() {
         .groupBy(bakeryOrdersTable.id, itemsTable.name);
 
     return result;
+}
+
+export async function searchItems(query: string) {
+    query = query.trim().toLowerCase();
+
+    const result = await db
+        .select({
+            id: itemsTable.id,
+            name: itemsTable.name,
+            vendor_name: vendorsTable.name,
+            units: itemsTable.units,
+            store_categ: itemsTable.store_categ,
+            item_description: itemsTable.item_description,
+            is_active: itemsTable.is_active,
+            email: vendorsTable.email,
+            phone: vendorsTable.phone,
+            categ: itemsTable.cron_categ,
+            // due_date: sql`${dummyDate}`, // dummy data for now
+        })
+        .from(itemsTable)
+        .innerJoin(vendorsTable, eq(vendorsTable.id, itemsTable.vendor_id))
+        .where(like(lower(itemsTable.name), `%${query}%`));
+
+    return result;
+}
+
+// custom lower function
+export function lower(name: PgColumn) {
+    return sql`lower(${name})`;
 }
