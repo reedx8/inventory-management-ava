@@ -112,7 +112,7 @@ export default function MilkBreadSheet() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const { userRole, userStoreId } = useAuth();
     const [itemCounts, setItemCounts] = useState<{ [key: number]: number }>({});
-    const [error, setError] = useState(null); // State for tracking errors
+    const [error, setError] = useState<string | undefined>(); // State for tracking errors
     const { toast } = useToast();
 
     // Handler to update count for a specific item
@@ -221,10 +221,11 @@ export default function MilkBreadSheet() {
         } catch (error) {
             // console.error('Error submitting counts:', error);
             // console.log('error: ', error);
-            setError(error.message);
+            const err = error as Error;
+            setError(err.message);
             toast({
                 title: 'Submission Failed',
-                description: error.message,
+                description: err.message,
                 variant: 'destructive',
             });
         } finally {

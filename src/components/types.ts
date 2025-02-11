@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 export type QueryResults = {
     id: number;
     name: string;
@@ -9,4 +11,22 @@ export type QueryResults = {
     email: string | undefined;
     phone: string | undefined;
     categ: string | undefined;
+};
+
+export type SheetTemplateProps = {
+    // Required props
+    children: ReactNode;
+    trigger: ReactNode;
+    title: string;
+
+    // Optional props for sheet header
+    description?: string;
+
+    // Optional customization
+    className?: string;
+    contentClassName?: string;
+    side?: 'top' | 'right' | 'bottom' | 'left';
+
+    // Optional callbacks
+    onOpenChange?: (open: boolean) => void;
 };
