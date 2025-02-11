@@ -7,6 +7,8 @@ import {
     storesTable,
     stockTable,
     vendorItemsTable,
+    bakeryOrdersTable,
+    storeBakeryOrdersTable,
     // storeOrdersTable,
 } from '../schema';
 
@@ -124,62 +126,88 @@ export async function getWeeklyStock(store_location_id: string | null) {
     // return result;
 }
 
-
 export async function getMilkBreadStock(store_location_id: string) {
     // const dummyDate: string = '2025-06-15'; // dummy data for now
 
-        const storeId = parseInt(store_location_id);
-        const result = await db
-            .select({
-                id: stockTable.id,
-                itemName: itemsTable.name,
-                nameFromVendor: vendorItemsTable.item_name,
-                units: vendorItemsTable.units,
-                count: sql`0::integer`,
-                // store_name: storesTable.name,
-            }).from(stockTable)
-            .innerJoin(itemsTable, eq(itemsTable.id, stockTable.item_id))
-            .innerJoin(vendorItemsTable, eq(vendorItemsTable.item_id, itemsTable.id))
-            .innerJoin(storesTable, eq(storesTable.id, stockTable.store_id))
-            .where(
-                and(
-                    eq(stockTable.store_id, storeId),
-                    eq(itemsTable.is_active, true),
-                    eq(vendorItemsTable.is_active, true),
-                    isNull(stockTable.submitted_at),
-                    gt(stockTable.created_at, sql`now() - interval '1 day'`),
-                    or(
-                        eq(itemsTable.cron_categ, 'MILK'),
-                        eq(itemsTable.cron_categ, 'BREAD')
-                    )
-                ),
-            );
-        // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
-        return result;
-};
+    const storeId = parseInt(store_location_id);
+    const result = await db
+        .select({
+            id: stockTable.id,
+            itemName: itemsTable.name,
+            nameFromVendor: vendorItemsTable.item_name,
+            units: vendorItemsTable.units,
+            count: sql`0::integer`,
+            // store_name: storesTable.name,
+        })
+        .from(stockTable)
+        .innerJoin(itemsTable, eq(itemsTable.id, stockTable.item_id))
+        .innerJoin(
+            vendorItemsTable,
+            eq(vendorItemsTable.item_id, itemsTable.id)
+        )
+        .innerJoin(storesTable, eq(storesTable.id, stockTable.store_id))
+        .where(
+            and(
+                eq(stockTable.store_id, storeId),
+                eq(itemsTable.is_active, true),
+                eq(vendorItemsTable.is_active, true),
+                isNull(stockTable.submitted_at),
+                gt(stockTable.created_at, sql`now() - interval '1 day'`),
+                or(
+                    eq(itemsTable.cron_categ, 'MILK'),
+                    eq(itemsTable.cron_categ, 'BREAD')
+                )
+            )
+        );
+    // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+    return result;
+}
 
 export async function getWasteStock(store_location_id: string) {
     // const dummyDate: string = '2025-06-15'; // dummy data for now
 
-        const storeId = parseInt(store_location_id);
-        const result = await db
-            .select({
-                id: stockTable.id,
-                name: itemsTable.name,
-                units: itemsTable.units,
-                count: sql`0::integer`,
-                // store_name: storesTable.name,
-            }).from(stockTable)
-            .innerJoin(itemsTable, eq(itemsTable.id, stockTable.item_id))
-            .innerJoin(storesTable, eq(storesTable.id, stockTable.store_id))
-            .where(
-                and(
-                    eq(stockTable.store_id, storeId),
-                    eq(itemsTable.is_active, true),
-                    eq(itemsTable.is_waste_tracked, true),
-                    gt(stockTable.created_at, sql`now() - interval '1 day'`),
-                ),
-            );
-        // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
-        return result;
-};
+    const storeId = parseInt(store_location_id);
+    const result = await db
+        .select({
+            id: stockTable.id,
+            name: itemsTable.name,
+            units: itemsTable.units,
+            count: sql`0::integer`,
+            // store_name: storesTable.name,
+        })
+        .from(stockTable)
+        .innerJoin(itemsTable, eq(itemsTable.id, stockTable.item_id))
+        .innerJoin(storesTable, eq(storesTable.id, stockTable.store_id))
+        .where(
+            and(
+                eq(stockTable.store_id, storeId),
+                eq(itemsTable.is_active, true),
+                eq(itemsTable.is_waste_tracked, true),
+                gt(stockTable.created_at, sql`now() - interval '1 day'`)
+            )
+        );
+    // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+    return result;
+}
+
+export async function getBakerysOrders() {
+    // TODO: query for todays orders only, add index
+    const result = db
+        .select({
+            id: bakeryOrdersTable.id,
+            name: itemsTable.name,
+            units: bakeryOrdersTable.units,
+            order_qty: sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+            //         order_qty: sql<number>`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+        })
+        .from(bakeryOrdersTable)
+        .leftJoin(
+            storeBakeryOrdersTable,
+            eq(bakeryOrdersTable.id, storeBakeryOrdersTable.order_id)
+        )
+        .innerJoin(itemsTable, eq(itemsTable.id, bakeryOrdersTable.item_id))
+        .where(and(eq(itemsTable.is_active, true)))
+        .groupBy(bakeryOrdersTable.id, itemsTable.name);
+
+    return result;
+}

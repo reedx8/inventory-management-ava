@@ -407,6 +407,34 @@
       "when": 1738998662433,
       "tag": "0057_zippy_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1739222438184,
+      "tag": "0058_flashy_bug",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1739222674405,
+      "tag": "0059_abandoned_multiple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1739230594980,
+      "tag": "0060_spotty_daimon_hellstrom",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1739236393694,
+      "tag": "0061_material_prowler",
+      "breakpoints": true
     }
   ]
 }

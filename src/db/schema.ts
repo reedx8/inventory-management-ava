@@ -59,11 +59,11 @@ export const itemsTable = pgTable(
             check('positive_list_price', sql`${table.list_price} >= 0`),
             check(
                 'store_category_check',
-                sql`${table.store_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA')`
+                sql`${table.store_categ} IN ('FRONT', 'STOCKROOM', 'FRIDGE', 'GENERAL', 'BEANS&TEA', 'PASTRY', 'NONE')`
             ),
             check(
                 'cron_category_check',
-                sql`${table.cron_categ} IN ('PASTRIES', 'MILK', 'BREAD', 'RETAILBEANS', 'MEATS', 'NONE')`
+                sql`${table.cron_categ} IN ('PASTRY', 'MILK', 'BREAD', 'RETAILBEANS', 'MEATS', 'NONE')`
             ),
         ];
     }
@@ -139,7 +139,7 @@ export const stockTable = pgTable(
     }
 );
 
-// History of item orders. Orders per store are instead in store_orders table
+// History of item orders for Ava's vendors. Orders per store are instead in store_orders table
 // Order stages are tracked via tot_qty_* fields (order stages = store's submit, submit orders to vendor, then delivered)
 export const ordersTable = pgTable(
     'orders',
@@ -244,41 +244,107 @@ export const storeOrdersTable = pgTable(
     }
 );
 
-// Schedules table for scheduling cron jobs and outlining ava's complex ordering/stock schedule (item-level). More customizable/nuanced than junction table approach
-// Schedule largely dictated by vendor (eg Petes milk), shelf life (eg daily pastry orders, or most orders since most items on avg have a week-long shelf life hence weekly batched orders), or tracking waste purposes (eg sunday close inventory)
-// schedule days largely dictated by store manager schedules (eg most dont work on monday hence orders placed by tuesdays mostly)
-export const inventorySchedule = pgTable(
-    'inventory_schedule',
+// History of bakery orders per item
+export const bakeryOrdersTable = pgTable(
+    'bakery_orders',
     {
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
             .references(() => itemsTable.id),
-        is_order_sched: boolean('is_order_sched').notNull(), // schedule type 1/2
-        is_stock_sched: boolean('is_stock_sched').notNull(), // schedule type 2/2
-        frequency: varchar('frequency').notNull(),
-        weekly_freq: integer('weekly_freq').notNull(),
-        start_day: integer('start_day').array().notNull(), // check for valid days in application layer (subquery in migration file errors, altern solutions complex)
-        end_day: integer('end_day').array().notNull(), // check for valid days in application layer
+        temp_tot_order_qty: decimal('temp_tot_order_qty', {
+            precision: 10,
+            scale: 2,
+        }), // temporary field for now, can be removed
+        tot_made: decimal('tot_made', { precision: 10, scale: 2 }),
+        units: varchar('units'),
+        is_complete: boolean('is_complete').notNull().default(false), // bakery completed entire order (tot_order_qty = tot_made)
+        group_order_no: integer('group_order_no').notNull().default(0), // default = 0 when single order (not a batched order). Rare.
+        bakery_comments: text('bakery_comments'),
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
+        completed_at: timestamp('completed_at', {
+            precision: 3,
+            withTimezone: true,
+        }),
     },
     (table) => {
         return [
             check(
-                'positive_weekly_freq',
-                sql`${table.weekly_freq} >= 1 AND ${table.weekly_freq} <= 7`
+                'positive_temp_tot_order_qty',
+                sql`${table.temp_tot_order_qty} >= 0`
             ),
-            check(
-                'exclusive_schedule_type',
-                sql`(${table.is_order_sched} AND NOT ${table.is_stock_sched}) OR 
-                    (${table.is_stock_sched} AND NOT ${table.is_order_sched})`
-            ),
-            check(
-                'check_frequency',
-                sql`${table.frequency} IN ('WEEKLY', 'DAILY')`
-            ),
+            check('positive_tot_made', sql`${table.tot_made} >= 0`),
+            check('positive_group_order_no', sql`${table.group_order_no} >= 0`),
         ];
     }
 );
+
+// History of bakery orders per store
+export const storeBakeryOrdersTable = pgTable(
+    'store_bakery_orders',
+    {
+        id: serial('id').primaryKey(),
+        order_id: integer('order_id')
+            .notNull()
+            .references(() => bakeryOrdersTable.id),
+        store_id: integer('store_id')
+            .notNull()
+            .references(() => storesTable.id),
+        order_qty: decimal('order_qty', { precision: 10, scale: 2 }),
+        is_par_submit: boolean('is_par_submit').notNull().default(false),
+        comments: text('comments'),
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
+    },
+    (table) => {
+        return [check('positive_order_qty', sql`${table.order_qty} >= 0`)];
+    }
+);
+
+// Schedules table for scheduling cron jobs and outlining ava's complex ordering/stock schedule (item-level). More customizable/nuanced than junction table approach
+// Schedule largely dictated by vendor (eg Petes milk), shelf life (eg daily pastry orders, or most orders since most items on avg have a week-long shelf life hence weekly batched orders), or tracking waste purposes (eg sunday close inventory)
+// schedule days largely dictated by store manager schedules (eg most dont work on monday hence orders placed by tuesdays mostly)
+// export const inventorySchedule = pgTable(
+//     'inventory_schedule',
+//     {
+//         id: serial('id').primaryKey(),
+//         item_id: integer('item_id')
+//             .notNull()
+//             .references(() => itemsTable.id),
+//         is_order_sched: boolean('is_order_sched').notNull(), // schedule type 1/2
+//         is_stock_sched: boolean('is_stock_sched').notNull(), // schedule type 2/2
+//         frequency: varchar('frequency').notNull(),
+//         weekly_freq: integer('weekly_freq').notNull(),
+//         start_day: integer('start_day').array().notNull(), // check for valid days in application layer (subquery in migration file errors, altern solutions complex)
+//         end_day: integer('end_day').array().notNull(), // check for valid days in application layer
+//     },
+//     (table) => {
+//         return [
+//             check(
+//                 'positive_weekly_freq',
+//                 sql`${table.weekly_freq} >= 1 AND ${table.weekly_freq} <= 7`
+//             ),
+//             check(
+//                 'exclusive_schedule_type',
+//                 sql`(${table.is_order_sched} AND NOT ${table.is_stock_sched}) OR
+//                     (${table.is_stock_sched} AND NOT ${table.is_order_sched})`
+//             ),
+//             check(
+//                 'check_frequency',
+//                 sql`${table.frequency} IN ('WEEKLY', 'DAILY')`
+//             ),
+//         ];
+//     }
+// );
 
 // List of vendors that stores can order from. Lookup table.
 export const vendorsTable = pgTable('vendors', {
@@ -492,9 +558,19 @@ export type SelectOrder = typeof ordersTable.$inferSelect;
 export type InsertStoreOrder = typeof storeOrdersTable.$inferInsert;
 export type SelectStoreOrder = typeof storeOrdersTable.$inferSelect;
 // export type UpdateStoreOrder = typeof storeOrdersTable.$inferUpdate;
-export type InsertInventorySchedule = typeof inventorySchedule.$inferInsert;
-export type SelectInventorySchedule = typeof inventorySchedule.$inferSelect;
+
+export type InsertBakeryOrder = typeof bakeryOrdersTable.$inferInsert;
+export type SelectBakeryOrder = typeof bakeryOrdersTable.$inferSelect;
+// export type UpdateBakeryOrder = typeof bakeryOrdersTable.$inferUpdate;
+
+export type InsertStoreBakeryOrder = typeof storeBakeryOrdersTable.$inferInsert;
+export type SelectStoreBakeryOrder = typeof storeBakeryOrdersTable.$inferSelect;
+// export type UpdateStoreBakeryOrder = typeof storeBakeryOrdersTable.$inferUpdate;
+
+// export type InsertInventorySchedule = typeof inventorySchedule.$inferInsert;
+// export type SelectInventorySchedule = typeof inventorySchedule.$inferSelect;
 // export type UpdateInventorySchedule = typeof inventorySchedule.$inferUpdate;
+
 export type InsertVendorSplit = typeof vendorSplitTable.$inferInsert;
 export type SelectVendorSplit = typeof vendorSplitTable.$inferSelect;
 // export type UpdateVendorSplit = typeof vendorSplitTable.$inferUpdate;
