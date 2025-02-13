@@ -255,10 +255,10 @@ export const bakeryOrdersTable = pgTable(
         temp_tot_order_qty: decimal('temp_tot_order_qty', {
             precision: 10,
             scale: 2,
-        }), // temporary field for now, can be removed
-        tot_made: decimal('tot_made', { precision: 10, scale: 2 }),
+        }), // temporary field for now, can be removed and not currently used in queries (temp_tot_made however is used currently but should be removed in future since it can be derived)
+        temp_tot_made: decimal('temp_tot_made', { precision: 10, scale: 2 }), // total actually made by bakery staff (temp_tot_order_qty = tot_made = sum of store_bakery_orders.order_qty)
         units: varchar('units'),
-        is_complete: boolean('is_complete').notNull().default(false), // bakery completed entire order (tot_order_qty = tot_made)
+        is_checked_off: boolean('is_checked_off').notNull().default(false), // todo checked off by bakery staff (tot_order_qty = tot_made)
         group_order_no: integer('group_order_no').notNull().default(0), // default = 0 when single order (not a batched order). Rare.
         bakery_comments: text('bakery_comments'),
         created_at: timestamp('created_at', {
@@ -270,7 +270,7 @@ export const bakeryOrdersTable = pgTable(
         completed_at: timestamp('completed_at', {
             precision: 3,
             withTimezone: true,
-        }),
+        }), // bakery staff submitted their completed order counts in UI at this time
     },
     (table) => {
         return [
@@ -278,7 +278,7 @@ export const bakeryOrdersTable = pgTable(
                 'positive_temp_tot_order_qty',
                 sql`${table.temp_tot_order_qty} >= 0`
             ),
-            check('positive_tot_made', sql`${table.tot_made} >= 0`),
+            check('positive_temp_tot_made', sql`${table.temp_tot_made} >= 0`),
             check('positive_group_order_no', sql`${table.group_order_no} >= 0`),
         ];
     }
@@ -295,7 +295,8 @@ export const storeBakeryOrdersTable = pgTable(
         store_id: integer('store_id')
             .notNull()
             .references(() => storesTable.id),
-        order_qty: decimal('order_qty', { precision: 10, scale: 2 }),
+        order_qty: decimal('order_qty', { precision: 10, scale: 2 }), // quantity ordered from store managers
+        made_qty: decimal('made_qty', { precision: 10, scale: 2 }), // quantity actually made by bakery staff for store
         is_par_submit: boolean('is_par_submit').notNull().default(false),
         comments: text('comments'),
         created_at: timestamp('created_at', {
@@ -304,6 +305,10 @@ export const storeBakeryOrdersTable = pgTable(
         })
             .notNull()
             .defaultNow(),
+        completed_at: timestamp('completed_at', {
+            precision: 3,
+            withTimezone: true,
+        }), // store managers submitted their orders to bakery at this time
     },
     (table) => {
         return [check('positive_order_qty', sql`${table.order_qty} >= 0`)];

@@ -21,13 +21,13 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import enIcon from '/public/icons/enIcon.png';
-import esIcon from '/public/icons/esIcon.png';
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// import enIcon from '/public/icons/enIcon.png';
+// import esIcon from '/public/icons/esIcon.png';
 import SheetTemplate from '@/components/sheet/sheet-template';
-import { zodResolver } from '@zod/form';
-import { useForm } from 'react-hook-form';
-import { Forward, ListCheck, Pencil, Send, SendHorizontal } from 'lucide-react';
+// import { zodResolver } from '@zod/form';
+// import { useForm } from 'react-hook-form';
+import { ListCheck, Pencil, Send } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const dummyData: BakeryOrder[] = [
@@ -65,7 +65,12 @@ export const dummyData: BakeryOrder[] = [
     { id: 32, name: 'Apricot Danish', order_qty: undefined },
     { id: 33, name: 'Salted Caramel Brownie', units: '1 Pc', order_qty: 35 },
     { id: 34, name: 'Mixed Berry Tart', units: '1 Pc', order_qty: 23 },
-    { id: 35, name: 'Chocolate Hazelnut Croissant', units: '1 Pc', order_qty: 29 },
+    {
+        id: 35,
+        name: 'Chocolate Hazelnut Croissant',
+        units: '1 Pc',
+        order_qty: 29,
+    },
 ];
 // const dummyData: BakeryOrder[] = [
 //     {
@@ -152,18 +157,78 @@ export default function Bakery() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { toast } = useToast();
 
-    const handleSheetSubmission = async (data: BakeryOrder[]) => {
-        // const handleSheetSubmission = async (data: { orders: BakeryOrder[] }) => {
-
-        // Send to your backend API
-        // await fetch('/api/bakery/orders', {
-        //     method: 'PUT',
-        //     body: JSON.stringify(data),
-        // });
-        // console.log('data: ', data);
-        return;
+    // handes edit button click on page basically
+    const handleSheetSubmission = async (formData: BakeryOrder[]) => {
+        // console.log('handle auto submit pressed');
+        try {
+            const response = await fetch('/api/v1/bakerys-orders', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                const msg = `Failed to update bakery's orders`;
+                throw new Error(msg);
+            }
+            // console.log('data sent: ', result);
+            toast({
+                title: 'Order Counts Sent',
+                description: 'Your counts have been sent successfully',
+                className: 'bg-myBrown border-none text-myDarkbrown',
+            });
+        } catch (error) {
+            const errMsg = 'Check API route handler and/or HTTP method';
+            console.error(
+                'Error from API route handler or HTTP method: ',
+                error
+            );
+            // Handle error (show toast, etc.)
+            toast({
+                title: 'Error',
+                description: errMsg,
+                variant: 'destructive',
+            });
+        }
 
         // Update local state, show success message, etc.
+    };
+    const handleBatchCompleteBtn = async () => {
+        // console.log('handle auto submit pressed');
+        try {
+            const response = await fetch('/api/v1/bakerys-orders', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                const msg = `Failed to update bakery's orders`;
+                throw new Error(msg);
+            }
+            // console.log('data sent: ', result);
+            toast({
+                title: 'Order Counts Sent',
+                description: 'Your counts have been sent successfully',
+                className: 'bg-myBrown border-none text-myDarkbrown',
+            });
+        } catch (error) {
+            const errMsg = 'Check API route handler and/or HTTP method';
+            console.error(
+                'Error from API route handler or HTTP method: ',
+                error
+            );
+            // Handle error (show toast, etc.)
+            toast({
+                title: 'Error',
+                description: errMsg,
+                variant: 'destructive',
+            });
+        }
     };
 
     useEffect(() => {
@@ -187,15 +252,16 @@ export default function Bakery() {
                     description: err.message,
                     variant: 'destructive',
                 });
+                setData([]);
             }
             setIsLoading(false);
         };
 
-        // getBakerysOrders();
+        getBakerysOrders();
 
         // testing:
-        setData(dummyData);
-        setIsLoading(false);
+        // setData(dummyData);
+        // setIsLoading(false);
     }, [toast]);
 
     return (
@@ -213,18 +279,20 @@ export default function Bakery() {
             )}
             {!isLoading && data && data?.length > 0 && (
                 <section className='flex flex-col'>
-                    <DataTable columns={BakeryColumns} data={data} />
-                    <div className='flex justify-end gap-2'>
+                    <div className='flex justify-end gap-2 mb-2'>
                         <SheetTemplate
                             title='Edit Completed Orders'
                             trigger={
-                                <Button variant='myTheme'>
-                                    <Pencil className=''/>
-                                    Edit 
+                                <Button
+                                    variant='outline'
+                                    className='border-myDarkbrown text-myDarkbrown'
+                                >
+                                    <Pencil className='' />
+                                    Edit
                                 </Button>
                             }
                             description={
-                                'Manually update how many orders you actually made. When done, press Submit.'
+                                'At end of day, manually update how many orders you actually made. When done, press Submit.'
                             }
                             // noItemsText={'No Pastry Orders Yet!'}
                         >
@@ -236,54 +304,43 @@ export default function Bakery() {
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant='myTheme' className='w-fit'>
-                                    <ListCheck className=''/>
-                                    Auto-Complete Orders
+                                    <ListCheck />
+                                    Batch Complete
                                 </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
-                                <Tabs
-                                    defaultValue='english'
-                                    className='flex flex-col'
-                                >
-                                    <TabsList className='flex self-center bg-neutral-200'>
-                                        <TabsTrigger
-                                            value='english'
-                                            className='flex items-center gap-1'
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                        Complete All Orders?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Press Submit only if all orders were
+                                        successfully completed.
+                                    </AlertDialogDescription>
+                                    <AlertDialogDescription>
+                                        Otherwise, Press Cancel.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                        Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction asChild>
+                                        <Button
+                                            variant='myTheme'
+                                            onClick={handleBatchCompleteBtn}
                                         >
-                                            EN{' '}
-                                            <Image
-                                                src={enIcon}
-                                                alt='en'
-                                                width={15}
-                                                height={15}
-                                            />
-                                        </TabsTrigger>
-                                        <TabsTrigger
-                                            value='spanish'
-                                            className='flex items-center gap-1'
-                                        >
-                                            ES{' '}
-                                            <Image
-                                                src={esIcon}
-                                                alt='es'
-                                                width={15}
-                                                height={15}
-                                            />
-                                        </TabsTrigger>
-                                    </TabsList>
-                                    <TabsContent value='english'>
-                                        {englishTab()}
-                                    </TabsContent>
-                                    <TabsContent value='spanish'>
-                                        {spanishTab()}
-                                    </TabsContent>
-                                </Tabs>
+                                            Submit
+                                        </Button>
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
                         {/* <Button variant='myTheme' size='lg' className='w-fit self-end'>
                         Auto-Complete Orders
                     </Button> */}
                     </div>
+                    <DataTable columns={BakeryColumns} data={data} />
                 </section>
             )}
             {!isLoading && data && data?.length === 0 && (
@@ -320,55 +377,67 @@ type BakeryOrdersFormProps = {
 };
 
 const BakeryOrdersForm = ({ data, onSubmit }: BakeryOrdersFormProps) => {
+    const [formData, setFormData] = React.useState<BakeryOrder[]>(data);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const { toast } = useToast();
 
-    const handleSubmit = async (formData: BakeryOrder[]) => {
+    const handleInputChange = (orderId: number, newValue: number) => {
+        setFormData((prevData) =>
+            prevData.map((order) =>
+                order.id === orderId ? { ...order, order_qty: newValue } : order
+            )
+        );
+    };
+
+    const handleSubmit = async (updatedData: BakeryOrder[]) => {
         // const handleSubmit = async (formData: { orders: BakeryOrder[] }) => {
         try {
             setIsSubmitting(true);
-            await onSubmit?.(formData);
+            await onSubmit?.(updatedData);
             // You might want to close the sheet or show a success message here
             console.log('Form data submitted:', formData);
-            toast({
-                title: 'Order Counts Sent',
-                description: 'Your counts have been sent successfully',
-                className: 'bg-myBrown border-none text-myDarkbrown',
-            });
         } catch (error) {
             console.error('Failed to update orders:', error);
             // Handle error (show toast, etc.)
-            toast({
-                title: 'Error',
-                description: 'Failed to update orders',
-                variant: 'destructive',
-            });
+            // toast({
+            //     title: 'Error',
+            //     description: 'Failed to update orders',
+            //     variant: 'destructive',
+            // });
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const onSubmitWrapper = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        handleSubmit(data);
+        e.preventDefault(); // keeps toast from closing immediately and page refreshing immediately on submit
+        handleSubmit(formData);
     };
 
     return (
         <form onSubmit={onSubmitWrapper} className='flex flex-col gap-2'>
             <ScrollArea className='max-h-[50vh] sm:max-h-[65vh] overflow-y-auto'>
-                {data.map((order) => (
+                {formData.map((order) => (
                     <div
                         key={order.id}
                         className='flex items-center justify-between text-sm my-2 mx-1'
                     >
                         <div className='font-medium'>{order.name}</div>
                         <input
-                            // id={`completed-${order.id}`}
+                            id={`completed-${order.id}`}
                             type='number'
-                            defaultValue={order.order_qty}
+                            value={order.order_qty}
+                            // defaultValue={order.order_qty}
+                            step={0.5}
                             min={0}
                             // max={order.orderedQuantity}
                             className='w-20 px-2 py-1 border rounded'
+                            onChange={(e) =>
+                                handleInputChange(
+                                    order.id,
+                                    Number(e.target.value)
+                                )
+                            }
                         />
                     </div>
                 ))}
@@ -387,49 +456,51 @@ const BakeryOrdersForm = ({ data, onSubmit }: BakeryOrdersFormProps) => {
     );
 };
 
-function englishTab() {
-    return (
-        <>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Complete All Orders? </AlertDialogTitle>
-                <AlertDialogDescription>
-                    Press Submit only if all orders were successfully completed
-                </AlertDialogDescription>
-                <AlertDialogDescription>
-                    Otherwise, Press Cancel
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction asChild>
-                    <Button variant='myTheme'>Submit</Button>
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </>
-    );
-}
+// function englishTab({ handleBatchCompleteBtn }: () => Promise<void>) {
+//     return (
+//         <>
+//             <AlertDialogHeader>
+//                 <AlertDialogTitle>Complete All Orders? </AlertDialogTitle>
+//                 <AlertDialogDescription>
+//                     Press Submit only if all orders were successfully completed
+//                 </AlertDialogDescription>
+//                 <AlertDialogDescription>
+//                     Otherwise, Press Cancel
+//                 </AlertDialogDescription>
+//             </AlertDialogHeader>
+//             <AlertDialogFooter>
+//                 <AlertDialogCancel>Cancel</AlertDialogCancel>
+//                 <AlertDialogAction asChild>
+//                     <Button variant='myTheme' onClick={handleBatchCompleteBtn}>
+//                         Submit
+//                     </Button>
+//                 </AlertDialogAction>
+//             </AlertDialogFooter>
+//         </>
+//     );
+// }
 
-function spanishTab() {
-    return (
-        <>
-            <AlertDialogHeader>
-                <AlertDialogTitle>
-                    ¿Completar Todos Los Pedidos?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                    Presione Enviar solo si todos los pedidos se completaron
-                    correctamente
-                </AlertDialogDescription>
-                <AlertDialogDescription>
-                    De lo contrario, presione Cancelar
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction asChild>
-                    <Button variant='myTheme'>Enviar</Button>
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </>
-    );
-}
+// function spanishTab() {
+//     return (
+//         <>
+//             <AlertDialogHeader>
+//                 <AlertDialogTitle>
+//                     ¿Completar Todos Los Pedidos?
+//                 </AlertDialogTitle>
+//                 <AlertDialogDescription>
+//                     Presione Enviar solo si todos los pedidos se completaron
+//                     correctamente
+//                 </AlertDialogDescription>
+//                 <AlertDialogDescription>
+//                     De lo contrario, presione Cancelar
+//                 </AlertDialogDescription>
+//             </AlertDialogHeader>
+//             <AlertDialogFooter>
+//                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
+//                 <AlertDialogAction asChild>
+//                     <Button variant='myTheme'>Enviar</Button>
+//                 </AlertDialogAction>
+//             </AlertDialogFooter>
+//         </>
+//     );
+// }

@@ -1,0 +1,1 @@
+ALTER TABLE "store_bakery_orders" ADD COLUMN "made_qty" numeric(10, 2);

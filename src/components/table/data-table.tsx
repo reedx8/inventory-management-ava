@@ -75,7 +75,7 @@ export function DataTable<TData, TValue>({
                                     }
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className='text-neutral-500'>
+                                        <TableCell key={cell.id} className='text-black'>
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
@@ -97,7 +97,7 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            <div className='flex items-center justify-end space-x-2 py-4'>
+            <div className='flex items-center justify-end space-x-2 py-1'>
                 <Button
                     variant='outline'
                     size='sm'

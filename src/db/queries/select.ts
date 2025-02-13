@@ -195,7 +195,7 @@ export async function getWasteStock(store_location_id: string) {
 
 // Get day's orders for bakery staff
 export async function getBakerysOrders() {
-    // TODO: query for todays orders only, add index
+    // TODO: query for todays bakery_order.created_at only and where submitted_at is null, add index
     const result = db
         .select({
             id: bakeryOrdersTable.id,
