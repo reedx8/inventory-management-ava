@@ -27,49 +27,235 @@ import { Button } from '@/components/ui/button';
 import SheetTemplate from '@/components/sheet/sheet-template';
 // import { zodResolver } from '@zod/form';
 // import { useForm } from 'react-hook-form';
-import { ListCheck, Pencil, Send } from 'lucide-react';
+import { Check, ListCheck, Pencil, Send } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const dummyData: BakeryOrder[] = [
-    { id: 1, name: 'Chocolate Croissant', units: '1 Pc', order_qty: 24 },
-    { id: 2, name: 'Blueberry Muffin', units: '1 Pc', order_qty: undefined },
-    { id: 3, name: 'Apple Danish', units: '1 Pc', order_qty: 15 },
-    { id: 4, name: 'Vanilla Eclair', units: '1 Pc', order_qty: 30 },
-    { id: 5, name: 'Cinnamon Roll', units: '1 Pc', order_qty: 42 },
-    { id: 6, name: 'Lemon Tart', units: '1 Pc', order_qty: undefined },
-    { id: 7, name: 'Almond Biscotti', units: '1 Pc', order_qty: 18 },
-    { id: 8, name: 'Red Velvet Cupcake', units: '1 Pc', order_qty: 56 },
-    { id: 9, name: 'Raspberry Danish', units: '1 Pc', order_qty: 21 },
-    { id: 10, name: 'Banana Nut Bread', order_qty: undefined },
-    { id: 11, name: 'Strawberry Scone', order_qty: 33 },
-    { id: 12, name: 'Chocolate Chip Cookie', order_qty: 100 },
-    { id: 13, name: 'Pecan Pie Slice', order_qty: 12 },
-    { id: 14, name: 'Coconut Macaroon', order_qty: undefined },
-    { id: 15, name: 'Caramel Brownie', order_qty: 45 },
-    { id: 16, name: 'Pumpkin Muffin', order_qty: 27 },
-    { id: 17, name: 'Cherry Turnover', units: '1 Pc', order_qty: 16 },
-    { id: 18, name: 'Maple Donut', units: '1 Pc', order_qty: undefined },
-    { id: 19, name: 'Tiramisu Slice', units: '1 Pc', order_qty: 9 },
-    { id: 20, name: 'Oatmeal Raisin Cookie', order_qty: 72 },
-    { id: 21, name: 'Cheese Danish', order_qty: 25 },
-    { id: 22, name: 'Blackberry Scone', order_qty: undefined },
-    { id: 23, name: 'Pistachio Croissant', order_qty: 14 },
-    { id: 24, name: 'Hazelnut Biscotti', units: '1 Pc', order_qty: 22 },
-    { id: 25, name: 'Orange Cranberry Muffin', order_qty: 31 },
-    { id: 26, name: 'White Chocolate Macadamia Cookie', order_qty: undefined },
-    { id: 27, name: 'Matcha Green Tea Scone', units: '1 Pc', order_qty: 17 },
-    { id: 28, name: 'Dark Chocolate Eclair', units: '1 Pc', order_qty: 28 },
-    { id: 29, name: 'Lavender Shortbread', order_qty: undefined },
-    { id: 30, name: 'Carrot Cake Slice', units: '1 Pc', order_qty: 19 },
-    { id: 31, name: 'Earl Grey Tea Cookie', order_qty: 40 },
-    { id: 32, name: 'Apricot Danish', order_qty: undefined },
-    { id: 33, name: 'Salted Caramel Brownie', units: '1 Pc', order_qty: 35 },
-    { id: 34, name: 'Mixed Berry Tart', units: '1 Pc', order_qty: 23 },
+    {
+        id: 1,
+        name: 'Chocolate Croissant',
+        units: '1 Pc',
+        order_qty: 24,
+        completed_at: '2025-02-11T15:30:00Z',
+    },
+    {
+        id: 2,
+        name: 'Blueberry Muffin',
+        units: '1 Pc',
+        order_qty: undefined,
+        completed_at: undefined,
+    },
+    {
+        id: 3,
+        name: 'Apple Danish',
+        units: '1 Pc',
+        order_qty: 15,
+        completed_at: '2025-02-12T09:45:00Z',
+    },
+    {
+        id: 4,
+        name: 'Vanilla Eclair',
+        units: '1 Pc',
+        order_qty: 30,
+        completed_at: undefined,
+    },
+    {
+        id: 5,
+        name: 'Cinnamon Roll',
+        units: '1 Pc',
+        order_qty: 42,
+        completed_at: '2025-02-12T11:20:00Z',
+    },
+    {
+        id: 6,
+        name: 'Lemon Tart',
+        units: '1 Pc',
+        order_qty: undefined,
+        completed_at: undefined,
+    },
+    {
+        id: 7,
+        name: 'Almond Biscotti',
+        units: '1 Pc',
+        order_qty: 18,
+        completed_at: '2025-02-11T16:15:00Z',
+    },
+    {
+        id: 8,
+        name: 'Red Velvet Cupcake',
+        units: '1 Pc',
+        order_qty: 56,
+        completed_at: '2025-02-12T10:30:00Z',
+    },
+    {
+        id: 9,
+        name: 'Raspberry Danish',
+        units: '1 Pc',
+        order_qty: 21,
+        completed_at: undefined,
+    },
+    {
+        id: 10,
+        name: 'Banana Nut Bread',
+        order_qty: undefined,
+        completed_at: undefined,
+    },
+    {
+        id: 11,
+        name: 'Strawberry Scone',
+        order_qty: 33,
+        completed_at: '2025-02-12T08:45:00Z',
+    },
+    {
+        id: 12,
+        name: 'Chocolate Chip Cookie',
+        order_qty: 100,
+        completed_at: '2025-02-11T14:20:00Z',
+    },
+    { id: 13, name: 'Pecan Pie Slice', order_qty: 12, completed_at: undefined },
+    {
+        id: 14,
+        name: 'Coconut Macaroon',
+        order_qty: undefined,
+        completed_at: undefined,
+    },
+    {
+        id: 15,
+        name: 'Caramel Brownie',
+        order_qty: 45,
+        completed_at: '2025-02-12T12:10:00Z',
+    },
+    {
+        id: 16,
+        name: 'Pumpkin Muffin',
+        order_qty: 27,
+        completed_at: '2025-02-11T17:30:00Z',
+    },
+    {
+        id: 17,
+        name: 'Cherry Turnover',
+        units: '1 Pc',
+        order_qty: 16,
+        completed_at: undefined,
+    },
+    {
+        id: 18,
+        name: 'Maple Donut',
+        units: '1 Pc',
+        order_qty: undefined,
+        completed_at: undefined,
+    },
+    {
+        id: 19,
+        name: 'Tiramisu Slice',
+        units: '1 Pc',
+        order_qty: 9,
+        completed_at: '2025-02-12T13:15:00Z',
+    },
+    {
+        id: 20,
+        name: 'Oatmeal Raisin Cookie',
+        order_qty: 72,
+        completed_at: '2025-02-11T15:45:00Z',
+    },
+    { id: 21, name: 'Cheese Danish', order_qty: 25, completed_at: undefined },
+    {
+        id: 22,
+        name: 'Blackberry Scone',
+        order_qty: undefined,
+        completed_at: undefined,
+    },
+    {
+        id: 23,
+        name: 'Pistachio Croissant',
+        order_qty: 14,
+        completed_at: '2025-02-12T09:20:00Z',
+    },
+    {
+        id: 24,
+        name: 'Hazelnut Biscotti',
+        units: '1 Pc',
+        order_qty: 22,
+        completed_at: '2025-02-11T16:40:00Z',
+    },
+    {
+        id: 25,
+        name: 'Orange Cranberry Muffin',
+        order_qty: 31,
+        completed_at: undefined,
+    },
+    {
+        id: 26,
+        name: 'White Chocolate Macadamia Cookie',
+        order_qty: undefined,
+        completed_at: undefined,
+    },
+    {
+        id: 27,
+        name: 'Matcha Green Tea Scone',
+        units: '1 Pc',
+        order_qty: 17,
+        completed_at: '2025-02-12T10:55:00Z',
+    },
+    {
+        id: 28,
+        name: 'Dark Chocolate Eclair',
+        units: '1 Pc',
+        order_qty: 28,
+        completed_at: '2025-02-11T14:50:00Z',
+    },
+    {
+        id: 29,
+        name: 'Lavender Shortbread',
+        order_qty: undefined,
+        completed_at: undefined,
+    },
+    {
+        id: 30,
+        name: 'Carrot Cake Slice',
+        units: '1 Pc',
+        order_qty: 19,
+        completed_at: '2025-02-12T11:40:00Z',
+    },
+    {
+        id: 31,
+        name: 'Earl Grey Tea Cookie',
+        order_qty: 40,
+        completed_at: undefined,
+    },
+    {
+        id: 32,
+        name: 'Apricot Danish',
+        order_qty: undefined,
+        completed_at: undefined,
+    },
+    {
+        id: 33,
+        name: 'Salted Caramel Brownie',
+        units: '1 Pc',
+        order_qty: 35,
+        completed_at: '2025-02-11T17:05:00Z',
+    },
+    {
+        id: 34,
+        name: 'Mixed Berry Tart',
+        units: '1 Pc',
+        order_qty: 23,
+        completed_at: '2025-02-12T12:35:00Z',
+    },
     {
         id: 35,
         name: 'Chocolate Hazelnut Croissant',
         units: '1 Pc',
         order_qty: 29,
+        completed_at: undefined,
     },
 ];
 // const dummyData: BakeryOrder[] = [
@@ -257,11 +443,11 @@ export default function Bakery() {
             setIsLoading(false);
         };
 
-        getBakerysOrders();
+        // getBakerysOrders();
 
         // testing:
-        // setData(dummyData);
-        // setIsLoading(false);
+        setData(dummyData);
+        setIsLoading(false);
     }, [toast]);
 
     return (
@@ -422,7 +608,27 @@ const BakeryOrdersForm = ({ data, onSubmit }: BakeryOrdersFormProps) => {
                         key={order.id}
                         className='flex items-center justify-between text-sm my-2 mx-1'
                     >
-                        <div className='font-medium'>{order.name}</div>
+                        <div className='flex items-center gap-1'>
+                            {order.completed_at && (
+                                <Badge
+                                    className='bg-myBrown'
+                                    variant='secondary'
+                                >
+                                    <Check size={10} className='text-black' />
+                                </Badge>
+                            )}
+                            <div
+                                className={`text-sm ${
+                                    order.completed_at
+                                        ? 'text-neutral-400 line-through'
+                                        : ''
+                                }`}
+                            >
+                                {order.name}
+                            </div>
+
+                            {/* {order.completed_at ?? <Badge className='ml-1 text-xs'>{order.units}</Badge>} */}
+                        </div>
                         <input
                             id={`completed-${order.id}`}
                             type='number'
@@ -431,7 +637,12 @@ const BakeryOrdersForm = ({ data, onSubmit }: BakeryOrdersFormProps) => {
                             step={0.5}
                             min={0}
                             // max={order.orderedQuantity}
-                            className='w-20 px-2 py-1 border rounded'
+                            // className='w-20 px-2 py-1 border rounded bg-red-300'
+                            className={`w-20 px-2 py-1 border rounded ${
+                                order.completed_at
+                                    ? 'bg-neutral-100 text-neutral-400'
+                                    : ''
+                            }`}
                             onChange={(e) =>
                                 handleInputChange(
                                     order.id,

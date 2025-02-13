@@ -201,6 +201,7 @@ export async function getBakerysOrders() {
             id: bakeryOrdersTable.id,
             name: itemsTable.name,
             units: bakeryOrdersTable.units,
+            completed_at: bakeryOrdersTable.completed_at,
             order_qty: sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
             //         order_qty: sql<number>`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
         })

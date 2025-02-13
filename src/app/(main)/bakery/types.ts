@@ -3,5 +3,6 @@ export type BakeryOrder = {
     name: string;
     units?: string | undefined;
     order_qty: number | undefined;
-    is_complete?: boolean | undefined;
+    is_checked_off?: boolean | undefined;
+    completed_at: string | undefined;
 };
