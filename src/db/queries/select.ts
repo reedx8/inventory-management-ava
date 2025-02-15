@@ -1,5 +1,5 @@
 // select queries -- call from /src/app/api folder
-import { eq, and, sql, gt, or, is, isNull, like } from 'drizzle-orm';
+import { eq, and, sql, gt, or, isNull, like } from 'drizzle-orm';
 import { db } from '../index';
 import {
     ordersTable,
@@ -193,28 +193,123 @@ export async function getWasteStock(store_location_id: string) {
     return result;
 }
 
-// Get day's orders for bakery staff
-export async function getBakerysOrders() {
+// Get day's orders for bakery staff, either across all stores or for a specific store (store_location_id)
+export async function getBakerysOrders(store_location_id?: number | undefined) {
     // TODO: query for todays bakery_order.created_at only and where submitted_at is null, add index
-    const result = db
-        .select({
-            id: bakeryOrdersTable.id,
-            name: itemsTable.name,
-            units: bakeryOrdersTable.units,
-            completed_at: bakeryOrdersTable.completed_at,
-            order_qty: sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
-            //         order_qty: sql<number>`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
-        })
-        .from(bakeryOrdersTable)
-        .leftJoin(
-            storeBakeryOrdersTable,
-            eq(bakeryOrdersTable.id, storeBakeryOrdersTable.order_id)
-        )
-        .innerJoin(itemsTable, eq(itemsTable.id, bakeryOrdersTable.item_id))
-        .where(and(eq(itemsTable.is_active, true)))
-        .groupBy(bakeryOrdersTable.id, itemsTable.name);
+    // TODO: should return storeBakeryOdersTable.made_qty when not null as well
+    // TODO; inner join or left join for all store orders?
 
-    return result;
+    let result;
+    if (store_location_id) {
+        // Get orders for a specific store (store_location_id)
+        try {
+            const storeId = store_location_id;
+            result = await db
+                .select({
+                    id: storeBakeryOrdersTable.id,
+                    name: itemsTable.name,
+                    units: bakeryOrdersTable.units,
+                    completed_at: storeBakeryOrdersTable.completed_at,
+                    order_qty: storeBakeryOrdersTable.order_qty,
+                    //         order_qty: sql<number>`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+                })
+                .from(storeBakeryOrdersTable)
+                .innerJoin(
+                    bakeryOrdersTable,
+                    eq(bakeryOrdersTable.id, storeBakeryOrdersTable.order_id)
+                )
+                .innerJoin(
+                    itemsTable,
+                    eq(itemsTable.id, bakeryOrdersTable.item_id)
+                )
+                .where(
+                    and(
+                        eq(itemsTable.is_active, true),
+                        eq(storeBakeryOrdersTable.store_id, storeId)
+                    )
+                );
+            // .groupBy(storeBakeryOrdersTable.id, itemsTable.name);
+        } catch (error) {
+            const err = error as Error;
+            return {
+                success: false,
+                error: err.message,
+                data: null,
+            };
+        }
+    } else {
+        // Get total orders per item accross all stores
+        try {
+            result = await db
+                .select({
+                    id: storeBakeryOrdersTable.order_id,
+                    name: itemsTable.name,
+                    units: bakeryOrdersTable.units,
+                    // completed_at: storeBakeryOrdersTable.completed_at,
+                    order_qty: sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+                    store_data: sql`json_agg(json_build_object('store_name', ${storesTable.name}, 'order_qty', ${storeBakeryOrdersTable.order_qty}))`,
+                    // store_data: sql`json_agg(json_build_object('store_id', ${storeBakeryOrdersTable.store_id}, 'order_qty', ${storeBakeryOrdersTable.order_qty}))`,
+                    // store_data: (db.select(storeBakeryOrdersTable.store_id, storeBakeryOrdersTable.order_qty).from(storeBakeryOrdersTable)),
+                    //         order_qty: sql<number>`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+                })
+                .from(storeBakeryOrdersTable)
+                .innerJoin(
+                    bakeryOrdersTable,
+                    eq(bakeryOrdersTable.id, storeBakeryOrdersTable.order_id)
+                )
+                .innerJoin(
+                    itemsTable,
+                    eq(itemsTable.id, bakeryOrdersTable.item_id)
+                )
+                .innerJoin(
+                    storesTable,
+                    eq(storesTable.id, storeBakeryOrdersTable.store_id)
+                )
+                .where(and(eq(itemsTable.is_active, true)))
+                .groupBy(
+                    storeBakeryOrdersTable.order_id,
+                    // storeBakeryOrdersTable.id,
+                    itemsTable.name,
+                    bakeryOrdersTable.units
+                    // storeBakeryOrdersTable.completed_at
+                );
+
+            // utilizing instead the temp_
+            // result = await db
+            //     .select({
+            //         id: bakeryOrdersTable.id,
+            //         name: itemsTable.name,
+            //         units: bakeryOrdersTable.units,
+            //         completed_at: bakeryOrdersTable.completed_at,
+            //         order_qty: sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+            //         //         order_qty: sql<number>`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+            //     })
+            //     .from(bakeryOrdersTable)
+            //     .leftJoin(
+            //         storeBakeryOrdersTable,
+            //         eq(bakeryOrdersTable.id, storeBakeryOrdersTable.order_id)
+            //     )
+            //     .innerJoin(
+            //         itemsTable,
+            //         eq(itemsTable.id, bakeryOrdersTable.item_id)
+            //     )
+            //     .where(and(eq(itemsTable.is_active, true)))
+            //     .groupBy(bakeryOrdersTable.id, itemsTable.name);
+        } catch (error) {
+            const err = error as Error;
+            return {
+                success: false,
+                error: err.message,
+                data: null,
+            };
+        }
+    }
+
+    return {
+        success: true,
+        error: null,
+        data: result,
+    };
 }
 
 // search items by name (search bar)

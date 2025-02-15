@@ -1,6 +1,6 @@
 'use client';
-import React, { ReactNode} from 'react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+// import { Button } from '@/components/ui/button';
 import {
     Sheet,
     SheetContent,
@@ -10,14 +10,14 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 // import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
+// import { Separator } from '@/components/ui/separator';
 // import { Input } from '@/components/ui/input';
 // import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/contexts/auth-context';
+// import { useAuth } from '@/contexts/auth-context';
 import Image from 'next/image';
 // import completePic from '/public/illustrations/complete.svg';
 // import underConstructionPic from '/public/illustrations/underConstruction.svg';
-import { Label } from '@/components/ui/label';
+// import { Label } from '@/components/ui/label';
 // import { Loader2, Milk } from 'lucide-react';
 import starPic from '/public/star.png';
 import { SheetTemplateProps } from '@/components/types';
@@ -76,8 +76,6 @@ import { SheetTemplateProps } from '@/components/types';
 //     },
 // ];
 
-
-
 // type MilkBreadItems = {
 //     id: number;
 //     itemName: string;
@@ -109,13 +107,13 @@ const SheetTemplate = ({
                         )}
                     </SheetHeader>
                 )}
-
                 <div className={className}>{children}</div>
                 <Image
                     src={starPic}
                     alt='star'
                     width={200}
                     height={200}
+                    style={{ width: '200px', height: '200px' }}
                     className='fixed bottom-[-30px] right-[-30px] opacity-30 z-[-1]'
                 />
             </SheetContent>

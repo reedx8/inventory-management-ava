@@ -309,6 +309,10 @@ export const storeBakeryOrdersTable = pgTable(
             precision: 3,
             withTimezone: true,
         }), // store managers submitted their orders to bakery at this time
+        bakery_completed_at: timestamp('bakery_completed_at', {
+            precision: 3,
+            withTimezone: true,
+        }),
     },
     (table) => {
         return [check('positive_order_qty', sql`${table.order_qty} >= 0`)];

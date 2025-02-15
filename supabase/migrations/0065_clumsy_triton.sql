@@ -1,0 +1,1 @@
+ALTER TABLE "store_bakery_orders" ADD COLUMN "bakery_completed_at" timestamp (3) with time zone;

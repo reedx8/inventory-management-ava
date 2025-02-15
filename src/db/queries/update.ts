@@ -7,6 +7,7 @@ import {
     stockTable,
     // vendorItemsTable,
     bakeryOrdersTable,
+    storeBakeryOrdersTable,
     // storeOrdersTable,
 } from '../schema';
 // import { parse } from 'path';
@@ -86,7 +87,67 @@ export async function postMilkBreadStock(
     }
 }
 
-// Send bakery's batch complete orders
+// Send bakery's completed orders per store (from edit btn)
+export async function putBakeryEditOrders(
+    data: Array<{ id: number; order_qty: number }>
+) {
+    // TODO: update store_bakery_orders.made_qty as well
+    try {
+        const updates = await db.transaction(async (trx) => {
+            const results = await Promise.all(
+                data.map(async (order) => {
+                    try {
+                        // throw new Error('Testing error handling');
+                        const updated = await trx
+                            .update(storeBakeryOrdersTable)
+                            .set({
+                                made_qty: sql`${order.order_qty}::decimal`,
+                                bakery_completed_at: sql`now()`,
+                            })
+                            .where(and(eq(storeBakeryOrdersTable.id, order.id)))
+                            .returning();
+
+                        return {
+                            id: order.id,
+                            updated: updated.length > 0,
+                        };
+                    } catch (error) {
+                        const err = error as Error;
+                        return {
+                            id: order.id,
+                            updated: false,
+                            error: err.message,
+                        };
+                    }
+                })
+            );
+            return results;
+        });
+
+        const failures = updates.filter((update) => update.updated === false);
+        if (failures.length > 0) {
+            return {
+                success: false,
+                message: 'Some or all updates failed',
+                updates,
+            };
+        }
+        return {
+            success: true,
+            message: 'All updates successful',
+            updates,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            message: 'Transaction failed',
+            error: err.message,
+        };
+    }
+}
+
+// Send bakery's batch complete orders (from batch complete btn)
 export async function putBakeryBatchCompleteOrders(
     data: Array<{ id: number; order_qty: number }>
 ) {
@@ -107,13 +168,13 @@ export async function putBakeryBatchCompleteOrders(
 
                         return {
                             id: order.id,
-                            updated: updated.length > 0 ? true : false,
+                            updated: updated.length > 0,
                         };
                     } catch (error) {
                         const err = error as Error;
                         return {
-                            success: false,
                             id: order.id,
+                            updated: false,
                             error: err.message,
                         };
                     }
@@ -125,20 +186,20 @@ export async function putBakeryBatchCompleteOrders(
         const failures = updates.filter((update) => update.updated === false);
         if (failures.length > 0) {
             return {
-                status: false,
+                success: false,
                 message: 'Some or all updates failed',
                 updates,
             };
         }
         return {
-            status: true,
+            success: true,
             message: 'All updates successful',
             updates,
         };
     } catch (error) {
         const err = error as Error;
         return {
-            status: false,
+            success: false,
             message: 'Transaction failed',
             error: err.message,
         };

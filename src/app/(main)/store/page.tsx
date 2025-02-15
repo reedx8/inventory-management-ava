@@ -467,6 +467,7 @@ export default function Stores() {
                         alt='no orders due today pic'
                         width={175}
                         height={175}
+                        style={{ width: '175px', height: '175px' }}
                         className='drop-shadow-lg'
                     />
                     <p className='text-2xl text-gray-600'>No Orders Due!</p>

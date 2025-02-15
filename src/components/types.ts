@@ -30,3 +30,6 @@ export type SheetTemplateProps = {
     // Optional callbacks
     onOpenChange?: (open: boolean) => void;
 };
+
+// Active store locations only
+export const STORE_LOCATIONS = ['Hall', 'Progress', 'Kruse', 'Orenco'] as const;

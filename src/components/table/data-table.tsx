@@ -1,5 +1,5 @@
 'use client';
-import * as React from "react"
+import * as React from 'react';
 import {
     ColumnDef,
     flexRender,
@@ -23,13 +23,15 @@ import { Button } from '@/components/ui/button';
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
+    tableHeader?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
     columns,
     data,
+    tableHeader,
 }: DataTableProps<TData, TValue>) {
-    const [sorting, setSorting] = React.useState<SortingState>([])
+    const [sorting, setSorting] = React.useState<SortingState>([]);
     const table = useReactTable({
         data,
         columns,
@@ -38,20 +40,24 @@ export function DataTable<TData, TValue>({
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
         state: {
-          sorting,
+            sorting,
         },
     });
 
     return (
         <div>
-            <div className='rounded-md border'>
+            <div className='rounded-2xl border border-neutral-300 p-6'>
+                {tableHeader}
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id}>
+                                        <TableHead
+                                            key={header.id}
+                                            className='text-neutral-500/30 font-semibold'
+                                        >
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
@@ -75,7 +81,10 @@ export function DataTable<TData, TValue>({
                                     }
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className='text-black'>
+                                        <TableCell
+                                            key={cell.id}
+                                            className='text-black'
+                                        >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
