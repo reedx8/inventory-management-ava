@@ -27,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import SheetTemplate from '@/components/sheet/sheet-template';
 // import { zodResolver } from '@zod/form';
 // import { useForm } from 'react-hook-form';
-import { Check, ListCheck, Pencil, Send } from 'lucide-react';
+import { Check, CircleOff, CircleSlash, CircleSlash2, ListCheck, Pencil, Send } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -483,7 +483,7 @@ export default function Bakery() {
                                 </Button>
                             }
                             description={
-                                'Manually update how many orders you actually made for each store. When done, press Submit.'
+                                'Update the number of completed orders for each store today and press Submit when finished.'
                             }
                             // noItemsText={'No Pastry Orders Yet!'}
                         >
@@ -538,7 +538,7 @@ export default function Bakery() {
                         tableHeader={
                             <div className='mb-2 ml-3'>
                                 <h1 className='text-lg font-semibold text-black/80'>
-                                    Today's Bakery Orders
+                                    {`Today's Bakery Orders`}
                                 </h1>
                                 <p className='text-neutral-500/70 text-sm'>
                                     Total items due: {data.length}
@@ -555,11 +555,12 @@ export default function Bakery() {
                         alt='no pastries pic'
                         width={250}
                         height={250}
+                        style={{width: '250px', height: '250px'}}
                         className='drop-shadow-lg'
                     />
                     <p className='text-2xl text-gray-600'>No Pastries Due!</p>
                     <p className='text-sm text-gray-400'>
-                        All pastries have been completed
+                        No pastries are currently due
                     </p>
                     {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
                 </section>
@@ -683,7 +684,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                         </Select>
                     </div>
                     <ScrollArea className='max-h-[50vh] sm:max-h-[65vh] overflow-y-auto'>
-                        {formData.map((order) => (
+                        {formData?.length > 0 && formData.map((order) => (
                             <div
                                 key={order.id}
                                 className='flex items-center justify-between text-sm my-2'
@@ -735,12 +736,18 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                 />
                             </div>
                         ))}
+                        {formData?.length <= 0 && (
+                            <>
+                                <CircleOff className='text-neutral-500 mx-auto' />
+                                <p className='text-neutral-500 text-center text-sm my-2'>No {storeLocation} orders due yet</p>
+                            </>
+                        )}
                     </ScrollArea>
 
                     <Button
                         variant='myTheme'
                         type='submit'
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || formData?.length <= 0}
                         className='w-full'
                     >
                         {isSubmitting ? 'Submitting...' : 'Submit'}

@@ -1,12 +1,13 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import noOrdersPic from '/public/illustrations/emptyCart.svg';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import PagesNavBar from '@/components/pages-navbar';
-import { HeaderBar} from '@/components/header-bar';
+import { HeaderBar } from '@/components/header-bar';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface Item {
+interface OrderItem {
     id: number;
     name: string;
     due_date: string;
@@ -17,7 +18,19 @@ interface Item {
 }
 
 export default function Orders() {
-    const [data, setData] = useState<Item[]>();
+    const [data, setData] = useState<OrderItem[]>();
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        // setData([]);
+        const myPromise = new Promise((resolve) => {
+            setTimeout(() => {
+                setIsLoading(false);
+                setData([]);
+            }, 2000);
+        });
+        // myPromise.then(() => setIsLoading(false));
+    }, []);
 
     return (
         <main>
@@ -25,11 +38,20 @@ export default function Orders() {
             <section>
                 <PagesNavBar />
             </section>
-            {data && data?.length > 0 ? (
+            {isLoading && !data && (
+                <section className='flex flex-col gap-3'>
+                    <Skeleton className='h-12 w-[80%]' />
+                    <Skeleton className='h-6 w-[80%]' />
+                    <Skeleton className='h-6 w-[65%]' />
+                    <Skeleton className='h-6 w-[50%]' />
+                </section>
+            )}
+            {!isLoading && data && data?.length > 0 && (
                 <>
                     <p>Orders here...</p>
                 </>
-            ) : (
+            )}
+            {!isLoading && data && data?.length <= 0 && (
                 <section className='flex flex-col items-center justify-center gap-2 mb-4'>
                     <Image
                         src={noOrdersPic}

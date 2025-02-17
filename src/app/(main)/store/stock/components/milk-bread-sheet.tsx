@@ -166,12 +166,13 @@ export default function MilkBreadSheet() {
 
             setError(null);
         } catch (error) {
-            console.error('Failed to fetch stock data: ', error);
+            const err = error as Error;
+            // console.error('Failed to fetch stock data: ', error);
             setData([]);
-            setError(error.message);
+            setError(err.message);
             toast({
                 title: 'Error',
-                description: 'Failed to fetch stock data',
+                description: err.message,
                 variant: 'destructive',
             });
         } finally {

@@ -49,75 +49,75 @@ interface OrderItem {
 //     'BEANS&TEA',
 // ] as const;
 
-const dummyData: OrderItem[] = [
-    {
-        id: 1,
-        name: 'Strawberry & Cream Cheese Turnover',
-        due_date: '2025-06-15',
-        qty_per_order: '1 Pc',
-        order: 0,
-        store_categ: 'PASTRY',
-        store_name: 'Progress',
-    },
-    {
-        id: 2,
-        name: 'Peach & Cream Cheese Turnover',
-        due_date: '2025-06-15',
-        qty_per_order: '1 Pc',
-        order: 0,
-        store_categ: 'PASTRY',
-        store_name: 'Progress',
-    },
-    {
-        id: 3,
-        name: 'Cream Cheese Turnover',
-        due_date: '2025-06-15',
-        qty_per_order: '1 Pc',
-        order: 0,
-        store_categ: 'PASTRY',
-        store_name: 'Orenco',
-    },
-    {
-        id: 4,
-        name: 'Sesame Bagel',
-        due_date: '2025-06-15',
-        qty_per_order: '4 Pcs/Pack',
-        order: 0,
-        store_categ: 'PASTRY',
-        store_name: 'Orenco',
-    },
-    {
-        id: 5,
-        name: 'Zu Zus',
-        due_date: '2025-06-15',
-        qty_per_order: '12 Pcs',
-        order: 0,
-        store_categ: 'PASTRY',
-        store_name: 'Progress',
-    },
-    {
-        id: 6,
-        name: 'Strawberry Whip Cream Cake (Full)',
-        due_date: '2025-06-15',
-        qty_per_order: '1 cake',
-        order: 0,
-        store_categ: 'PASTRY',
-        store_name: 'Progress',
-    },
-    {
-        id: 7,
-        name: 'Strawberry Whip Cream Cake (Half)',
-        due_date: '2025-06-15',
-        qty_per_order: '1/2 cake',
-        order: 0,
-        store_categ: 'PASTRY',
-        store_name: 'Orenco',
-    },
-];
+// const dummyData: OrderItem[] = [
+//     {
+//         id: 1,
+//         name: 'Strawberry & Cream Cheese Turnover',
+//         due_date: '2025-06-15',
+//         qty_per_order: '1 Pc',
+//         order: 0,
+//         store_categ: 'PASTRY',
+//         store_name: 'Progress',
+//     },
+//     {
+//         id: 2,
+//         name: 'Peach & Cream Cheese Turnover',
+//         due_date: '2025-06-15',
+//         qty_per_order: '1 Pc',
+//         order: 0,
+//         store_categ: 'PASTRY',
+//         store_name: 'Progress',
+//     },
+//     {
+//         id: 3,
+//         name: 'Cream Cheese Turnover',
+//         due_date: '2025-06-15',
+//         qty_per_order: '1 Pc',
+//         order: 0,
+//         store_categ: 'PASTRY',
+//         store_name: 'Orenco',
+//     },
+//     {
+//         id: 4,
+//         name: 'Sesame Bagel',
+//         due_date: '2025-06-15',
+//         qty_per_order: '4 Pcs/Pack',
+//         order: 0,
+//         store_categ: 'PASTRY',
+//         store_name: 'Orenco',
+//     },
+//     {
+//         id: 5,
+//         name: 'Zu Zus',
+//         due_date: '2025-06-15',
+//         qty_per_order: '12 Pcs',
+//         order: 0,
+//         store_categ: 'PASTRY',
+//         store_name: 'Progress',
+//     },
+//     {
+//         id: 6,
+//         name: 'Strawberry Whip Cream Cake (Full)',
+//         due_date: '2025-06-15',
+//         qty_per_order: '1 cake',
+//         order: 0,
+//         store_categ: 'PASTRY',
+//         store_name: 'Progress',
+//     },
+//     {
+//         id: 7,
+//         name: 'Strawberry Whip Cream Cake (Half)',
+//         due_date: '2025-06-15',
+//         qty_per_order: '1/2 cake',
+//         order: 0,
+//         store_categ: 'PASTRY',
+//         store_name: 'Orenco',
+//     },
+// ];
 
 export default function Stores() {
     const { userRole, userStoreId } = useAuth();
-    const [data, setData] = useState<OrderItem[] | undefined>(dummyData);
+    const [data, setData] = useState<OrderItem[] | undefined>();
     // const [data, setData] = useState<OrderItem[]>(dummyData);
     // const [ storeData, setStoreData ] = useState<OrderItem[]>([]);
     // const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
@@ -319,9 +319,15 @@ export default function Stores() {
         // fetchStoreOrders();
 
         // testing:
-        setData([]);
-        setIsLoading(false);
-        // console.log('Store orders fetched');
+        const myPromise = new Promise((resolve) => {
+            setTimeout(() => {
+                setIsLoading(false);
+                setData([]);
+            }, 2000);
+        });
+
+        // setData([]);
+        // setIsLoading(false);
     }, [userRole, userStoreId]);
 
     return (
@@ -330,21 +336,13 @@ export default function Stores() {
             <section>
                 <PagesNavBar />
             </section>
-            {data === undefined && isLoading && (
-                <section className='flex flex-col w-[90%] gap-3'>
-                    <div className='space-y-2'>
-                        <Skeleton className='h-6 w-[100%] rounded-md' />
-                        {/* <Skeleton className='h-4 w-[200px]' /> */}
-                    </div>
-                    <Skeleton className='h-[175px] w-[100%] rounded-md' />
-                    <div className='flex gap-2 self-end'>
-                        <Skeleton className='h-6 w-[75px] round-md' />
-                        <Skeleton className='h-6 w-[75px] round-md' />
-                    </div>
+            {isLoading && !data && (
+                <section className='flex flex-col gap-3'>
+                    <Skeleton className='h-12 w-[80%]' />
+                    <Skeleton className='h-6 w-[80%]' />
+                    <Skeleton className='h-6 w-[65%]' />
+                    <Skeleton className='h-6 w-[50%]' />
                 </section>
-                // <div className='flex flex-col items-center justify-center gap-2 mb-4'>
-                // <p className='text-2xl text-gray-600'>Loading...</p>
-                // </div>
             )}
             {data && !isLoading && data?.length > 0 && (
                 <OrderTable data={data} setData={setData} />
@@ -459,7 +457,7 @@ export default function Stores() {
                 //     </div>
                 // </>
             )}
-            {!isLoading && data?.length === 0 && (
+            {!isLoading && data && data?.length === 0 && (
                 // <div className='flex flex-col justify-center'>
                 <section className='flex flex-col items-center justify-center gap-2 mb-4'>
                     <Image

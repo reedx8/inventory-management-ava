@@ -193,15 +193,13 @@ export async function getWasteStock(store_location_id: string) {
     return result;
 }
 
-// Get day's orders for bakery staff, either across all stores or for a specific store (store_location_id)
+// Get active items + today's orders + order > 0 only for bakery staff, either across all stores or for a specific store (store_location_id)
 export async function getBakerysOrders(store_location_id?: number | undefined) {
-    // TODO: query for todays bakery_order.created_at only and where submitted_at is null, add index
-    // TODO: should return storeBakeryOdersTable.made_qty when not null as well
     // TODO; inner join or left join for all store orders?
 
     let result;
     if (store_location_id) {
-        // Get orders for a specific store (store_location_id)
+        // Get orders for a specific store (bakery's edit btn view)
         try {
             const storeId = store_location_id;
             result = await db
@@ -209,7 +207,7 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                     id: storeBakeryOrdersTable.id,
                     name: itemsTable.name,
                     units: bakeryOrdersTable.units,
-                    completed_at: storeBakeryOrdersTable.completed_at,
+                    completed_at: storeBakeryOrdersTable.bakery_completed_at,
                     order_qty: storeBakeryOrdersTable.order_qty,
                     //         order_qty: sql<number>`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
                 })
@@ -225,7 +223,9 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                 .where(
                     and(
                         eq(itemsTable.is_active, true),
-                        eq(storeBakeryOrdersTable.store_id, storeId)
+                        eq(storeBakeryOrdersTable.store_id, storeId),
+                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                        gt(sql`${storeBakeryOrdersTable.order_qty}::decimal`, 0),
                     )
                 );
             // .groupBy(storeBakeryOrdersTable.id, itemsTable.name);
@@ -238,16 +238,16 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
             };
         }
     } else {
-        // Get total orders per item accross all stores
+        // Get total orders per item accross all stores (bakery's table view)
         try {
             result = await db
                 .select({
                     id: storeBakeryOrdersTable.order_id,
                     name: itemsTable.name,
                     units: bakeryOrdersTable.units,
-                    // completed_at: storeBakeryOrdersTable.completed_at,
-                    order_qty: sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+                    order_qty: sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`, // total order qty for item
                     store_data: sql`json_agg(json_build_object('store_name', ${storesTable.name}, 'order_qty', ${storeBakeryOrdersTable.order_qty}))`,
+                    // completed_at: storeBakeryOrdersTable.completed_at,
                     // store_data: sql`json_agg(json_build_object('store_id', ${storeBakeryOrdersTable.store_id}, 'order_qty', ${storeBakeryOrdersTable.order_qty}))`,
                     // store_data: (db.select(storeBakeryOrdersTable.store_id, storeBakeryOrdersTable.order_qty).from(storeBakeryOrdersTable)),
                     //         order_qty: sql<number>`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
@@ -265,13 +265,23 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                     storesTable,
                     eq(storesTable.id, storeBakeryOrdersTable.store_id)
                 )
-                .where(and(eq(itemsTable.is_active, true)))
+                .where(
+                    and(
+                        eq(itemsTable.is_active, true),
+                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                    )
+                )
                 .groupBy(
                     storeBakeryOrdersTable.order_id,
-                    // storeBakeryOrdersTable.id,
                     itemsTable.name,
                     bakeryOrdersTable.units
+                    // storeBakeryOrdersTable.id,
                     // storeBakeryOrdersTable.completed_at
+                ).having(
+                    gt(
+                        sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+                        0
+                    )
                 );
 
             // utilizing instead the temp_

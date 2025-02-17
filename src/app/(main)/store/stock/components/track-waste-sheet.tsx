@@ -17,14 +17,13 @@ import {
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
 import { Separator } from "@/components/ui/separator"
-import { ChevronsUpDown, Trash, Trash2 } from 'lucide-react';
+import { ChevronsUpDown, Trash } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -39,7 +38,7 @@ const formSchema = z.object({
 });
 
 export default function TrackWasteSheet() {
-    const [isOpen, setIsOpen] = useState(false);
+    // const [isOpen, setIsOpen] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -98,7 +97,7 @@ export default function TrackWasteSheet() {
                     </Collapsible>
                 </SheetHeader>
                 <Separator className='my-4'/>
-                <Form {...form}>
+                {/* <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className='space-y-8'
@@ -115,16 +114,13 @@ export default function TrackWasteSheet() {
                                             {...field}
                                         />
                                     </FormControl>
-                                    {/* <FormDescription>
-                                        This is your public display name.
-                                    </FormDescription> */}
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
                         <Button type='submit'>Submit <SendHorizontal className='ml-2 h-4 w-4'/></Button>
                     </form>
-                </Form>
+                </Form> */}
                 <Image
                     src={starPic}
                     alt='star'

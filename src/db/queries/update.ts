@@ -1,4 +1,4 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, isNull } from 'drizzle-orm';
 import { db } from '../index';
 import {
     // ordersTable,
@@ -87,11 +87,10 @@ export async function postMilkBreadStock(
     }
 }
 
-// Send bakery's completed orders per store (from edit btn)
+// Send bakery's completed orders from today per store, from bakery's edit btn
 export async function putBakeryEditOrders(
     data: Array<{ id: number; order_qty: number }>
 ) {
-    // TODO: update store_bakery_orders.made_qty as well
     try {
         const updates = await db.transaction(async (trx) => {
             const results = await Promise.all(
@@ -104,7 +103,12 @@ export async function putBakeryEditOrders(
                                 made_qty: sql`${order.order_qty}::decimal`,
                                 bakery_completed_at: sql`now()`,
                             })
-                            .where(and(eq(storeBakeryOrdersTable.id, order.id)))
+                            .where(
+                                and(
+                                    eq(storeBakeryOrdersTable.id, order.id),
+                                    sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`
+                                )
+                            )
                             .returning();
 
                         return {
@@ -147,40 +151,39 @@ export async function putBakeryEditOrders(
     }
 }
 
-// Send bakery's batch complete orders (from batch complete btn)
-export async function putBakeryBatchCompleteOrders(
-    data: Array<{ id: number; order_qty: number }>
-) {
-    // TODO: update store_bakery_orders.made_qty as well
+// Batch Complete Btn Pressed: batch complete today's orders not already made
+export async function putBakeryBatchCompleteOrders() {
     try {
         const updates = await db.transaction(async (trx) => {
-            const results = await Promise.all(
-                data.map(async (order) => {
-                    try {
-                        const updated = await trx
-                            .update(bakeryOrdersTable)
-                            .set({
-                                temp_tot_made: sql`${order.order_qty}::decimal`,
-                                completed_at: sql`now()`,
-                            })
-                            .where(and(eq(bakeryOrdersTable.id, order.id)))
-                            .returning();
+            try {
+                const updated = await trx
+                    .update(storeBakeryOrdersTable)
+                    .set({
+                        made_qty: sql`${storeBakeryOrdersTable.order_qty}`,
+                        bakery_completed_at: sql`now()`,
+                    })
+                    .where(
+                        and(
+                            isNull(storeBakeryOrdersTable.made_qty),
+                            sql`DATE(created_at) = CURRENT_DATE`
+                        )
+                    )
+                    .returning();
 
-                        return {
-                            id: order.id,
-                            updated: updated.length > 0,
-                        };
-                    } catch (error) {
-                        const err = error as Error;
-                        return {
-                            id: order.id,
-                            updated: false,
-                            error: err.message,
-                        };
-                    }
-                })
-            );
-            return results;
+                return updated.map((row) => ({
+                    id: row.id,
+                    updated: true,
+                }));
+            } catch (error) {
+                const err = error as Error;
+                return [
+                    {
+                        id: 0,
+                        updated: false,
+                        error: err.message,
+                    },
+                ];
+            }
         });
 
         const failures = updates.filter((update) => update.updated === false);
@@ -191,6 +194,7 @@ export async function putBakeryBatchCompleteOrders(
                 updates,
             };
         }
+
         return {
             success: true,
             message: 'All updates successful',
@@ -205,3 +209,62 @@ export async function putBakeryBatchCompleteOrders(
         };
     }
 }
+
+// Send bakery's batch complete orders (from batch complete btn) (used for testing stages and when i used temp_* fields)
+// export async function putBakeryBatchCompleteOrders(
+//     data: Array<{ id: number; order_qty: number }>
+// ) {
+//     // TODO: update store_bakery_orders.made_qty as well
+//     try {
+//         const updates = await db.transaction(async (trx) => {
+//             const results = await Promise.all(
+//                 data.map(async (order) => {
+//                     try {
+//                         const updated = await trx
+//                             .update(bakeryOrdersTable)
+//                             .set({
+//                                 temp_tot_made: sql`${order.order_qty}::decimal`,
+//                                 completed_at: sql`now()`,
+//                             })
+//                             .where(and(eq(bakeryOrdersTable.id, order.id)))
+//                             .returning();
+
+//                         return {
+//                             id: order.id,
+//                             updated: updated.length > 0,
+//                         };
+//                     } catch (error) {
+//                         const err = error as Error;
+//                         return {
+//                             id: order.id,
+//                             updated: false,
+//                             error: err.message,
+//                         };
+//                     }
+//                 })
+//             );
+//             return results;
+//         });
+
+//         const failures = updates.filter((update) => update.updated === false);
+//         if (failures.length > 0) {
+//             return {
+//                 success: false,
+//                 message: 'Some or all updates failed',
+//                 updates,
+//             };
+//         }
+//         return {
+//             success: true,
+//             message: 'All updates successful',
+//             updates,
+//         };
+//     } catch (error) {
+//         const err = error as Error;
+//         return {
+//             success: false,
+//             message: 'Transaction failed',
+//             error: err.message,
+//         };
+//     }
+// }
