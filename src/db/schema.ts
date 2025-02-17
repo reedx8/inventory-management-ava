@@ -305,7 +305,7 @@ export const storeBakeryOrdersTable = pgTable(
         })
             .notNull()
             .defaultNow(),
-        completed_at: timestamp('completed_at', {
+        submitted_at: timestamp('submitted_at', {
             precision: 3,
             withTimezone: true,
         }), // store managers submitted their orders to bakery at this time

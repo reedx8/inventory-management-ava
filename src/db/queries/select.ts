@@ -10,61 +10,217 @@ import {
     bakeryOrdersTable,
     storeBakeryOrdersTable,
     vendorsTable,
+    storeOrdersTable,
     // storeOrdersTable,
 } from '../schema';
 import { PgColumn } from 'drizzle-orm/pg-core';
+
+// Get only active items that are due for a specific store (storeId)
+export async function getStoresBakeryOrders(store_location_id: string | null) {
+    if (store_location_id) {
+        try {
+            const storeId = parseInt(store_location_id);
+            const result = await db
+                .select({
+                    id: storeBakeryOrdersTable.id,
+                    name: itemsTable.name,
+                    qty_per_order: itemsTable.units,
+                    order: storeBakeryOrdersTable.order_qty,
+                    // stage: orderStagesTable.stage_name,
+                    store_categ: itemsTable.store_categ,
+                    // due_date: sql`${dummyDate}`, // dummy data for now
+                    // due_date: ordersTable.due_date,
+                    store_name: storesTable.name,
+                })
+                .from(storeBakeryOrdersTable)
+                .innerJoin(
+                    bakeryOrdersTable,
+                    eq(bakeryOrdersTable.id, storeBakeryOrdersTable.order_id)
+                )
+                .innerJoin(
+                    itemsTable,
+                    eq(bakeryOrdersTable.item_id, itemsTable.id)
+                )
+                .innerJoin(
+                    storesTable,
+                    eq(storesTable.id, storeBakeryOrdersTable.store_id)
+                )
+                .where(
+                    and(
+                        eq(storeBakeryOrdersTable.store_id, storeId),
+                        eq(itemsTable.is_active, true),
+                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                        isNull(storeBakeryOrdersTable.submitted_at)
+                        // eq(orderStagesTable.stage_name, 'DUE')
+                    )
+                );
+
+            return {
+                success: true,
+                error: null,
+                data: result,
+            };
+        } catch (error) {
+            const err = error as Error;
+            return {
+                success: false,
+                error: err.message,
+                data: null,
+            };
+        }
+        // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+    } else {
+        // Return all store items that are DUE (admin view)
+        try {
+            const result = await db
+                .select({
+                    id: storeBakeryOrdersTable.id,
+                    name: itemsTable.name,
+                    qty_per_order: itemsTable.units,
+                    order: storeBakeryOrdersTable.order_qty,
+                    // stage: orderStagesTable.stage_name,
+                    store_categ: itemsTable.store_categ,
+                    // due_date: sql`${dummyDate}`, // dummy data for now
+                    // due_date: ordersTable.due_date,
+                    store_name: storesTable.name,
+                })
+                .from(storeBakeryOrdersTable)
+                .innerJoin(
+                    bakeryOrdersTable,
+                    eq(bakeryOrdersTable.id, storeBakeryOrdersTable.order_id)
+                )
+                .innerJoin(
+                    itemsTable,
+                    eq(itemsTable.id, bakeryOrdersTable.item_id)
+                )
+                .innerJoin(
+                    storesTable,
+                    eq(storesTable.id, storeBakeryOrdersTable.store_id)
+                )
+                .where(
+                    and(
+                        eq(itemsTable.is_active, true),
+                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                        isNull(storeBakeryOrdersTable.submitted_at)
+                        // eq(orderStagesTable.stage_name, 'DUE')
+                    )
+                );
+            // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+
+            return {
+                success: true,
+                error: null,
+                data: result,
+            };
+        } catch (error) {
+            const err = error as Error;
+            return {
+                success: false,
+                error: err.message,
+                data: null,
+            };
+        }
+
+        // return result;
+    }
+
+    // return result;
+}
 
 // Get only active items that are due for a specific store (storeId)
 export async function getStoreOrders(store_location_id: string | null) {
     // const dummyDate: string = '2025-06-15'; // dummy data for now
 
     if (store_location_id) {
-        const storeId = parseInt(store_location_id);
-        const result = await db
-            .select({
-                id: ordersTable.id,
-                name: itemsTable.name,
-                qty_per_order: itemsTable.units,
-                order: sql`0::integer`,
-                // stage: orderStagesTable.stage_name,
-                store_categ: itemsTable.store_categ,
-                // due_date: sql`${dummyDate}`, // dummy data for now
-                due_date: ordersTable.due_date,
-                store_name: storesTable.name,
-            })
-            .from(ordersTable)
-            .innerJoin(itemsTable, eq(ordersTable.item_id, itemsTable.id))
-            .innerJoin(storesTable, eq(storesTable.id, ordersTable.store_id))
-            .where(
-                and(
-                    eq(ordersTable.store_id, storeId),
-                    eq(itemsTable.is_active, true)
-                    // eq(orderStagesTable.stage_name, 'DUE')
+        try {
+            const storeId = parseInt(store_location_id);
+            const result = await db
+                .select({
+                    id: storeOrdersTable.id,
+                    name: itemsTable.name,
+                    qty_per_order: itemsTable.units,
+                    order: storeOrdersTable.qty,
+                    // stage: orderStagesTable.stage_name,
+                    store_categ: itemsTable.store_categ,
+                    // due_date: sql`${dummyDate}`, // dummy data for now
+                    // due_date: ordersTable.due_date,
+                    store_name: storesTable.name,
+                })
+                .from(storeOrdersTable)
+                .innerJoin(
+                    ordersTable,
+                    eq(storeOrdersTable.order_id, ordersTable.id)
                 )
-            );
-        // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
-        return result;
+                .innerJoin(itemsTable, eq(ordersTable.item_id, itemsTable.id))
+                .innerJoin(
+                    storesTable,
+                    eq(storesTable.id, storeOrdersTable.store_id)
+                )
+                .where(
+                    and(
+                        eq(storeOrdersTable.store_id, storeId),
+                        eq(itemsTable.is_active, true)
+                        // eq(orderStagesTable.stage_name, 'DUE')
+                    )
+                );
+            // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+            return {
+                success: true,
+                error: null,
+                data: result,
+            };
+        } catch (error) {
+            const err = error as Error;
+            return {
+                success: false,
+                error: err.message,
+                data: null,
+            };
+        }
+        // return result;
     } else {
-        // Return all store items that are DUE
-        const result = await db
-            .select({
-                id: ordersTable.id,
-                name: itemsTable.name,
-                qty_per_order: itemsTable.units,
-                // order: orderStagesTable.order_qty,
-                // stage: orderStagesTable.stage_name,
-                store_categ: itemsTable.store_categ,
-                // due_date: sql`${dummyDate}`, // dummy data for now
-                due_date: ordersTable.due_date,
-                store_name: storesTable.name,
-            })
-            .from(ordersTable)
-            .innerJoin(itemsTable, eq(itemsTable.id, ordersTable.item_id))
-            .innerJoin(storesTable, eq(storesTable.id, ordersTable.store_id))
-            .where(and(eq(itemsTable.is_active, true)));
-        // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+        // Return all store items due (admin view)
+        try {
+            const result = await db
+                .select({
+                    id: storeOrdersTable.id,
+                    name: itemsTable.name,
+                    qty_per_order: itemsTable.units,
+                    order: storeOrdersTable.qty,
+                    // stage: orderStagesTable.stage_name,
+                    store_categ: itemsTable.store_categ,
+                    // due_date: sql`${dummyDate}`, // dummy data for now
+                    // due_date: ordersTable.due_date,
+                    store_name: storesTable.name,
+                })
+                .from(storeOrdersTable)
+                .innerJoin(
+                    ordersTable,
+                    eq(storeOrdersTable.order_id, ordersTable.id)
+                )
+                .innerJoin(itemsTable, eq(ordersTable.item_id, itemsTable.id))
+                .innerJoin(
+                    storesTable,
+                    eq(storesTable.id, storeOrdersTable.store_id)
+                )
+                .where(and(eq(itemsTable.is_active, true)));
+            // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
 
-        return result;
+            return {
+                success: true,
+                error: null,
+                data: result,
+            };
+        } catch (error) {
+            const err = error as Error;
+            return {
+                success: false,
+                error: err.message,
+                data: null,
+            };
+        }
+
+        // return result;
     }
 
     // return result;
@@ -225,7 +381,7 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                         eq(itemsTable.is_active, true),
                         eq(storeBakeryOrdersTable.store_id, storeId),
                         sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
-                        gt(sql`${storeBakeryOrdersTable.order_qty}::decimal`, 0),
+                        gt(sql`${storeBakeryOrdersTable.order_qty}::decimal`, 0)
                     )
                 );
             // .groupBy(storeBakeryOrdersTable.id, itemsTable.name);
@@ -268,7 +424,7 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                 .where(
                     and(
                         eq(itemsTable.is_active, true),
-                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`
                     )
                 )
                 .groupBy(
@@ -277,7 +433,8 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                     bakeryOrdersTable.units
                     // storeBakeryOrdersTable.id,
                     // storeBakeryOrdersTable.completed_at
-                ).having(
+                )
+                .having(
                     gt(
                         sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
                         0

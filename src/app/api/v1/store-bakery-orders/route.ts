@@ -1,4 +1,4 @@
-import { getStoreOrders } from '@/db/queries/select';
+import { getStoresBakeryOrders } from '@/db/queries/select';
 // import { NextResponse } from 'next/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
@@ -19,11 +19,11 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const response = await getStoreOrders(storeId); //
+        const response = await getStoresBakeryOrders(storeId); //
         if (!response.success) {
             return NextResponse.json(response.error, { status: 400 });
         }
-        return Response.json(response.data, { status: 200 });
+        return NextResponse.json(response.data, { status: 200 });
     } catch (error) {
         // console.error('Error fetching store orders:', error);
         const err = error as Error;

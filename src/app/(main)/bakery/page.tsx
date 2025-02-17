@@ -27,7 +27,15 @@ import { Button } from '@/components/ui/button';
 import SheetTemplate from '@/components/sheet/sheet-template';
 // import { zodResolver } from '@zod/form';
 // import { useForm } from 'react-hook-form';
-import { Check, CircleOff, CircleSlash, CircleSlash2, ListCheck, Pencil, Send } from 'lucide-react';
+import {
+    Check,
+    CircleOff,
+    CircleSlash,
+    CircleSlash2,
+    ListCheck,
+    Pencil,
+    Send,
+} from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -460,7 +468,7 @@ export default function Bakery() {
             <HeaderBar pageName={'Bakery'} />
             {/* <div className='mb-6'><PagesNavBar /></div> */}
             <section className='mb-6' />
-            {isLoading && (
+            {isLoading && !data && (
                 <section className='flex flex-col gap-3'>
                     <Skeleton className='h-12 w-[80%]' />
                     <Skeleton className='h-6 w-[80%]' />
@@ -540,8 +548,11 @@ export default function Bakery() {
                                 <h1 className='text-lg font-semibold text-black/80'>
                                     {`Today's Bakery Orders`}
                                 </h1>
-                                <p className='text-neutral-500/70 text-sm'>
+                                <p className='text-neutral-500/70 text-xs'>
                                     Total items due: {data.length}
+                                </p>
+                                <p className='text-neutral-500/70 text-xs'>
+                                    Orders from stores are due everyday by 9 A.M.
                                 </p>
                             </div>
                         }
@@ -555,7 +566,7 @@ export default function Bakery() {
                         alt='no pastries pic'
                         width={250}
                         height={250}
-                        style={{width: '250px', height: '250px'}}
+                        style={{ width: '250px', height: '250px' }}
                         className='drop-shadow-lg'
                     />
                     <p className='text-2xl text-gray-600'>No Pastries Due!</p>
@@ -684,62 +695,65 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                         </Select>
                     </div>
                     <ScrollArea className='max-h-[50vh] sm:max-h-[65vh] overflow-y-auto'>
-                        {formData?.length > 0 && formData.map((order) => (
-                            <div
-                                key={order.id}
-                                className='flex items-center justify-between text-sm my-2'
-                            >
-                                <div className='flex items-center gap-1'>
-                                    {order.completed_at && (
-                                        <Badge
-                                            className='bg-myBrown'
-                                            variant='secondary'
+                        {formData?.length > 0 &&
+                            formData.map((order) => (
+                                <div
+                                    key={order.id}
+                                    className='flex items-center justify-between text-sm my-2'
+                                >
+                                    <div className='flex items-center gap-1'>
+                                        {order.completed_at && (
+                                            <Badge
+                                                className='bg-myBrown'
+                                                variant='secondary'
+                                            >
+                                                <Check
+                                                    size={10}
+                                                    className='text-black'
+                                                />
+                                            </Badge>
+                                        )}
+                                        <div
+                                            className={`text-sm ${
+                                                order.completed_at
+                                                    ? 'text-neutral-400 line-through'
+                                                    : ''
+                                            }`}
                                         >
-                                            <Check
-                                                size={10}
-                                                className='text-black'
-                                            />
-                                        </Badge>
-                                    )}
-                                    <div
-                                        className={`text-sm ${
+                                            {order.name}
+                                        </div>
+
+                                        {/* {order.completed_at ?? <Badge className='ml-1 text-xs'>{order.units}</Badge>} */}
+                                    </div>
+                                    <input
+                                        id={`completed-${order.id}`}
+                                        type='number'
+                                        value={Number(order.order_qty)}
+                                        // defaultValue={order.order_qty}
+                                        step={0.5}
+                                        min={0}
+                                        // max={order.orderedQuantity}
+                                        // className='w-20 px-2 py-1 border rounded bg-red-300'
+                                        className={`w-20 px-2 py-1 border rounded ${
                                             order.completed_at
-                                                ? 'text-neutral-400 line-through'
+                                                ? 'bg-neutral-100 text-neutral-400'
                                                 : ''
                                         }`}
-                                    >
-                                        {order.name}
-                                    </div>
-
-                                    {/* {order.completed_at ?? <Badge className='ml-1 text-xs'>{order.units}</Badge>} */}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                order.id,
+                                                Number(e.target.value)
+                                            )
+                                        }
+                                    />
                                 </div>
-                                <input
-                                    id={`completed-${order.id}`}
-                                    type='number'
-                                    value={Number(order.order_qty)}
-                                    // defaultValue={order.order_qty}
-                                    step={0.5}
-                                    min={0}
-                                    // max={order.orderedQuantity}
-                                    // className='w-20 px-2 py-1 border rounded bg-red-300'
-                                    className={`w-20 px-2 py-1 border rounded ${
-                                        order.completed_at
-                                            ? 'bg-neutral-100 text-neutral-400'
-                                            : ''
-                                    }`}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            order.id,
-                                            Number(e.target.value)
-                                        )
-                                    }
-                                />
-                            </div>
-                        ))}
+                            ))}
                         {formData?.length <= 0 && (
                             <>
                                 <CircleOff className='text-neutral-500 mx-auto' />
-                                <p className='text-neutral-500 text-center text-sm my-2'>No {storeLocation} orders due yet</p>
+                                <p className='text-neutral-500 text-center text-sm my-2'>
+                                    No {storeLocation} orders due yet
+                                </p>
                             </>
                         )}
                     </ScrollArea>

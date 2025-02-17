@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
+    ColumnDef,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
@@ -18,41 +19,34 @@ import {
     useReactTable,
 } from '@tanstack/react-table';
 import { Dot } from 'lucide-react';
-
-
-interface OrderItem {
-    id: number;
-    name: string;
-    due_date: string;
-    qty_per_order: string;
-    order: number | null;
-    store_categ: string;
-    store_name: string;
-}
-
-const STORE_CATEGORIES = [
-    'ALL',
-    'PASTRY',
-    'FRONT',
-    'GENERAL',
-    'FRIDGE',
-    'STOCKROOM',
-    'BEANS&TEA',
-] as const;
+import {
+    OrderItem,
+    StoreCategory,
+    STORE_CATEGORIES,
+} from '@/app/(main)/store/types';
+import { Or } from 'drizzle-orm';
 
 // object lookup for category messages
-const categoryMessage: Record<string, JSX.Element | string> = {
-    ALL: '',
-    PASTRY: <p>Pastry item orders due everyday</p>,
-    FRONT: <p>Front counter items</p>,
-    GENERAL: <p>General items</p>,
-    STOCKROOM: <p>Items in stockroom and its shelves</p>,
-    FRIDGE: <p>Items in all fridges and freezers</p>,
-    'BEANS&TEA': <p>Coffee bean and tea items</p>,
-};
+// const categoryMessage: Record<StoreCategory, JSX.Element | string> = {
+//     ALL: '',
+//     PASTRY: <p>Pastry item orders due everyday</p>,
+//     FRONT: <p>Front counter items</p>,
+//     GENERAL: <p>General items</p>,
+//     STOCKROOM: <p>Items in stockroom and its shelves</p>,
+//     FRIDGE: <p>Items in all fridges and freezers</p>,
+//     'BEANS&TEA': <p>Coffee bean and tea items</p>,
+// };
 
-export default function OrderTable({data, setData} : {data: OrderItem[], setData: React.Dispatch<React.SetStateAction<OrderItem[] | undefined>>}) {
-    const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
+export default function OrderTable({
+    data,
+    setData,
+}: {
+    data: OrderItem[];
+    setData: React.Dispatch<React.SetStateAction<OrderItem[] | undefined>>;
+}) {
+    const [activeCateg, setActiveCateg] = useState<StoreCategory>(
+        STORE_CATEGORIES[1]
+    );
 
     // if (!data) {
     //     return <div></div>;
@@ -67,7 +61,7 @@ export default function OrderTable({data, setData} : {data: OrderItem[], setData
         // const inputRef = useRef<HTMLInputElement>(null);
 
         const handleBlur = () => {
-            const numValue = value === '' ? null : parseInt(value);
+            const numValue = value === '' ? null : parseFloat(value);
             table.options.meta?.updateData(row.index, column.id, numValue);
 
             // table.options.meta?.updateData(row.index, column.id, value);
@@ -104,7 +98,7 @@ export default function OrderTable({data, setData} : {data: OrderItem[], setData
                 event.stopPropagation();
 
                 // Save the current value
-                const numValue = value === '' ? null : parseInt(value);
+                const numValue = value === '' ? null : parseFloat(value);
                 table.options.meta?.updateData(row.index, column.id, numValue);
 
                 // Focus next input
@@ -119,11 +113,12 @@ export default function OrderTable({data, setData} : {data: OrderItem[], setData
                 // value={value}
                 // value={value ?? ''}
                 value={value !== null ? value : ''}
-                onChange={(e) =>
-                    e.target.value.includes('.')
-                        ? setValue('')
-                        : setValue(e.target.value)
-                }
+                // onChange={(e) =>
+                //     e.target.value.includes('.')
+                //         ? setValue('')
+                //         : setValue(e.target.value)
+                // }
+                onChange={(e) => setValue(e.target.value)}
                 // onKeyDown=""
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
@@ -131,21 +126,31 @@ export default function OrderTable({data, setData} : {data: OrderItem[], setData
                 data-column-id={column.id}
                 className='h-6 text-center'
                 min='0'
-                // step="0.5"
+                step="0.5"
                 placeholder='0'
             />
         );
     };
 
-    const columns = [
+    const columns: ColumnDef<OrderItem>[] = [
         {
             accessorKey: 'name', // accessorKey matches to the property name in initialData[], thereby rendering the appropriate data
             header: 'Name',
+            cell: (info) => {
+                return (
+                    <>
+                        <p>{`${info.row.original.name}`}</p>
+                        <p className='text-neutral-500/70 text-xs'>{` ${
+                            info.row.original.store_name ?? ''
+                        }`}</p>
+                    </>
+                );
+            },
         },
-        {
-            accessorKey: 'store_name',
-            header: 'Store',
-        },
+        // {
+        //     accessorKey: 'store_name',
+        //     header: 'Store',
+        // },
         {
             accessorKey: 'qty_per_order',
             header: 'Qty/Order',
@@ -188,12 +193,12 @@ export default function OrderTable({data, setData} : {data: OrderItem[], setData
     });
 
     // render red dot if any item is due in the category
-function renderRedDot(category: string) {
-    const items = data.filter((item) => item.store_categ === category);
+    function renderDot(category: string) {
+        const items = data.filter((item) => item.store_categ === category);
 
-    if (items.length > 0) {
-        return <Dot className='text-myDarkbrown w-8 h-8' />;
-        /*
+        if (items.length > 0) {
+            return <Dot className='text-myDarkbrown w-8 h-8' />;
+            /*
             // Check if any item has stage 'DUE'
             const hasDueItems = items.some((item) => item.stage === 'DUE');
             if (hasDueItems) {
@@ -202,15 +207,15 @@ function renderRedDot(category: string) {
                 );
             }
             */
-    } else if (category === 'ALL' && data.length > 0) {
-        return <Dot className='text-myDarkbrown w-8 h-8' />;
+        } else if (category === 'ALL' && data.length > 0) {
+            return <Dot className='text-myDarkbrown w-8 h-8' />;
+        }
+        return <div></div>;
     }
-    return <div></div>;
-}
 
     return (
         <div>
-            <div className='flex flex-wrap gap-x-2 gap-y-0'>
+            {/* <div className='flex flex-wrap gap-x-2 gap-y-0'>
                 {STORE_CATEGORIES.map((category) => (
                     <div key={category} className='flex flex-col items-center'>
                         <Button
@@ -222,20 +227,42 @@ function renderRedDot(category: string) {
                         >
                             {category}
                         </Button>
-                        <div>{renderRedDot(category)}</div>
+                        <div>{renderDot(category)}</div>
                     </div>
                 ))}
-            </div>
-            <div className='mb-2 text-sm'>{categoryMessage[activeCateg]}</div>
+            </div> */}
+            {/* <div className='mb-2 text-sm'>{categoryMessage[activeCateg]}</div> */}
             <div className='flex flex-col mr-2'>
-                <div className='rounded-lg border'>
+                <div className='rounded-2xl border border-neutral-300 p-6'>
+                    <div className='flex flex-wrap gap-x-2 gap-y-0 '>
+                        {STORE_CATEGORIES.map((category) => (
+                            <div
+                                key={category}
+                                className='flex flex-col items-center'
+                            >
+                                <Button
+                                    key={category}
+                                    variant={
+                                        activeCateg === category
+                                            ? 'myTheme'
+                                            : 'outline'
+                                    }
+                                    onClick={() => setActiveCateg(category)}
+                                >
+                                    {category}
+                                </Button>
+                                <div>{renderDot(category)}</div>
+                            </div>
+                        ))}
+                    </div>
                     <Table>
-                        <TableHeader className='bg-gray-200'>
+                        <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (
                                         <TableHead
                                             key={header.id}
+                                            className='text-neutral-500/30 font-semibold'
                                             style={{
                                                 width:
                                                     header.id === 'order'
@@ -302,5 +329,3 @@ function renderRedDot(category: string) {
         </div>
     );
 }
-
-

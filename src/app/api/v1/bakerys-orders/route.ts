@@ -6,7 +6,7 @@ import {
     putBakeryEditOrders,
 } from '@/db/queries/update';
 
-// Get store's bakery orders, or total bakery orders per item, from the database
+// Bakery Staff: Get store's bakery orders, or total bakery orders per item, from the database
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     let storeLocation: string | null = searchParams.get('storeLocation');
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         switch (storeLocation) {
             case 'hall':
                 response = await getBakerysOrders(1);
-                response.success = true;
+                // response.success = true;
                 break;
             case 'progress':
             case 'barrows':

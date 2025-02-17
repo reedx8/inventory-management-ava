@@ -1,0 +1,1 @@
+ALTER TABLE "store_bakery_orders" RENAME COLUMN "completed_at" TO "submitted_at";

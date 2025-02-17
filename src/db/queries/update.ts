@@ -6,7 +6,6 @@ import {
     // storesTable,
     stockTable,
     // vendorItemsTable,
-    bakeryOrdersTable,
     storeBakeryOrdersTable,
     // storeOrdersTable,
 } from '../schema';
