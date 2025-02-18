@@ -1,3 +1,4 @@
+// These keys are a mix of items table, orders table, and bakery_orders table fields in the DB/schema
 export type OrderItem = {
     id: number;
     name: string;
@@ -8,14 +9,16 @@ export type OrderItem = {
     store_name: string;
 };
 
+// These must match items.store_categ check constraint in the DB/schema
 export const STORE_CATEGORIES = [
     'ALL',
-    'PASTRY',
+    'PASTRY', // default value for store page
     'FRONT',
     'GENERAL',
     'FRIDGE',
     'STOCKROOM',
     'BEANS&TEA',
+    'NONE',
 ] as const;
 
 export type StoreCategory = (typeof STORE_CATEGORIES)[number];

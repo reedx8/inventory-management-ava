@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { act, useEffect, useState } from 'react';
 import {
     Table,
     TableBody,
@@ -18,13 +18,14 @@ import {
     getPaginationRowModel,
     useReactTable,
 } from '@tanstack/react-table';
-import { Dot } from 'lucide-react';
+import { Dot, Send } from 'lucide-react';
 import {
     OrderItem,
     StoreCategory,
     STORE_CATEGORIES,
 } from '@/app/(main)/store/types';
-import { Or } from 'drizzle-orm';
+// import { Or } from 'drizzle-orm';
+// import { Form } from '@/components/ui/form';
 
 // object lookup for category messages
 // const categoryMessage: Record<StoreCategory, JSX.Element | string> = {
@@ -47,6 +48,8 @@ export default function OrderTable({
     const [activeCateg, setActiveCateg] = useState<StoreCategory>(
         STORE_CATEGORIES[1]
     );
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [filteredData, setFilteredData] = useState<OrderItem[]>(data);
 
     // if (!data) {
     //     return <div></div>;
@@ -126,8 +129,11 @@ export default function OrderTable({
                 data-column-id={column.id}
                 className='h-6 text-center'
                 min='0'
-                step="0.5"
+                step='0.5'
+                // placeholder={value}
                 placeholder='0'
+                disabled={activeCateg === 'ALL' || isSubmitting}
+                // name='order'
             />
         );
     };
@@ -192,7 +198,7 @@ export default function OrderTable({
         },
     });
 
-    // render red dot if any item is due in the category
+    // render dot under category btn if any item is due in the category
     function renderDot(category: string) {
         const items = data.filter((item) => item.store_categ === category);
 
@@ -213,95 +219,144 @@ export default function OrderTable({
         return <div></div>;
     }
 
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        // TODO: clean data before submitting, refresh page, etc
+
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        // const filteredData = data.filter(
+        //     (item) => item.store_categ === activeCateg
+        // );
+
+        if (filteredData.length === 0) {
+            console.log('Nothing to submit!');
+            setIsSubmitting(false);
+            return;
+        }
+
+        if (activeCateg === 'ALL') {
+            console.log(data);
+        } else {
+            console.log(filteredData);
+        }
+        setIsSubmitting(false);
+    };
+
+    useEffect(() => {
+        if (activeCateg !== 'ALL') {
+            setFilteredData(
+                data.filter((item) => item.store_categ === activeCateg)
+            );
+        }
+    }, [data, activeCateg]);
+
+    // function getStoreCategOrders() {
+    //     if (activeCateg === STORE_CATEGORIES[0]){ // ALL
+    //         console.log("all data")
+    //         return data;
+    //     } else {
+    //         console.log("filtered data")
+    //         return data.filter((item) => item.store_categ === activeCateg);
+    //     }
+    // }
+    // console.log(getStoreCategOrders);
+
     return (
         <div>
-            {/* <div className='flex flex-wrap gap-x-2 gap-y-0'>
-                {STORE_CATEGORIES.map((category) => (
-                    <div key={category} className='flex flex-col items-center'>
-                        <Button
-                            key={category}
-                            variant={
-                                activeCateg === category ? 'myTheme' : 'outline'
-                            }
-                            onClick={() => setActiveCateg(category)}
-                        >
-                            {category}
-                        </Button>
-                        <div>{renderDot(category)}</div>
-                    </div>
-                ))}
-            </div> */}
             {/* <div className='mb-2 text-sm'>{categoryMessage[activeCateg]}</div> */}
             <div className='flex flex-col mr-2'>
                 <div className='rounded-2xl border border-neutral-300 p-6'>
                     <div className='flex flex-wrap gap-x-2 gap-y-0 '>
-                        {STORE_CATEGORIES.map((category) => (
-                            <div
-                                key={category}
-                                className='flex flex-col items-center'
-                            >
-                                <Button
-                                    key={category}
-                                    variant={
-                                        activeCateg === category
-                                            ? 'myTheme'
-                                            : 'outline'
-                                    }
-                                    onClick={() => setActiveCateg(category)}
-                                >
-                                    {category}
-                                </Button>
-                                <div>{renderDot(category)}</div>
-                            </div>
-                        ))}
+                        {STORE_CATEGORIES.map(
+                            (category) =>
+                                category !== 'NONE' && (
+                                    <div
+                                        key={category}
+                                        className='flex flex-col items-center'
+                                    >
+                                        <Button
+                                            key={category}
+                                            variant={
+                                                activeCateg === category
+                                                    ? 'myTheme'
+                                                    : 'outline'
+                                            }
+                                            onClick={() =>
+                                                setActiveCateg(category)
+                                            }
+                                        >
+                                            {category}
+                                        </Button>
+                                        <div>{renderDot(category)}</div>
+                                    </div>
+                                )
+                        )}
                     </div>
-                    <Table>
-                        <TableHeader>
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead
-                                            key={header.id}
-                                            className='text-neutral-500/30 font-semibold'
-                                            style={{
-                                                width:
-                                                    header.id === 'order'
-                                                        ? '130px'
-                                                        : 'auto',
-                                            }}
-                                        >
-                                            {flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
-                                            )}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell
-                                            key={cell.id}
-                                            style={{
-                                                width:
-                                                    cell.column.id === 'order'
-                                                        ? '130px'
-                                                        : 'auto',
-                                            }}
-                                        >
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <form onSubmit={handleSubmit}>
+                        <Table>
+                            <TableHeader>
+                                {table.getHeaderGroups().map((headerGroup) => (
+                                    <TableRow key={headerGroup.id}>
+                                        {headerGroup.headers.map((header) => (
+                                            <TableHead
+                                                key={header.id}
+                                                className='text-neutral-500/30 font-semibold'
+                                                style={{
+                                                    width:
+                                                        header.id === 'order'
+                                                            ? '130px'
+                                                            : 'auto',
+                                                }}
+                                            >
+                                                {flexRender(
+                                                    header.column.columnDef
+                                                        .header,
+                                                    header.getContext()
+                                                )}
+                                            </TableHead>
+                                        ))}
+                                    </TableRow>
+                                ))}
+                            </TableHeader>
+                            <TableBody>
+                                {table.getRowModel().rows.map((row) => (
+                                    <TableRow key={row.id}>
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell
+                                                key={cell.id}
+                                                style={{
+                                                    width:
+                                                        cell.column.id ===
+                                                        'order'
+                                                            ? '130px'
+                                                            : 'auto',
+                                                }}
+                                            >
+                                                {flexRender(
+                                                    cell.column.columnDef.cell,
+                                                    cell.getContext()
+                                                )}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                        <div className='flex justify-end gap-2'>
+                            {/* TODO */}
+                            {/* <Button variant='outline' className='border-myDarkbrown text-myDarkbrown hover:text-myDarkbrown'>Pars Fill <CopyPlus /></Button> */}
+                            {activeCateg !== 'ALL' && filteredData.length > 0 && (
+                                <Button
+                                    type='submit'
+                                    variant='myTheme'
+                                    disabled={isSubmitting}
+                                >
+                                    Submit <Send />
+                                </Button>
+                            )}
+                        </div>
+                    </form>
                 </div>
                 <div>
                     {' '}

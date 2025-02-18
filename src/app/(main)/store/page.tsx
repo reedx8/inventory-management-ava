@@ -114,12 +114,7 @@ export default function Stores() {
     useEffect(() => {
         const fetchStoreOrders = async () => {
             try {
-                // fetch every store (no storeId param in api url)
-                // let response;
-                // let response2;
-
-                let regResponse;
-                let bakeryResponse;
+                let regResponse; let bakeryResponse;
 
                 if (userRole === 'admin') {
                     [regResponse, bakeryResponse] = await Promise.all([
@@ -133,12 +128,6 @@ export default function Stores() {
                             `/api/v1/store-bakery-orders?storeId=${userStoreId}`
                         ),
                     ]);
-                    // response = await fetch(
-                    //     `/api/v1/store-orders?storeId=${userStoreId}`
-                    // );
-                    // response2 = await fetch(
-                    //     `/api/v1/store-bakery-orders?storeId=${userStoreId}`
-                    // );
                 } else {
                     // dont fetch orders for other roles
                     return;

@@ -33,3 +33,32 @@ export type SheetTemplateProps = {
 
 // Active store locations only
 export const STORE_LOCATIONS = ['Hall', 'Progress', 'Kruse', 'Orenco'] as const;
+
+export type StoreLocation = (typeof STORE_LOCATIONS)[number];
+
+// Invoice Categories
+export const INVOICE_CATEGORIES = [
+    'SANDWICH',
+    'PASTRY',
+    'FOOD',
+    'COOLER&EXTRAS',
+    'BEVERAGE',
+    'MISC/BATHROOM',
+    'CHOCOLATE&TEA',
+    'COFFEE',
+    'NONE',
+] as const;
+
+export type InvoiceCategory = (typeof INVOICE_CATEGORIES)[number];
+
+// Cron Categories
+export const CRON_CATEGORIES = [
+    'PASTRY',
+    'MILK',
+    'BREAD',
+    'RETAILBEANS',
+    'MEATS',
+    'NONE',
+] as const;
+
+export type CronCategory = (typeof CRON_CATEGORIES)[number];
