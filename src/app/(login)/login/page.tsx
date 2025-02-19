@@ -19,7 +19,7 @@ import { createClient } from '@/app/utils/supabase/client';
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
+// import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -46,7 +46,8 @@ export default function LoginPage() {
         // redirect if already logged in
         async function checkIfLoggedIn() {
             const supabase = await createClient();
-            const { data, error } = await supabase.auth.getUser();
+            const { error } = await supabase.auth.getUser();
+            // const { data, error } = await supabase.auth.getUser();
 
             if (!error) {
                 redirect('/');

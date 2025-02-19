@@ -16,20 +16,39 @@ import {
     getFilteredRowModel,
     getPaginationRowModel,
     useReactTable,
+    ColumnDef,
+    CellContext,
 } from '@tanstack/react-table';
 import { Dot } from 'lucide-react';
 import { MilkBreadOrder } from '../types';
-import { MILK_BREAD_VENDORS } from '../milkbread/page';
+import { MILK_BREAD_VENDORS } from '@/components/types';
 
-export default function OrdersTable({data, setData} : {data: MilkBreadOrder[], setData: React.Dispatch<React.SetStateAction<MilkBreadOrder[] | undefined>>}) {
-    const [activeCateg, setActiveCateg] = useState<string>(MILK_BREAD_VENDORS[0]);
+interface TableMeta<TData> {
+    updateData: (
+        rowIndex: number,
+        columnId: string,
+        value: number | null
+    ) => void;
+}
 
-    // if (!data) {
-    //     return <div></div>;
-    // }
+export default function OrdersTable({
+    data,
+    setData,
+}: {
+    data: MilkBreadOrder[];
+    setData: React.Dispatch<React.SetStateAction<MilkBreadOrder[] | undefined>>;
+}) {
+    const [activeCateg, setActiveCateg] = useState<string>(
+        MILK_BREAD_VENDORS[0]
+    );
 
     // Accepts integers only
-    const OrderCell = ({ getValue, row, column, table }) => {
+    const OrderCell = ({
+        getValue,
+        row,
+        column,
+        table,
+    }: CellContext<MilkBreadOrder, number | null>) => {
         const initialValue = getValue();
         const [value, setValue] = useState<string>(
             initialValue?.toString() ?? ''
@@ -38,7 +57,11 @@ export default function OrdersTable({data, setData} : {data: MilkBreadOrder[], s
 
         const handleBlur = () => {
             const numValue = value === '' ? null : parseInt(value);
-            table.options.meta?.updateData(row.index, column.id, numValue);
+            (table.options.meta as TableMeta<MilkBreadOrder>).updateData(
+                row.index,
+                column.id,
+                numValue
+            );
 
             // table.options.meta?.updateData(row.index, column.id, value);
         };
@@ -75,7 +98,11 @@ export default function OrdersTable({data, setData} : {data: MilkBreadOrder[], s
 
                 // Save the current value
                 const numValue = value === '' ? null : parseInt(value);
-                table.options.meta?.updateData(row.index, column.id, numValue);
+                (table.options.meta as TableMeta<MilkBreadOrder>).updateData(
+                    row.index,
+                    column.id,
+                    numValue
+                );
 
                 // Focus next input
                 focusNextInput(row.index);
@@ -107,7 +134,7 @@ export default function OrdersTable({data, setData} : {data: MilkBreadOrder[], s
         );
     };
 
-    const columns = [
+    const columns: ColumnDef<MilkBreadOrder>[] = [
         {
             accessorKey: 'name', // accessorKey matches to the property name in initialData[], thereby rendering the appropriate data
             header: 'Name',
@@ -128,11 +155,18 @@ export default function OrdersTable({data, setData} : {data: MilkBreadOrder[], s
             accessorKey: 'order_qty',
             header: 'Order',
             // size: 200,
-            cell: OrderCell,
+            // accessorFn: (row) => row.order_qty as (number | null),
+            // cell: OrderCell,
+            cell: (props: CellContext<MilkBreadOrder, unknown>) =>
+                OrderCell(props as CellContext<MilkBreadOrder, number | null>),
         },
     ];
 
-    const table = useReactTable({
+    // type TableMeta = {
+    //     updateData: (rowIndex: number, columnId: string, value: number | null) => void
+    // }
+
+    const table = useReactTable<MilkBreadOrder>({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
@@ -145,7 +179,11 @@ export default function OrdersTable({data, setData} : {data: MilkBreadOrder[], s
             return row.original.vendor_name === filterValue;
         },
         meta: {
-            updateData: (rowIndex, columnId, value) => {
+            updateData: (
+                rowIndex: number,
+                columnId: string,
+                value: number | null
+            ) => {
                 setData((old) =>
                     old?.map((row, index) => {
                         if (index === rowIndex) {
@@ -158,16 +196,16 @@ export default function OrdersTable({data, setData} : {data: MilkBreadOrder[], s
                     })
                 );
             },
-        },
+        } as TableMeta<MilkBreadOrder>,
     });
 
     // render red dot if any item is due in the category
-function renderRedDot(category: string) {
-    const items = data.filter((item) => item.vendor_name === category);
+    function renderRedDot(category: string) {
+        const items = data.filter((item) => item.vendor_name === category);
 
-    if (items.length > 0) {
-        return <Dot className='text-myDarkbrown w-8 h-8' />;
-        /*
+        if (items.length > 0) {
+            return <Dot className='text-myDarkbrown w-8 h-8' />;
+            /*
             // Check if any item has stage 'DUE'
             const hasDueItems = items.some((item) => item.stage === 'DUE');
             if (hasDueItems) {
@@ -176,11 +214,11 @@ function renderRedDot(category: string) {
                 );
             }
             */
-    } else if (category === 'ALL' && data.length > 0) {
-        return <Dot className='text-myDarkbrown w-8 h-8' />;
+        } else if (category === 'ALL' && data.length > 0) {
+            return <Dot className='text-myDarkbrown w-8 h-8' />;
+        }
+        return <div></div>;
     }
-    return <div></div>;
-}
 
     return (
         <div>
@@ -234,7 +272,8 @@ function renderRedDot(category: string) {
                                             key={cell.id}
                                             style={{
                                                 width:
-                                                    cell.column.id === 'order_qty'
+                                                    cell.column.id ===
+                                                    'order_qty'
                                                         ? '130px'
                                                         : 'auto',
                                             }}
@@ -276,7 +315,3 @@ function renderRedDot(category: string) {
         </div>
     );
 }
-
-
-
-

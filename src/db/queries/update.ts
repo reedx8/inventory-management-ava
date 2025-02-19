@@ -87,6 +87,84 @@ export async function putStoreOrders(
     }
 }
 
+// Send store's orders for bakery only (store page)
+export async function putStoreBakeryOrders(
+    storeIdNum: string,
+    data: OrderItem[]
+    // data: Array<{ id: number; order: number }>
+) {
+    const storeId = parseInt(storeIdNum);
+
+    // TODO: where should include a date check as well, + will cause 'some updates failed' when store ids dont match, ie admin view submitting orders)
+    try {
+        const updates = await db.transaction(async (trx) => {
+            const results = await Promise.all(
+                data.map(async (order) => {
+                    try {
+                        const updated = await trx
+                            .update(storeBakeryOrdersTable)
+                            .set({
+                                order_qty: sql`${order.order}::decimal`,
+                                submitted_at: sql`now()`,
+                            })
+                            .where(
+                                and(
+                                    eq(
+                                        storeBakeryOrdersTable.store_id,
+                                        storeId
+                                    ),
+                                    eq(storeBakeryOrdersTable.id, order.id)
+                                )
+                            )
+                            .returning({
+                                id: storeBakeryOrdersTable.id,
+                                store_id: storeBakeryOrdersTable.store_id,
+                            });
+
+                        return {
+                            id: order.id,
+                            updated: updated.length > 0,
+                            updatedRow: updated,
+                            error: null,
+                        };
+                    } catch (error) {
+                        const err = error as Error;
+                        return {
+                            id: order.id,
+                            updated: false,
+                            error: err.message,
+                        };
+                    }
+                })
+            );
+            return results;
+        });
+
+        const failures = updates.filter((update) => update.updated === false);
+        if (failures.length > 0) {
+            return {
+                success: false,
+                message: 'Some or all updates failed',
+                updates,
+            };
+        }
+
+        return {
+            success: true,
+            message: 'All updates successful',
+            updates,
+        };
+    } catch (error) {
+        // transaction failed
+        const err = error as Error;
+        return {
+            success: false,
+            message: 'Transaction failed',
+            error: err.message,
+        };
+    }
+}
+
 // Post milk break stock counts
 export async function postMilkBreadStock(
     store_location_id: string,

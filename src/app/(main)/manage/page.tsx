@@ -1,10 +1,10 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PagesNavBar from '@/components/pages-navbar';
 import { HeaderBar } from '@/components/header-bar';
 import noInventoryPic from '/public/illustrations/breakfast.svg';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 
 interface Item {
     id: number;
@@ -18,6 +18,7 @@ interface Item {
 
 export default function Manage() {
     const [data, setData] = useState<Item[]>([]);
+    // setData([]); // TODO: replace with real data, dummy for now (linter error)
     return (
         <main>
             <HeaderBar pageName={'Manage'} />

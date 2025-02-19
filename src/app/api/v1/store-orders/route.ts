@@ -1,5 +1,5 @@
 import { getStoreOrders } from '@/db/queries/select';
-import { putStoreOrders } from '@/db/queries/update';
+import { putStoreBakeryOrders, putStoreOrders } from '@/db/queries/update';
 // import { NextResponse } from 'next/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const storeId: string | null = searchParams.get('storeId');
+    const vendor: string | null = searchParams.get('vendor'); // vendor = "bakery" or "external"
     const data: OrderItem[] = await request.json();
 
     const supabase = await createClient();
@@ -57,10 +58,25 @@ export async function PUT(request: NextRequest) {
     }
 
     try {
-        const response = await putStoreOrders(storeId, data); //
+        let response;
+
+        if (vendor === 'bakery') {
+            response = await putStoreBakeryOrders(storeId, data);
+        } else if (vendor === 'external') {
+            response = await putStoreOrders(storeId, data);
+        } else {
+            return NextResponse.json(
+                {
+                    error: 'Invalid vendor parameter: Please add vendor type (bakery or external)',
+                },
+                { status: 400 }
+            );
+        }
+
         if (!response.success) {
             return NextResponse.json(response, { status: 400 });
         }
+
         return NextResponse.json(response, { status: 200 });
     } catch (error) {
         // console.error('Error fetching store orders:', error);

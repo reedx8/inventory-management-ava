@@ -6,49 +6,43 @@ import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
 import OrdersTable from '@/app/(main)/orders/components/orders-table';
 import { MilkBreadOrder } from '@/app/(main)/orders/types';
+import { STORE_LOCATIONS, MILK_BREAD_VENDORS } from '@/components/types';
 
-// Vendor names much match with vendor names in DB
-export const MILK_BREAD_VENDORS = [
-    'Petes Milk',
-    'Grand Central',
-] as const;
-
-export const STORE_NAMES = [
-    'Hall',
-    'Progress',
-    'Kruse',
-    'Orenco',
-] as const;
-
+// export const STORE_NAMES = [
+//     'Hall',
+//     'Progress',
+//     'Kruse',
+//     'Orenco',
+// ] as const;
 
 const dummyData: MilkBreadOrder[] = [
     {
-        id: 1, 
+        id: 1,
         name: 'Whole Milk',
         units: '1 Gal',
         stock_count: 3,
-        order_qty: undefined,
-        store_name: STORE_NAMES[1],
-        price: 1.20,
+        order_qty: null,
+        store_name: STORE_LOCATIONS[1],
+        price: 1.2,
         vendor_name: MILK_BREAD_VENDORS[0],
     },
     {
-        id: 2, 
+        id: 2,
         name: '2% Milk',
         units: '1 Gal',
         stock_count: 5,
-        order_qty: undefined,
-        store_name: STORE_NAMES[3],
-        price: 1.30,
+        order_qty: null,
+        store_name: STORE_LOCATIONS[3],
+        price: 1.3,
         vendor_name: MILK_BREAD_VENDORS[0],
     },
     {
-        id: 3, 
+        id: 3,
         name: 'Soy Milk',
         units: '1 Gal',
         stock_count: 2,
-        order_qty: undefined,
-        store_name: STORE_NAMES[1],
+        order_qty: null,
+        store_name: STORE_LOCATIONS[1],
         price: 1.75,
         vendor_name: MILK_BREAD_VENDORS[0],
     },
@@ -57,8 +51,8 @@ const dummyData: MilkBreadOrder[] = [
         name: 'Sourdough Bread',
         units: '1 Loaf',
         stock_count: 1,
-        order_qty: undefined,
-        store_name: STORE_NAMES[1],
+        order_qty: null,
+        store_name: STORE_LOCATIONS[1],
         price: 2.25,
         vendor_name: MILK_BREAD_VENDORS[1],
     },
@@ -67,11 +61,11 @@ const dummyData: MilkBreadOrder[] = [
         name: 'Whole Wheat Bread',
         units: '1 Loaf',
         stock_count: 8,
-        order_qty: undefined,
-        store_name: STORE_NAMES[3],
-        price: 2.90,
+        order_qty: null,
+        store_name: STORE_LOCATIONS[3],
+        price: 2.9,
         vendor_name: MILK_BREAD_VENDORS[1],
-    }
+    },
 ];
 
 // type Details = {

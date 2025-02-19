@@ -97,7 +97,7 @@ export async function PUT(request: NextRequest) {
     try {
         let response;
         if (submitType === 'batch') {
-            response = await putBakeryBatchCompleteOrders(completedOrders);
+            response = await putBakeryBatchCompleteOrders();
         } else if (submitType === 'edit') {
             response = await putBakeryEditOrders(completedOrders);
         } else {

@@ -17,6 +17,7 @@ import {
     getFilteredRowModel,
     getPaginationRowModel,
     useReactTable,
+    CellContext,
 } from '@tanstack/react-table';
 import { Dot, Send } from 'lucide-react';
 import {
@@ -37,6 +38,14 @@ import { useToast } from '@/hooks/use-toast';
 //     'BEANS&TEA': <p>Coffee bean and tea items</p>,
 // };
 
+interface TableMeta<TData> {
+    updateData: (
+        rowIndex: number,
+        columnId: string,
+        value: number | null
+    ) => void;
+}
+
 export default function OrderTable({
     data,
     setData,
@@ -53,13 +62,17 @@ export default function OrderTable({
     const [filteredData, setFilteredData] = useState<OrderItem[]>(data);
     const { toast } = useToast();
 
-
     // if (!data) {
     //     return <div></div>;
     // }
 
     // Accepts integers only
-    const OrderCell = ({ getValue, row, column, table }) => {
+    const OrderCell = ({
+        getValue,
+        row,
+        column,
+        table,
+    }: CellContext<OrderItem, number | null>) => {
         const initialValue = getValue();
         const [value, setValue] = useState<string>(
             initialValue?.toString() ?? ''
@@ -68,7 +81,11 @@ export default function OrderTable({
 
         const handleBlur = () => {
             const numValue = value === '' ? null : parseFloat(value);
-            table.options.meta?.updateData(row.index, column.id, numValue);
+            (table.options.meta as TableMeta<OrderItem>).updateData(
+                row.index,
+                column.id,
+                numValue
+            );
 
             // table.options.meta?.updateData(row.index, column.id, value);
         };
@@ -105,7 +122,11 @@ export default function OrderTable({
 
                 // Save the current value
                 const numValue = value === '' ? null : parseFloat(value);
-                table.options.meta?.updateData(row.index, column.id, numValue);
+                (table.options.meta as TableMeta<OrderItem>).updateData(
+                    row.index,
+                    column.id,
+                    numValue
+                );
 
                 // Focus next input
                 focusNextInput(row.index);
@@ -168,7 +189,9 @@ export default function OrderTable({
             accessorKey: 'order',
             header: 'Order',
             // size: 200,
-            cell: OrderCell,
+            cell: (props: CellContext<OrderItem, unknown>) =>
+                OrderCell(props as CellContext<OrderItem, number | null>),
+            // cell: OrderCell,
         },
     ];
 
@@ -198,7 +221,7 @@ export default function OrderTable({
                     })
                 );
             },
-        },
+        } as TableMeta<OrderItem>,
     });
 
     // render dot under category btn if any item is due in the category
@@ -226,30 +249,52 @@ export default function OrderTable({
         // TODO: clean data before submitting, refresh page, refactor to not use cron_categ, etc
 
         e.preventDefault();
-        if(!storeId){
-            console.log("Admin view work in-progress")
+        if (!storeId) {
+            console.log('Admin view work in-progress');
             return; // TODO: admin view
         }
-
-        // Filter out pastry items (they instead go to storeBakeryOrdersTable)
-        let externalVendorOrders = filteredData.filter((order) => order.cron_categ !== "PASTRY");
-
-        if (externalVendorOrders.length === 0){
-            console.log('Nothing to submit')
-            return;
-        }
-
-        if (filteredData.length === 0) {
-            console.log('Nothing to submit!');
-            return;
-        } 
 
         setIsSubmitting(true);
 
         if (activeCateg === 'ALL') {
-            console.log('ALL submission disabled for now');
+            console.log('ALL type submission disabled for now');
             setIsSubmitting(false);
             return;
+        } else if (activeCateg === 'PASTRY') {
+            const bakeryOrders = filteredData.filter(
+                (order) => order.cron_categ === 'PASTRY'
+            );
+            try {
+                const response = await fetch(
+                    `/api/v1/store-orders?storeId=${storeId}&vendor=bakery`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(bakeryOrders),
+                    }
+                );
+                let res = await response.json();
+
+                if (!response.ok) {
+                    const msg = res.message;
+                    throw new Error(msg);
+                }
+
+                toast({
+                    title: 'Store Orders Sent',
+                    description: 'Your orders have been sent successfully',
+                    className: 'bg-myBrown border-none text-myDarkbrown',
+                });
+            } catch (error) {
+                const err = error as Error;
+                toast({
+                    title: 'Error',
+                    description: err.message,
+                    variant: 'destructive',
+                });
+            }
         } else {
             // console.log(filteredData);
             // let store_id = 2; // dummy for storeId
@@ -258,23 +303,27 @@ export default function OrderTable({
             // console.log(progressOrders)
             // setIsSubmitting(false);
             // return;
+            const externalOrders = filteredData.filter(
+                (order) => order.cron_categ !== 'PASTRY'
+            );
+
             try {
                 const response = await fetch(
-                    `/api/v1/store-orders?storeId=${storeId}`,
+                    `/api/v1/store-orders?storeId=${storeId}&vendor=external`,
                     {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(externalVendorOrders),
+                        body: JSON.stringify(externalOrders),
                         // body: JSON.stringify(progressOrders),
                     }
                 );
                 let res = await response.json();
-    
+
                 if (!response.ok) {
                     const msg = res.message;
-                    // const id = res.updates.id.toString(); 
+                    // const id = res.updates.id.toString();
                     // const msg = `Failed sending store's orders`;
                     throw new Error(msg);
                 }
@@ -399,15 +448,16 @@ export default function OrderTable({
                         <div className='flex justify-end gap-2'>
                             {/* TODO */}
                             {/* <Button variant='outline' className='border-myDarkbrown text-myDarkbrown hover:text-myDarkbrown'>Pars Fill <CopyPlus /></Button> */}
-                            {activeCateg !== 'ALL' && filteredData.length > 0 && (
-                                <Button
-                                    type='submit'
-                                    variant='myTheme'
-                                    disabled={isSubmitting}
-                                >
-                                    Submit <Send />
-                                </Button>
-                            )}
+                            {activeCateg !== 'ALL' &&
+                                filteredData.length > 0 && (
+                                    <Button
+                                        type='submit'
+                                        variant='myTheme'
+                                        disabled={isSubmitting}
+                                    >
+                                        Submit <Send />
+                                    </Button>
+                                )}
                         </div>
                     </form>
                 </div>

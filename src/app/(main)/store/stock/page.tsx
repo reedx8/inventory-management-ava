@@ -183,7 +183,8 @@ export default function Stock() {
                 // </div>
             )}
             {data && !isLoading && data?.length > 0 && (
-                <StockTable data={data} setData={setData} />
+                <StockTable/>
+                // <StockTable data={data} setData={setData} />
             )}
             {!isLoading && data?.length === 0 && (
                 // <div className='flex flex-col justify-center'>

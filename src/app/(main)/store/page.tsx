@@ -142,7 +142,7 @@ export default function Stores() {
                 if (regResponse.ok && bakeryResponse.ok) {
                     const mergedOrders = [...regData, ...bakeryData];
                     setMergedData(mergedOrders);
-                    // console.log('mergedOrders: ', mergedOrders);
+                    console.log('mergedOrders: ', mergedOrders);
                 } else {
                     console.error('Error fetching orders:', {
                         regularOrders: regData,

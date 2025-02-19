@@ -15,7 +15,7 @@ import {
 } from '../schema';
 import { PgColumn } from 'drizzle-orm/pg-core';
 
-// Get only active items that are due for a specific store (storeId)
+// Get each stores daily bakery orders
 export async function getStoresBakeryOrders(store_location_id: string | null) {
     if (store_location_id) {
         try {
@@ -31,6 +31,7 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                     // due_date: sql`${dummyDate}`, // dummy data for now
                     // due_date: ordersTable.due_date,
                     store_name: storesTable.name,
+                    cron_categ: itemsTable.cron_categ,
                 })
                 .from(storeBakeryOrdersTable)
                 .innerJoin(
@@ -49,7 +50,7 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                     and(
                         eq(storeBakeryOrdersTable.store_id, storeId),
                         eq(itemsTable.is_active, true),
-                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                        // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         isNull(storeBakeryOrdersTable.submitted_at)
                         // eq(orderStagesTable.stage_name, 'DUE')
                     )
@@ -83,6 +84,7 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                     // due_date: sql`${dummyDate}`, // dummy data for now
                     // due_date: ordersTable.due_date,
                     store_name: storesTable.name,
+                    cron_categ: itemsTable.cron_categ,
                 })
                 .from(storeBakeryOrdersTable)
                 .innerJoin(
@@ -100,7 +102,7 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                 .where(
                     and(
                         eq(itemsTable.is_active, true),
-                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                        // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         isNull(storeBakeryOrdersTable.submitted_at)
                         // eq(orderStagesTable.stage_name, 'DUE')
                     )
@@ -127,7 +129,7 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
     // return result;
 }
 
-// Get only active items that are due for a specific store (storeId)
+// Get external vendor orders for each store
 export async function getStoreOrders(store_location_id: string | null) {
     // const dummyDate: string = '2025-06-15'; // dummy data for now
 
@@ -160,6 +162,7 @@ export async function getStoreOrders(store_location_id: string | null) {
                 .where(
                     and(
                         eq(storeOrdersTable.store_id, storeId),
+                        // eq(storeOrdersTable.created_at, sql`<WITHIN THE WEEK>`),
                         eq(itemsTable.is_active, true)
                         // eq(orderStagesTable.stage_name, 'DUE')
                     )
@@ -250,8 +253,8 @@ export async function getWeeklyStock(store_location_id: string | null) {
             .where(
                 and(
                     eq(stockTable.store_id, storeId),
-                    eq(itemsTable.is_active, true),
-                    eq(itemsTable.is_weekly_stock, true)
+                    eq(itemsTable.is_active, true)
+                    // eq(itemsTable.is_weekly_stock, true)
                 )
             );
         // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
@@ -274,8 +277,8 @@ export async function getWeeklyStock(store_location_id: string | null) {
             .innerJoin(storesTable, eq(storesTable.id, stockTable.store_id))
             .where(
                 and(
-                    eq(itemsTable.is_active, true),
-                    eq(itemsTable.is_weekly_stock, true)
+                    eq(itemsTable.is_active, true)
+                    // eq(itemsTable.is_weekly_stock, true)
                 )
             );
         // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
