@@ -145,6 +145,7 @@ export async function getStoreOrders(store_location_id: string | null) {
                     // due_date: sql`${dummyDate}`, // dummy data for now
                     // due_date: ordersTable.due_date,
                     store_name: storesTable.name,
+                    cron_categ: itemsTable.cron_categ,
                 })
                 .from(storeOrdersTable)
                 .innerJoin(
@@ -192,6 +193,7 @@ export async function getStoreOrders(store_location_id: string | null) {
                     // due_date: sql`${dummyDate}`, // dummy data for now
                     // due_date: ordersTable.due_date,
                     store_name: storesTable.name,
+                    cron_categ: itemsTable.cron_categ,
                 })
                 .from(storeOrdersTable)
                 .innerJoin(

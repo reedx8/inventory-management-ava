@@ -234,6 +234,10 @@ export const storeOrdersTable = pgTable(
         })
             .notNull()
             .defaultNow(),
+        submitted_at: timestamp('submitted_at', {
+            precision: 3,
+            withTimezone: true,
+        }),
         updated_at: timestamp('updated_at', {
             precision: 3,
             withTimezone: true,

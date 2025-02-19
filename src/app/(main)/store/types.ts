@@ -7,6 +7,7 @@ export type OrderItem = {
     order: number | null;
     store_categ: string;
     store_name: string;
+    cron_categ: string;
 };
 
 // These must match items.store_categ check constraint in the DB/schema

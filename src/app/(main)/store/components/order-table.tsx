@@ -24,8 +24,7 @@ import {
     StoreCategory,
     STORE_CATEGORIES,
 } from '@/app/(main)/store/types';
-// import { Or } from 'drizzle-orm';
-// import { Form } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
 
 // object lookup for category messages
 // const categoryMessage: Record<StoreCategory, JSX.Element | string> = {
@@ -41,15 +40,19 @@ import {
 export default function OrderTable({
     data,
     setData,
+    storeId,
 }: {
     data: OrderItem[];
     setData: React.Dispatch<React.SetStateAction<OrderItem[] | undefined>>;
+    storeId: number | undefined;
 }) {
     const [activeCateg, setActiveCateg] = useState<StoreCategory>(
         STORE_CATEGORIES[1]
     );
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [filteredData, setFilteredData] = useState<OrderItem[]>(data);
+    const { toast } = useToast();
+
 
     // if (!data) {
     //     return <div></div>;
@@ -219,26 +222,76 @@ export default function OrderTable({
         return <div></div>;
     }
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        // TODO: clean data before submitting, refresh page, etc
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        // TODO: clean data before submitting, refresh page, refactor to not use cron_categ, etc
 
         e.preventDefault();
-        setIsSubmitting(true);
+        if(!storeId){
+            console.log("Admin view work in-progress")
+            return; // TODO: admin view
+        }
 
-        // const filteredData = data.filter(
-        //     (item) => item.store_categ === activeCateg
-        // );
+        // Filter out pastry items (they instead go to storeBakeryOrdersTable)
+        let externalVendorOrders = filteredData.filter((order) => order.cron_categ !== "PASTRY");
 
-        if (filteredData.length === 0) {
-            console.log('Nothing to submit!');
-            setIsSubmitting(false);
+        if (externalVendorOrders.length === 0){
+            console.log('Nothing to submit')
             return;
         }
 
+        if (filteredData.length === 0) {
+            console.log('Nothing to submit!');
+            return;
+        } 
+
+        setIsSubmitting(true);
+
         if (activeCateg === 'ALL') {
-            console.log(data);
+            console.log('ALL submission disabled for now');
+            setIsSubmitting(false);
+            return;
         } else {
-            console.log(filteredData);
+            // console.log(filteredData);
+            // let store_id = 2; // dummy for storeId
+            // console.log(externalVendorOrders);
+            // let progressOrders = externalVendorOrders.filter((order) => order.store_name === 'Progress');
+            // console.log(progressOrders)
+            // setIsSubmitting(false);
+            // return;
+            try {
+                const response = await fetch(
+                    `/api/v1/store-orders?storeId=${storeId}`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(externalVendorOrders),
+                        // body: JSON.stringify(progressOrders),
+                    }
+                );
+                let res = await response.json();
+    
+                if (!response.ok) {
+                    const msg = res.message;
+                    // const id = res.updates.id.toString(); 
+                    // const msg = `Failed sending store's orders`;
+                    throw new Error(msg);
+                }
+                // console.log('data sent: ', result);
+                toast({
+                    title: 'Store Orders Sent',
+                    description: 'Your orders have been sent successfully',
+                    className: 'bg-myBrown border-none text-myDarkbrown',
+                });
+            } catch (error) {
+                const err = error as Error;
+                toast({
+                    title: 'Error',
+                    description: err.message,
+                    variant: 'destructive',
+                });
+            }
         }
         setIsSubmitting(false);
     };

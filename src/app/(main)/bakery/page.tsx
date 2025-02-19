@@ -30,8 +30,6 @@ import SheetTemplate from '@/components/sheet/sheet-template';
 import {
     Check,
     CircleOff,
-    CircleSlash,
-    CircleSlash2,
     ListCheck,
     Pencil,
     Send,

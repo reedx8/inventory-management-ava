@@ -1,0 +1,1 @@
+ALTER TABLE "store_orders" ADD COLUMN "submitted_at" timestamp (3) with time zone;
