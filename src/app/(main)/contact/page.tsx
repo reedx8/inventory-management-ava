@@ -60,10 +60,10 @@ export default function Contact() {
                         <div className='flex flex-wrap gap-3'>
                             {data.map((vendor) => (
                                 <Card
-                                    className='w-[310px] h-[90px] py-1 hover:-translate-y-2 hover:bg-neutral-50 duration-300'
+                                    className='w-full h-[90px] py-1 hover:-translate-y-2 hover:bg-neutral-50 duration-300 shadow-md'
                                     key={vendor.id}
                                 >
-                                    <CardContent className='grid grid-cols-[auto_1fr] gap-2'>
+                                    <CardContent className='grid grid-cols-[auto_1fr] gap-8'>
                                         <div className='flex flex-col justify-center items-center h-full'>
                                             <Image
                                                 src={placeholder}
@@ -77,11 +77,11 @@ export default function Contact() {
                                             <h2 className='text-lg'>
                                                 {vendor.name}
                                             </h2>
-                                            <p className='text-xs'>
-                                                Phone: <span className='text-neutral-500'>{vendor.phone}</span>
+                                            <p className='text-xs text-neutral-500'>
+                                                Phone: <span className='text-neutral-500'>{vendor.phone ?? '--'}</span>
                                             </p>
-                                            <p className='text-xs text-wrap'>
-                                                Email: <span className='text-neutral-500'>{vendor.email}</span>
+                                            <p className='text-xs text-wrap text-neutral-500'>
+                                                Email: <span className='text-neutral-500'>{vendor.email ?? '--'}</span>
                                             </p>
                                         </div>
                                     </CardContent>

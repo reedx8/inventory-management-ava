@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       {/* <body className={`${geistSans.variable} ${geistMono.variable}`}> */}
-        <body className={`${customFont.className}`}>
+        <body className={`${customFont.className} bg-neutral-50`}>
         {/* <body className={`${montserrat.className} h-full`}> */}
         {/* <body className={montserrat.className}> */}
           {children}

@@ -1,5 +1,5 @@
 // select queries -- call from /src/app/api folder
-import { eq, and, sql, gt, or, isNull, like, asc } from 'drizzle-orm';
+import { eq, and, sql, gt, or, isNull, like, asc, count } from 'drizzle-orm';
 import { db } from '../index';
 import {
     ordersTable,
@@ -539,6 +539,55 @@ export async function getVendorContacts() {
             success: false,
             error: err.message,
             data: null,
+        };
+    }
+}
+
+export async function getBakeryDueTodayCount() {
+    try {
+        const result = await db
+            .select({
+                count: count(storeBakeryOrdersTable.id),
+            })
+            .from(storeBakeryOrdersTable)
+            .where(
+                and(
+                    sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                    isNull(storeBakeryOrdersTable.submitted_at)
+                )
+            );
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
+        };
+    }
+}
+export async function getItemCount() {
+    try {
+        const result = await db
+            .select({
+                count: count(itemsTable.id),
+            })
+            .from(itemsTable);
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
         };
     }
 }
