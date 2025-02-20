@@ -66,3 +66,12 @@ export type CronCategory = (typeof CRON_CATEGORIES)[number];
 // Vendor names much match with vendor names in DB
 export const MILK_BREAD_VENDORS = ['Petes Milk', 'Grand Central'] as const;
 export type MilkBreadVendor = (typeof MILK_BREAD_VENDORS)[number];
+
+export type VendorContact = {
+    id: number;
+    name: string;
+    email: string | undefined;
+    phone: string | undefined;
+    logo: string | undefined;
+    website: string | undefined;
+};

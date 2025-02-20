@@ -1,5 +1,5 @@
 // select queries -- call from /src/app/api folder
-import { eq, and, sql, gt, or, isNull, like } from 'drizzle-orm';
+import { eq, and, sql, gt, or, isNull, like, asc } from 'drizzle-orm';
 import { db } from '../index';
 import {
     ordersTable,
@@ -512,4 +512,33 @@ export async function searchItems(query: string) {
 // custom lower function
 export function lower(name: PgColumn) {
     return sql`lower(${name})`;
+}
+
+export async function getVendorContacts() {
+    try {
+        const result = await db
+            .select({
+                id: vendorsTable.id,
+                name: vendorsTable.name,
+                email: vendorsTable.email,
+                logo: vendorsTable.logo,
+                website: vendorsTable.website,
+                phone: vendorsTable.phone,
+            })
+            .from(vendorsTable)
+            .orderBy(asc(vendorsTable.name));
+
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: null,
+        };
+    }
 }

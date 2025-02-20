@@ -50,3 +50,18 @@ export const BakeryColumns: ColumnDef<BakeryOrder>[] = [
         header: 'Total',
     },
 ];
+
+// export const VendorColumns: ColumnDef<VendorContact>[] = [
+//     {
+//         accessorKey: 'name',
+//         header: 'Name',
+//     },
+//     {
+//         accessorKey: 'email',
+//         header: 'Email',
+//     },
+//     {
+//         accessorKey: 'phone',
+//         header: 'Phone',
+//     },
+// ];
