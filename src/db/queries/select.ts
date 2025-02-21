@@ -543,20 +543,20 @@ export async function getVendorContacts() {
     }
 }
 
-export async function getBakeryDueTodayCount(timezone: string) {
+export async function getBakeryDueTodayCount() {
     try {
-        const now = new Date();
-        // Create dates in client's timezone
-        const clientNow = new Date(
-            now.toLocaleString('en-US', { timeZone: timezone })
-        );
-        const startOfDay = new Date(
-            clientNow.getFullYear(),
-            clientNow.getMonth(),
-            clientNow.getDate()
-        );
-        const endOfDay = new Date(startOfDay);
-        endOfDay.setDate(endOfDay.getDate() + 1);
+        // const now = new Date();
+        // // Create dates in client's timezone
+        // const clientNow = new Date(
+        //     now.toLocaleString('en-US', { timeZone: timezone })
+        // );
+        // const startOfDay = new Date(
+        //     clientNow.getFullYear(),
+        //     clientNow.getMonth(),
+        //     clientNow.getDate()
+        // );
+        // const endOfDay = new Date(startOfDay);
+        // endOfDay.setDate(endOfDay.getDate() + 1);
 
         const result = await db
             .select({
@@ -565,16 +565,25 @@ export async function getBakeryDueTodayCount(timezone: string) {
             .from(storeBakeryOrdersTable)
             .where(
                 and(
+                    // The following commented out code didnt work in getting todays entries:
                     // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                     // Convert both dates to the same timezone before comparing
                     // sql`DATE(${storeBakeryOrdersTable.created_at} AT TIME ZONE 'UTC' AT TIME ZONE CURRENT_SETTING('TIMEZONE')) = CURRENT_DATE`,
-                    // sql`DATE(${storeBakeryOrdersTable.created_at}) = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')`,
-                    sql`${
-                        storeBakeryOrdersTable.created_at
-                    } >= ${startOfDay.toISOString()}`,
-                    sql`${
-                        storeBakeryOrdersTable.created_at
-                    } < ${endOfDay.toISOString()}`,
+                    // sql`${
+                    //     storeBakeryOrdersTable.created_at
+                    // } >= ${startOfDay.toISOString()}`,
+                    // sql`${
+                    //     storeBakeryOrdersTable.created_at
+                    // } < ${endOfDay.toISOString()}`,
+                    // sql`DATE(${storeBakeryOrdersTable.created_at}) = DATE(${todaysDate})`,
+
+                    // Proper way: Supabase servers are always in UTC by default, hence new Date() is UTC, and your comparing with it with created_at thats also in UTC, hence below should be timezone-agnostic:
+                    sql`${storeBakeryOrdersTable.created_at} >= ${new Date(
+                        new Date().setHours(0, 0, 0, 0)
+                    ).toISOString()}`,
+                    sql`${storeBakeryOrdersTable.created_at} < ${new Date(
+                        new Date().setHours(24, 0, 0, 0)
+                    ).toISOString()}`,
                     isNull(storeBakeryOrdersTable.submitted_at)
                 )
             );

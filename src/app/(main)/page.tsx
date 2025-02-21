@@ -29,10 +29,11 @@ import {
     Store,
 } from 'lucide-react';
 import Autoplay from 'embla-carousel-autoplay';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { HeaderBar, todaysDay } from '@/components/header-bar';
 import { title } from 'process';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const orderSchedule = [
     {
@@ -85,16 +86,18 @@ const invSchedule = [
 ];
 
 export default function Home() {
-    const [bakeryDueTodayCount, setBakeryDueTodayCount] = useState<number>(0);
-    const [itemCount, setItemCount] = useState<number>(0);
+    const [bakeryDueTodayCount, setBakeryDueTodayCount] = useState<
+        number | null
+    >(null);
+    const [itemCount, setItemCount] = useState<number | undefined>();
     // const [isLoading, setIsLoading] = useState<boolean>(true);
+    // const todaysDate : string = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const getBakeryDueTodayCounts = async () => {
             try {
                 const response = await fetch(
-                    `api/v1/dashboard?fetch=bakeryDueToday&timezone=${timezone}`
+                    `api/v1/dashboard?fetch=bakeryDueToday`
                 );
                 let result = await response.json();
 
@@ -102,7 +105,7 @@ export default function Home() {
                     throw new Error(result.error);
                 }
                 // console.log('success');
-                setBakeryDueTodayCount(result.data[0]?.count ?? 0);
+                setBakeryDueTodayCount(result.data[0].count);
             } catch (error) {
                 const err = error as Error;
                 console.log(err);
@@ -119,7 +122,7 @@ export default function Home() {
                 if (!response.ok) {
                     throw new Error(result.error);
                 }
-                setItemCount(result.data[0]?.count ?? 0);
+                setItemCount(result.data[0].count);
             } catch (error) {
                 const err = error as Error;
                 console.log(err.message);
@@ -131,6 +134,7 @@ export default function Home() {
     }, []);
     // console.log(dueTodayCount)
     // console.log(bakeryDueTodayCount);
+    // console.log(today);
 
     return (
         <main>
@@ -150,9 +154,9 @@ export default function Home() {
                     <h2 className='flex items-center'>
                         <Box width={17} className='mr-1 text-myBrown' />
                         Item Count:
-                        {itemCount && (
-                            <span className='ml-1 text-lg'>{itemCount}</span>
-                        )}
+                        <span className='ml-1 text-lg'>
+                            {itemCount ? itemCount : '--'}
+                        </span>
                     </h2>
                 </div>
             </section>
@@ -266,7 +270,7 @@ function scheduleBtn() {
     );
 }
 
-function miniOrderCards(bakeryDueTodayCount: number | string) {
+function miniOrderCards(bakeryDueTodayCount: number | null) {
     const invTypes = [
         {
             name: 'Bakery',
@@ -287,7 +291,8 @@ function miniOrderCards(bakeryDueTodayCount: number | string) {
                     </div>
                     <div className='text-center'>
                         <p className='text-5xl text-myBrown drop-shadow-sm'>
-                            {type.count ?? 0}
+                            {type.count !== null ? type.count : '--'}
+                            {/* {type.count ?? 0} */}
                         </p>
                         <div className='text-sm flex items-center justify-center gap-1'>
                             {type.icon ?? (
