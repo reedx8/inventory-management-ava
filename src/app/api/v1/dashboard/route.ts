@@ -4,7 +4,8 @@ import { getBakeryDueTodayCount, getItemCount } from '@/db/queries/select';
 
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
-    let dataRequested: string | null = searchParams.get('dataRequested');
+    const fetchType: string | null = searchParams.get('fetch');
+    const timezone: string | null = searchParams.get('timezone');
 
     const supabase = await createClient();
     const {
@@ -20,14 +21,14 @@ export async function GET(request: NextRequest) {
 
     try {
         let response;
-        if (dataRequested === 'bakeryDueToday') {
-            response = await getBakeryDueTodayCount();
-        } else if (dataRequested === 'itemCount') {
+        if (fetchType === 'bakeryDueToday' && timezone) {
+            response = await getBakeryDueTodayCount(timezone);
+        } else if (fetchType === 'itemCount') {
             response = await getItemCount();
         } else {
             return NextResponse.json(
                 {
-                    error: 'You need to pass "dataRequested" in API url with the data you need (eg bakeryDueToday)',
+                    error: 'You need to pass "fetch" (or timezone) in API url with the data you need (eg bakeryDueToday)',
                 },
                 { status: 400 }
             );

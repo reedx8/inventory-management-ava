@@ -543,8 +543,21 @@ export async function getVendorContacts() {
     }
 }
 
-export async function getBakeryDueTodayCount() {
+export async function getBakeryDueTodayCount(timezone: string) {
     try {
+        const now = new Date();
+        // Create dates in client's timezone
+        const clientNow = new Date(
+            now.toLocaleString('en-US', { timeZone: timezone })
+        );
+        const startOfDay = new Date(
+            clientNow.getFullYear(),
+            clientNow.getMonth(),
+            clientNow.getDate()
+        );
+        const endOfDay = new Date(startOfDay);
+        endOfDay.setDate(endOfDay.getDate() + 1);
+
         const result = await db
             .select({
                 count: count(storeBakeryOrdersTable.id),
@@ -552,7 +565,16 @@ export async function getBakeryDueTodayCount() {
             .from(storeBakeryOrdersTable)
             .where(
                 and(
-                    sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                    // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                    // Convert both dates to the same timezone before comparing
+                    // sql`DATE(${storeBakeryOrdersTable.created_at} AT TIME ZONE 'UTC' AT TIME ZONE CURRENT_SETTING('TIMEZONE')) = CURRENT_DATE`,
+                    // sql`DATE(${storeBakeryOrdersTable.created_at}) = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')`,
+                    sql`${
+                        storeBakeryOrdersTable.created_at
+                    } >= ${startOfDay.toISOString()}`,
+                    sql`${
+                        storeBakeryOrdersTable.created_at
+                    } < ${endOfDay.toISOString()}`,
                     isNull(storeBakeryOrdersTable.submitted_at)
                 )
             );

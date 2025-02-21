@@ -1,13 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import {
-    Beef,
-    Coffee,
-    Dessert,
-    Milk,
-    Search,
-    Wheat,
-} from 'lucide-react';
+import { Beef, Coffee, Dessert, Milk, Search, Wheat } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -37,9 +30,7 @@ export default function SearchBar() {
 
     const searchItems = async () => {
         try {
-            const response = await fetch(
-                '/api/v1/search-items?query=' + query
-            );
+            const response = await fetch('/api/v1/search-items?query=' + query);
             const data = await response.json();
 
             if (!response.ok) {
@@ -62,7 +53,7 @@ export default function SearchBar() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(e.target.value);
-        if(e.target.value.trim() === ''){
+        if (e.target.value.trim() === '') {
             setData(undefined);
         }
         // console.log(query);
@@ -124,11 +115,17 @@ export default function SearchBar() {
                 <DialogContent className='bg-neutral-100'>
                     <DialogHeader>
                         <DialogTitle className='font-normal flex items-center gap-1'>
-                            <Image src={avaCircle} alt='ava' width={35} />
+                            <Image
+                                src={avaCircle}
+                                alt='ava'
+                                width={35}
+                                priority={true}
+                            />
                             <Image
                                 src={verticalLine}
                                 alt='vertical line'
                                 width={18}
+                                priority={true}
                             />{' '}
                             Search AVA Roasteria
                         </DialogTitle>
@@ -143,7 +140,9 @@ export default function SearchBar() {
                             placeholder='Type an item name...'
                             className='w-full h-9'
                             onChange={(e) => handleChange(e)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            onKeyDown={(e) =>
+                                e.key === 'Enter' && handleSearch()
+                            }
                         />
                         <Button
                             variant='myTheme'

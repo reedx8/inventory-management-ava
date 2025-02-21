@@ -85,15 +85,18 @@ const invSchedule = [
 ];
 
 export default function Home() {
-    const [bakeryDueTodayCount, setBakeryDueTodayCount] = useState<number>(0);
-    const [itemCount, setItemCount] = useState<number | undefined>();
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [bakeryDueTodayCount, setBakeryDueTodayCount] = useState<
+        number | string
+    >('--');
+    const [itemCount, setItemCount] = useState<number | string>('--');
+    // const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const getBakeryDueTodayCounts = async () => {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             try {
                 const response = await fetch(
-                    'api/v1/dashboard?dataRequested=bakeryDueToday'
+                    `api/v1/dashboard?fetch=bakeryDueToday&timezone=${timezone}`
                 );
                 let result = await response.json();
 
@@ -107,12 +110,12 @@ export default function Home() {
                 console.log(err);
                 setBakeryDueTodayCount(0);
             }
-            setIsLoading(false);
+            // setIsLoading(false);
         };
         const getItemCount = async () => {
             try {
                 const response = await fetch(
-                    'api/v1/dashboard?dataRequested=itemCount'
+                    'api/v1/dashboard?fetch=itemCount'
                 );
                 const result = await response.json();
                 if (!response.ok) {
@@ -157,34 +160,32 @@ export default function Home() {
             </section>
             <section className='flex flex-col gap-2 mt-4'>
                 <h2 className='text-2xl flex'>Due Today {scheduleBtn()}</h2>
-                {!isLoading && (
-                    <div className='flex flex-wrap gap-3 sm:grid sm:grid-cols-[auto_1fr] sm:gap-3'>
-                        <Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
-                            <CardHeader className='text-center'>
-                                <CardTitle className='font-normal'>
-                                    Orders
-                                </CardTitle>
-                                <CardDescription className='text-neutral-400 text-balance'>
-                                    Item Orders Due Today
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {miniOrderCards(bakeryDueTodayCount)}
-                            </CardContent>
-                        </Card>
-                        <Card className='h-full shadow-md flex flex-col items-center'>
-                            <CardHeader className='text-center'>
-                                <CardTitle className='font-normal'>
-                                    Stock Counts
-                                </CardTitle>
-                                <CardDescription className='text-neutral-400 text-balance'>
-                                    Stock Counts Due Today
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>{miniStockCards()}</CardContent>
-                        </Card>
-                    </div>
-                )}
+                <div className='flex flex-wrap gap-3 sm:grid sm:grid-cols-[auto_1fr] sm:gap-3'>
+                    <Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
+                        <CardHeader className='text-center'>
+                            <CardTitle className='font-normal'>
+                                Orders
+                            </CardTitle>
+                            <CardDescription className='text-neutral-400 text-balance'>
+                                Item Orders Due Today
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {miniOrderCards(bakeryDueTodayCount)}
+                        </CardContent>
+                    </Card>
+                    <Card className='h-full shadow-md flex flex-col items-center'>
+                        <CardHeader className='text-center'>
+                            <CardTitle className='font-normal'>
+                                Stock Counts
+                            </CardTitle>
+                            <CardDescription className='text-neutral-400 text-balance'>
+                                Stock Counts Due Today
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>{miniStockCards()}</CardContent>
+                    </Card>
+                </div>
                 {/* <div className='flex-1 h-full'>{CarouselComponent()}</div> */}
             </section>
         </main>
@@ -267,7 +268,7 @@ function scheduleBtn() {
     );
 }
 
-function miniOrderCards(bakeryDueTodayCount: number | undefined) {
+function miniOrderCards(bakeryDueTodayCount: number | string) {
     const invTypes = [
         {
             name: 'Bakery',
