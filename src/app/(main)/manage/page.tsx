@@ -24,6 +24,7 @@ import {
     Utensils,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 // import { useToast } from '@/hooks/use-toast';
 
 export default function Manage() {
@@ -48,8 +49,8 @@ export default function Manage() {
         }
     }
     const openItem = (id: number) => {
-        console.log(`${id}: item clicked`)
-    }
+        console.log(`${id}: item clicked`);
+    };
 
     useEffect(() => {
         const fetchAllItems = async () => {
@@ -93,78 +94,83 @@ export default function Manage() {
                 )}
                 {!isLoading && data && data.length > 0 && (
                     <ScrollArea className='h-[60vh] sm:h-[70vh] md:h-[80vh] overflow-y-auto py-3 pr-3'>
-                        <div className='flex flex-wrap gap-4'>
+                        <div className='flex flex-col gap-3'>
                             {data.map((item) => (
                                 <Button
+                                    asChild
                                     key={item.id}
-                                    className='w-full h-[90px] p-0'
-                                    // asChild
-                                    variant='ghost'
-                                    onClick={() => openItem(item.id)}
+                                    className='w-full h-[90px] p-0 m-0'
+                                    variant='link2'
+                                    // onClick={() => openItem(item.id)}
                                 >
-                                    <Card
-                                        className='w-full py-1 shadow-md hover:-translate-y-2 hover:bg-neutral-50 duration-300'
-                                        // className='w-full h-[90px] py-1 hover:-translate-y-2 hover:bg-neutral-50 duration-300 shadow-md'
-                                        // key={item.id}
-                                    >
-                                        <CardContent className='grid grid-cols-[auto_1fr] gap-8'>
-                                            <div className='flex flex-col justify-center items-center h-full'>
-                                                <Image
-                                                    src={placeholder}
-                                                    alt='placeholder logo'
-                                                    width={50}
-                                                    height={50}
-                                                    className='rounded-lg'
-                                                />
-                                            </div>
-                                            <div className='flex flex-col'>
-                                                <div className='flex items-center gap-4'>
-                                                    <h2 className='text-lg flex items-center gap-1'>
-                                                        {item.is_active ? (
-                                                            <Image
-                                                                src={greenDot}
-                                                                alt='enabled'
-                                                                width={15}
-                                                                // height={10}
-                                                            />
-                                                        ) : (
-                                                            <Image
-                                                                src={redDot}
-                                                                alt='disabled'
-                                                                width={15}
-                                                            />
+                                    <Link href={`?itemId=${item.id}`}>
+                                        <Card
+                                            className='w-full py-1 shadow-md hover:-translate-y-1 hover:bg-neutral-50 duration-300'
+                                            // className='w-full h-[90px] py-1 hover:-translate-y-2 hover:bg-neutral-50 duration-300 shadow-md'
+                                            // key={item.id}
+                                        >
+                                            <CardContent className='grid grid-cols-[auto_1fr] gap-8'>
+                                                <div className='flex flex-col justify-center items-center h-full'>
+                                                    <Image
+                                                        src={placeholder}
+                                                        alt='placeholder logo'
+                                                        width={50}
+                                                        height={50}
+                                                        className='rounded-lg'
+                                                    />
+                                                </div>
+                                                <div className='flex flex-col'>
+                                                    <div className='flex items-center gap-4'>
+                                                        <h2 className='text-lg flex items-center gap-1'>
+                                                            {item.is_active ? (
+                                                                <Image
+                                                                    src={
+                                                                        greenDot
+                                                                    }
+                                                                    alt='enabled'
+                                                                    width={15}
+                                                                    // height={10}
+                                                                />
+                                                            ) : (
+                                                                <Image
+                                                                    src={redDot}
+                                                                    alt='disabled'
+                                                                    width={15}
+                                                                />
+                                                            )}
+                                                            {item.name}
+                                                        </h2>
+                                                        {selectIcon(
+                                                            item.cron_categ
                                                         )}
-                                                        {item.name}
-                                                    </h2>
-                                                    {selectIcon(
-                                                        item.cron_categ
-                                                    )}
-                                                    <Badge
-                                                        variant='secondary'
-                                                        className='text-xs text-myDarkbrown font-light bg-myBrown'
-                                                    >
-                                                        {item.invoice_categ ??
-                                                            ''}
-                                                    </Badge>
+                                                        <Badge
+                                                            variant='secondary'
+                                                            className='text-xs text-myDarkbrown font-light bg-myBrown'
+                                                        >
+                                                            {item.invoice_categ ??
+                                                                ''}
+                                                        </Badge>
+                                                    </div>
+                                                    <div className='flex flex-col items-start'>
+                                                        <p className='text-xs text-neutral-500'>
+                                                            Vendor:{' '}
+                                                            <span className='text-neutral-500'>
+                                                                {item.vendor_name ??
+                                                                    '--'}
+                                                            </span>
+                                                        </p>
+                                                        <p className='text-xs text-wrap text-neutral-500'>
+                                                            Unit:{' '}
+                                                            <span className='text-neutral-500'>
+                                                                {item.units ??
+                                                                    '--'}
+                                                            </span>
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div className='flex flex-col items-start'>
-                                                    <p className='text-xs text-neutral-500'>
-                                                        Vendor:{' '}
-                                                        <span className='text-neutral-500'>
-                                                            {item.vendor_name ??
-                                                                '--'}
-                                                        </span>
-                                                    </p>
-                                                    <p className='text-xs text-wrap text-neutral-500'>
-                                                        Unit:{' '}
-                                                        <span className='text-neutral-500'>
-                                                            {item.units ?? '--'}
-                                                        </span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                                            </CardContent>
+                                        </Card>
+                                    </Link>
                                 </Button>
                             ))}
                         </div>

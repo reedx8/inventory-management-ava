@@ -60,7 +60,7 @@ export default function Contact() {
                         <div className='flex flex-wrap gap-3'>
                             {data.map((vendor) => (
                                 <Card
-                                    className='w-full h-[90px] py-1 hover:-translate-y-2 hover:bg-neutral-50 duration-300 shadow-md'
+                                    className='w-full h-[90px] py-1 hover:-translate-y-1 hover:bg-neutral-50 duration-300 shadow-md'
                                     key={vendor.id}
                                 >
                                     <CardContent className='grid grid-cols-[auto_1fr] gap-8'>

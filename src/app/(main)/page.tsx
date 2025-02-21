@@ -309,7 +309,7 @@ function miniStockCards() {
     return (
         <div className='flex flex-col items-center'>
             <div className='text-5xl text-myBrown drop-shadow-sm'>0</div>
-            <p className='flex gap-1 text-sm'>
+            <p className='flex gap-1 text-sm items-center'>
                 <Box width={18} className='text-myBrown' />
                 Items
             </p>
