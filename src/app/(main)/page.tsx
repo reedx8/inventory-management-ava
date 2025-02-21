@@ -85,15 +85,13 @@ const invSchedule = [
 ];
 
 export default function Home() {
-    const [bakeryDueTodayCount, setBakeryDueTodayCount] = useState<
-        number | string
-    >('--');
-    const [itemCount, setItemCount] = useState<number | string>('--');
+    const [bakeryDueTodayCount, setBakeryDueTodayCount] = useState<number>(0);
+    const [itemCount, setItemCount] = useState<number>(0);
     // const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const getBakeryDueTodayCounts = async () => {
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             try {
                 const response = await fetch(
                     `api/v1/dashboard?fetch=bakeryDueToday&timezone=${timezone}`
@@ -104,7 +102,7 @@ export default function Home() {
                     throw new Error(result.error);
                 }
                 // console.log('success');
-                setBakeryDueTodayCount(result.data[0].count);
+                setBakeryDueTodayCount(result.data[0]?.count ?? 0);
             } catch (error) {
                 const err = error as Error;
                 console.log(err);
@@ -121,7 +119,7 @@ export default function Home() {
                 if (!response.ok) {
                     throw new Error(result.error);
                 }
-                setItemCount(result.data[0].count);
+                setItemCount(result.data[0]?.count ?? 0);
             } catch (error) {
                 const err = error as Error;
                 console.log(err.message);
@@ -289,12 +287,10 @@ function miniOrderCards(bakeryDueTodayCount: number | string) {
                     </div>
                     <div className='text-center'>
                         <p className='text-5xl text-myBrown drop-shadow-sm'>
-                            {type.count}{' '}
+                            {type.count ?? 0}
                         </p>
                         <div className='text-sm flex items-center justify-center gap-1'>
-                            {type.icon ? (
-                                type.icon
-                            ) : (
+                            {type.icon ?? (
                                 <Box width={18} className='text-myBrown' />
                             )}
                             Items
