@@ -67,6 +67,7 @@ export type CronCategory = (typeof CRON_CATEGORIES)[number];
 export const MILK_BREAD_VENDORS = ['Petes Milk', 'Grand Central'] as const;
 export type MilkBreadVendor = (typeof MILK_BREAD_VENDORS)[number];
 
+// Used on contact page
 export type VendorContact = {
     id: number;
     name: string;
@@ -74,4 +75,19 @@ export type VendorContact = {
     phone: string | undefined;
     logo: string | undefined;
     website: string | undefined;
+};
+
+// Used on manage page
+export type ItemInfo = {
+    id: number;
+    name: string;
+    vendor_name: string | undefined;
+    is_active: boolean;
+    list_price: number;
+    units: string | undefined;
+    is_waste_tracked: boolean;
+    invoice_categ: string | undefined;
+    store_categ: string | undefined;
+    cron_categ: string | undefined;
+    picture: string | undefined;
 };

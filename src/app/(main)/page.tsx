@@ -85,10 +85,9 @@ const invSchedule = [
 ];
 
 export default function Home() {
-    const [bakeryDueTodayCount, setBakeryDueTodayCount] = useState<
-        number | undefined
-    >();
+    const [bakeryDueTodayCount, setBakeryDueTodayCount] = useState<number>(0);
     const [itemCount, setItemCount] = useState<number | undefined>();
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const getBakeryDueTodayCounts = async () => {
@@ -101,13 +100,14 @@ export default function Home() {
                 if (!response.ok) {
                     throw new Error(result.error);
                 }
-                // console.log("success")
+                // console.log('success');
                 setBakeryDueTodayCount(result.data[0].count);
             } catch (error) {
                 const err = error as Error;
                 console.log(err);
                 setBakeryDueTodayCount(0);
             }
+            setIsLoading(false);
         };
         const getItemCount = async () => {
             try {
@@ -129,13 +129,17 @@ export default function Home() {
         getItemCount();
     }, []);
     // console.log(dueTodayCount)
+    // console.log(bakeryDueTodayCount);
 
     return (
         <main>
             <HeaderBar pageName={'Home'} />
             <section className='flex justify-between items-center rounded-xl shadow-md border bg-white p-4 mt-2 text-black/80'>
                 <div>
-                    <h2 className='text-md'>Inventory Management System <span className='text-neutral-400 text-sm'>(IMS)</span></h2>
+                    <h2 className='text-md'>
+                        Inventory Management System{' '}
+                        <span className='text-neutral-400 text-sm'>(IMS)</span>
+                    </h2>
                 </div>
                 <div className='flex flex-col items-end'>
                     <h2 className='flex items-center'>
@@ -145,13 +149,15 @@ export default function Home() {
                     <h2 className='flex items-center'>
                         <Box width={17} className='mr-1 text-myBrown' />
                         Item Count:
-                        {itemCount && <span className='ml-1 text-lg'>{itemCount}</span>}
+                        {itemCount && (
+                            <span className='ml-1 text-lg'>{itemCount}</span>
+                        )}
                     </h2>
                 </div>
             </section>
             <section className='flex flex-col gap-2 mt-4'>
                 <h2 className='text-2xl flex'>Due Today {scheduleBtn()}</h2>
-                {bakeryDueTodayCount && (
+                {!isLoading && (
                     <div className='flex flex-wrap gap-3 sm:grid sm:grid-cols-[auto_1fr] sm:gap-3'>
                         <Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
                             <CardHeader className='text-center'>
@@ -281,7 +287,9 @@ function miniOrderCards(bakeryDueTodayCount: number | undefined) {
                         </div>
                     </div>
                     <div className='text-center'>
-                        <p className='text-5xl text-myBrown drop-shadow-sm'>{type.count} </p>
+                        <p className='text-5xl text-myBrown drop-shadow-sm'>
+                            {type.count}{' '}
+                        </p>
                         <div className='text-sm flex items-center justify-center gap-1'>
                             {type.icon ? (
                                 type.icon
@@ -300,7 +308,10 @@ function miniStockCards() {
     return (
         <div className='flex flex-col items-center'>
             <div className='text-5xl text-myBrown drop-shadow-sm'>0</div>
-            <p className='flex gap-1 text-sm'><Box width={18} className='text-myBrown' />Items</p>
+            <p className='flex gap-1 text-sm'>
+                <Box width={18} className='text-myBrown' />
+                Items
+            </p>
         </div>
     );
 }

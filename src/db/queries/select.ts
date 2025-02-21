@@ -591,3 +591,38 @@ export async function getItemCount() {
         };
     }
 }
+
+export async function getAllItems() {
+    try {
+        const result = await db
+            .select({
+                id: itemsTable.id,
+                name: itemsTable.name,
+                vendor_name: vendorsTable.name,
+                is_active: itemsTable.is_active,
+                list_price: itemsTable.list_price,
+                units: itemsTable.units,
+                is_waste_tracked: itemsTable.is_waste_tracked,
+                invoice_categ: itemsTable.invoice_categ,
+                store_categ: itemsTable.store_categ,
+                cron_categ: itemsTable.cron_categ,
+                picture: itemsTable.picture,
+            })
+            .from(itemsTable)
+            .innerJoin(vendorsTable, eq(itemsTable.vendor_id, vendorsTable.id))
+            .orderBy(asc(itemsTable.name));
+
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
+        };
+    }
+}

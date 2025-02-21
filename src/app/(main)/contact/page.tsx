@@ -35,7 +35,7 @@ export default function Contact() {
         getVendorContacts();
     }, []);
 
-    console.log('data: ', data);
+    // console.log('data: ', data);
 
     return (
         <main>
@@ -56,7 +56,7 @@ export default function Contact() {
                     </div>
                 )}
                 {!isLoading && data && data.length > 0 && (
-                    <ScrollArea className='h-[70vh] overflow-y-auto py-3'>
+                    <ScrollArea className='h-[60vh] sm:h-[70vh] md:h-[80vh] overflow-y-auto py-3 pr-3'>
                         <div className='flex flex-wrap gap-3'>
                             {data.map((vendor) => (
                                 <Card

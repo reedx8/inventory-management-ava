@@ -193,7 +193,7 @@ export default function SearchBar() {
                                                     variant='secondary'
                                                     className='text-xs text-myDarkbrown font-light bg-myBrown'
                                                 >
-                                                    {item.store_categ}
+                                                    {item.store_categ ?? ''}
                                                 </Badge>
                                             </h2>
                                             <p className='text-xs text-neutral-500'>

@@ -43,6 +43,7 @@ export const itemsTable = pgTable(
         is_active: boolean('is_active').notNull().default(true), // whether item is active or not for all stores
         // is_active_for_store: jsonb('is_active_for_store'), // Store JSON mapping of store IDs to active status, to activate/deactivate items per store (future feature)
         // store_categories: jsonb('store_categories'), // Store JSON mapping of store IDs to store_categ, to categorize items per store (future feature)
+        picture: text('picture'),
         created_at: timestamp('created_at', {
             precision: 3,
             withTimezone: true,
