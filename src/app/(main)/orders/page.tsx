@@ -27,7 +27,7 @@ export default function Orders() {
             setTimeout(() => {
                 setIsLoading(false);
                 setData([]);
-            }, 10000);
+            }, 2000);
         });
         // myPromise.then(() => setIsLoading(false));
     }, []);
