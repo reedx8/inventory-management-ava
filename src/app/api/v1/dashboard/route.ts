@@ -35,7 +35,16 @@ export async function GET(request: NextRequest) {
         if (!response.success) {
             return NextResponse.json(response, { status: 400 });
         }
-        return NextResponse.json(response, { status: 200 });
+        // return NextResponse.json(response, { status: 200 });
+
+        // should prevent netlify from caching this response
+        return new NextResponse(JSON.stringify(response), {
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store, no-cache, must-revalidate',
+                Pragma: 'no-cache',
+            },
+        });
     } catch (error) {
         const err = error as Error;
         return NextResponse.json({ error: err.message }, { status: 500 });
