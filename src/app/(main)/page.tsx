@@ -1,10 +1,9 @@
-'use client'; // needed for Autoplay
+'use client';
 import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
@@ -15,25 +14,18 @@ import {
 } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // import { Separator } from "@/components/ui/separator"
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-} from '@/components/ui/carousel';
-import {
-    ChevronRight,
-    CalendarDays,
-    Box,
-    Cake,
-    ChevronDown,
-    Store,
-} from 'lucide-react';
-import Autoplay from 'embla-carousel-autoplay';
-import { useEffect, useMemo, useRef, useState } from 'react';
+// import {
+//     Carousel,
+//     CarouselContent,
+//     CarouselItem,
+// } from '@/components/ui/carousel';
+import { CalendarDays, Box, Cake, ChevronDown, Store } from 'lucide-react';
+// import Autoplay from 'embla-carousel-autoplay';
+import { useEffect, useState } from 'react';
 import { HeaderBar, todaysDay } from '@/components/header-bar';
-import { title } from 'process';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
+// import { title } from 'process';
+// import { Separator } from '@/components/ui/separator';
+// import { Skeleton } from '@/components/ui/skeleton';
 
 const orderSchedule = [
     {
@@ -94,43 +86,69 @@ export default function Home() {
     // const todaysDate : string = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
-        const getBakeryDueTodayCounts = async () => {
+        const getDashboardData = async () => {
             try {
-                const response = await fetch(
+                const bakeryResponse = await fetch(
                     `api/v1/dashboard?fetch=bakeryDueToday`
                 );
-                let result = await response.json();
+                let bakeryResult = await bakeryResponse.json();
 
-                if (!response.ok) {
-                    throw new Error(result.error);
-                }
-                // console.log('success');
-                setBakeryDueTodayCount(result.data[0].count);
-            } catch (error) {
-                const err = error as Error;
-                console.log(err);
-                setBakeryDueTodayCount(0);
-            }
-            // setIsLoading(false);
-        };
-        const getItemCount = async () => {
-            try {
-                const response = await fetch(
+                const itemResponse = await fetch(
                     'api/v1/dashboard?fetch=itemCount'
                 );
-                const result = await response.json();
-                if (!response.ok) {
-                    throw new Error(result.error);
+                const itemResult = await itemResponse.json();
+
+                if (!bakeryResponse.ok || !itemResponse.ok) {
+                    throw new Error(
+                        'Dashboard: Error in either bakery or item response'
+                    );
                 }
-                setItemCount(result.data[0].count);
+                setBakeryDueTodayCount(bakeryResult.data[0].count);
+                setItemCount(itemResult.data[0].count);
             } catch (error) {
                 const err = error as Error;
-                console.log(err.message);
+                console.log('Dashboard: ' + err);
+                setBakeryDueTodayCount(0);
                 setItemCount(0);
             }
         };
-        getBakeryDueTodayCounts();
-        getItemCount();
+        getDashboardData();
+        // const getBakeryDueTodayCounts = async () => {
+        //     try {
+        //         const response = await fetch(
+        //             `api/v1/dashboard?fetch=bakeryDueToday`
+        //         );
+        //         let result = await response.json();
+
+        //         if (!response.ok) {
+        //             throw new Error(result.error);
+        //         }
+        //         // console.log('success');
+        //         setBakeryDueTodayCount(result.data[0].count);
+        //     } catch (error) {
+        //         const err = error as Error;
+        //         console.log(err);
+        //         setBakeryDueTodayCount(0);
+        //     }
+        // };
+        // const getItemCount = async () => {
+        //     try {
+        //         const response = await fetch(
+        //             'api/v1/dashboard?fetch=itemCount'
+        //         );
+        //         const result = await response.json();
+        //         if (!response.ok) {
+        //             throw new Error(result.error);
+        //         }
+        //         setItemCount(result.data[0].count);
+        //     } catch (error) {
+        //         const err = error as Error;
+        //         console.log(err.message);
+        //         setItemCount(0);
+        //     }
+        // };
+        // getBakeryDueTodayCounts();
+        // getItemCount();
     }, []);
     // console.log(dueTodayCount)
     // console.log(bakeryDueTodayCount);
@@ -151,19 +169,19 @@ export default function Home() {
                         <Store width={17} className='mr-1 text-myBrown' /> Store
                         Locations: <span className='ml-1 text-lg'>4</span>
                     </h2>
-                    {itemCount && (<h2 className='flex items-center'>
+                    <h2 className='flex items-center'>
                         <Box width={17} className='mr-1 text-myBrown' />
                         Item Count:
                         <span className='ml-1 text-lg'>
                             {itemCount ? itemCount : '--'}
                         </span>
-                    </h2>)}
+                    </h2>
                 </div>
             </section>
             <section className='flex flex-col gap-2 mt-4'>
                 <h2 className='text-2xl flex'>Due Today {scheduleBtn()}</h2>
                 <div className='flex flex-wrap gap-3 sm:grid sm:grid-cols-[auto_1fr] sm:gap-3'>
-                    {bakeryDueTodayCount && (<Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
+                    <Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
                         <CardHeader className='text-center'>
                             <CardTitle className='font-normal'>
                                 Orders
@@ -175,7 +193,7 @@ export default function Home() {
                         <CardContent>
                             {miniOrderCards(bakeryDueTodayCount)}
                         </CardContent>
-                    </Card>)}
+                    </Card>
                     <Card className='h-full shadow-md flex flex-col items-center'>
                         <CardHeader className='text-center'>
                             <CardTitle className='font-normal'>
