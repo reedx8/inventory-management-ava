@@ -59,6 +59,8 @@ export default function Orders() {
                         width={250}
                         height={250}
                         className='drop-shadow-lg rounded-3xl'
+                        style={{width: 250, height: 250}}
+                        priority
                     />
                     <p className='text-2xl text-gray-600'>
                         All Orders Completed!

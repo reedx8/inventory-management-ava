@@ -199,7 +199,7 @@ export function AppSidebar() {
         <Sidebar collapsible='icon' variant='floating'>
             <SidebarHeader>
                 <Link href='/' className='pointer-events-none'>
-                    <Image src={menuLogo} alt='menu logo' />
+                    <Image src={menuLogo} alt='menu logo' priority />
                 </Link>
             </SidebarHeader>
             <SidebarContent>
