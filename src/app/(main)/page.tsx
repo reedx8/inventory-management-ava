@@ -86,69 +86,43 @@ export default function Home() {
     // const todaysDate : string = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
-        const getDashboardData = async () => {
+        const getBakeryDueTodayCounts = async () => {
             try {
                 const bakeryResponse = await fetch(
                     `api/v1/dashboard?fetch=bakeryDueToday`
                 );
                 let bakeryResult = await bakeryResponse.json();
 
+                if (!bakeryResponse.ok) {
+                    throw new Error(bakeryResult.error);
+                }
+                console.log("bakeryResult: " + bakeryResult.data[0].count);
+                setBakeryDueTodayCount(bakeryResult.data[0].count);
+            } catch (error) {
+                const err = error as Error;
+                console.log(err);
+                setBakeryDueTodayCount(0);
+            }
+        };
+        const getItemCount = async () => {
+            try {
                 const itemResponse = await fetch(
                     'api/v1/dashboard?fetch=itemCount'
                 );
                 const itemResult = await itemResponse.json();
-
-                if (!bakeryResponse.ok || !itemResponse.ok) {
-                    throw new Error(
-                        'Dashboard: Error in either bakery or item response'
-                    );
+                if (!itemResponse.ok) {
+                    throw new Error(itemResult.error);
                 }
-                setBakeryDueTodayCount(bakeryResult.data[0].count);
+                console.log("itemResult: " + itemResult.data[0].count);
                 setItemCount(itemResult.data[0].count);
             } catch (error) {
                 const err = error as Error;
-                console.log('Dashboard: ' + err);
-                setBakeryDueTodayCount(0);
+                console.log(err.message);
                 setItemCount(0);
             }
         };
-        getDashboardData();
-        // const getBakeryDueTodayCounts = async () => {
-        //     try {
-        //         const response = await fetch(
-        //             `api/v1/dashboard?fetch=bakeryDueToday`
-        //         );
-        //         let result = await response.json();
-
-        //         if (!response.ok) {
-        //             throw new Error(result.error);
-        //         }
-        //         // console.log('success');
-        //         setBakeryDueTodayCount(result.data[0].count);
-        //     } catch (error) {
-        //         const err = error as Error;
-        //         console.log(err);
-        //         setBakeryDueTodayCount(0);
-        //     }
-        // };
-        // const getItemCount = async () => {
-        //     try {
-        //         const response = await fetch(
-        //             'api/v1/dashboard?fetch=itemCount'
-        //         );
-        //         const result = await response.json();
-        //         if (!response.ok) {
-        //             throw new Error(result.error);
-        //         }
-        //         setItemCount(result.data[0].count);
-        //     } catch (error) {
-        //         const err = error as Error;
-        //         console.log(err.message);
-        //         setItemCount(0);
-        //     }
-        // };
-        // getBakeryDueTodayCounts();
-        // getItemCount();
+        getBakeryDueTodayCounts();
+        getItemCount();
     }, []);
     // console.log(dueTodayCount)
     // console.log(bakeryDueTodayCount);
@@ -160,8 +134,8 @@ export default function Home() {
             <section className='flex justify-between items-center rounded-xl shadow-md border bg-white p-4 mt-2 text-black/80'>
                 <div>
                     <h2 className='text-md'>
-                        Inventory Management System{' '}
-                        <span className='text-neutral-400 text-sm'>(IMS)</span>
+                        Inventory Management System
+                        <span className='text-neutral-400 text-sm'> (IMS)</span>
                     </h2>
                 </div>
                 <div className='flex flex-col items-end'>

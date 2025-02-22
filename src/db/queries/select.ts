@@ -554,7 +554,8 @@ export async function getBakeryDueTodayCount() {
                 and(
                     sql`(EXTRACT(DAY FROM DATE(created_at AT TIME ZONE 'PST')) = EXTRACT(DAY FROM CURRENT_DATE AT TIME ZONE 'PST'))`,
                     sql`(EXTRACT(MONTH FROM DATE(created_at AT TIME ZONE 'PST')) = EXTRACT(MONTH FROM CURRENT_DATE AT TIME ZONE 'PST'))`,
-                    sql`(EXTRACT(YEAR FROM DATE(created_at AT TIME ZONE 'PST')) = EXTRACT(YEAR FROM CURRENT_DATE AT TIME ZONE 'PST'))`
+                    sql`(EXTRACT(YEAR FROM DATE(created_at AT TIME ZONE 'PST')) = EXTRACT(YEAR FROM CURRENT_DATE AT TIME ZONE 'PST'))`,
+                    isNull(storeBakeryOrdersTable.submitted_at)
                     // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                 )
             );
