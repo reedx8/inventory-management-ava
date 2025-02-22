@@ -151,19 +151,19 @@ export default function Home() {
                         <Store width={17} className='mr-1 text-myBrown' /> Store
                         Locations: <span className='ml-1 text-lg'>4</span>
                     </h2>
-                    <h2 className='flex items-center'>
+                    {itemCount && (<h2 className='flex items-center'>
                         <Box width={17} className='mr-1 text-myBrown' />
                         Item Count:
                         <span className='ml-1 text-lg'>
                             {itemCount ? itemCount : '--'}
                         </span>
-                    </h2>
+                    </h2>)}
                 </div>
             </section>
             <section className='flex flex-col gap-2 mt-4'>
                 <h2 className='text-2xl flex'>Due Today {scheduleBtn()}</h2>
                 <div className='flex flex-wrap gap-3 sm:grid sm:grid-cols-[auto_1fr] sm:gap-3'>
-                    <Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
+                    {bakeryDueTodayCount && (<Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
                         <CardHeader className='text-center'>
                             <CardTitle className='font-normal'>
                                 Orders
@@ -175,7 +175,7 @@ export default function Home() {
                         <CardContent>
                             {miniOrderCards(bakeryDueTodayCount)}
                         </CardContent>
-                    </Card>
+                    </Card>)}
                     <Card className='h-full shadow-md flex flex-col items-center'>
                         <CardHeader className='text-center'>
                             <CardTitle className='font-normal'>
