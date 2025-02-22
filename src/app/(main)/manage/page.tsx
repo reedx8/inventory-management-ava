@@ -12,14 +12,14 @@ import placeholder from '/public/placeholder.jpg';
 import { Skeleton } from '@/components/ui/skeleton';
 import redDot from '/public/icons/redDot.png';
 import greenDot from '/public/icons/greenDot.png';
-import verticalLine from '/public/verticalLine.png';
+// import verticalLine from '/public/verticalLine.png';
 import { Badge } from '@/components/ui/badge';
 import {
     Beef,
     Coffee,
     Dessert,
     Milk,
-    Search,
+    // Search,
     Wheat,
     Utensils,
 } from 'lucide-react';
@@ -48,9 +48,9 @@ export default function Manage() {
             return <Utensils className={iconStyle} />;
         }
     }
-    const openItem = (id: number) => {
-        console.log(`${id}: item clicked`);
-    };
+    // const openItem = (id: number) => {
+    //     console.log(`${id}: item clicked`);
+    // };
 
     useEffect(() => {
         const fetchAllItems = async () => {
@@ -82,9 +82,9 @@ export default function Manage() {
             </section>
             <section>
                 {isLoading && !data && (
-                    <div className='flex flex-wrap gap-3'>
-                        <div className='flex flex-col space-y-3'>
-                            <Skeleton className='h-[75px] w-full rounded-xl' />
+                    <div className='flex gap-3 py-3 pr-3'>
+                        <div className='flex flex-col space-y-2 w-full'>
+                            <Skeleton className='h-[90px] w-full rounded-xl' />
                             <div className='space-y-2'>
                                 <Skeleton className='h-4 w-[80%]' />
                                 <Skeleton className='h-4 w-[60%]' />

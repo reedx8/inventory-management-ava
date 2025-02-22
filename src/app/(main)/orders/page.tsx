@@ -27,7 +27,7 @@ export default function Orders() {
             setTimeout(() => {
                 setIsLoading(false);
                 setData([]);
-            }, 2000);
+            }, 10000);
         });
         // myPromise.then(() => setIsLoading(false));
     }, []);
@@ -40,10 +40,24 @@ export default function Orders() {
             </section>
             {isLoading && !data && (
                 <section className='flex flex-col gap-3'>
-                    <Skeleton className='h-12 w-[80%]' />
-                    <Skeleton className='h-6 w-[80%]' />
-                    <Skeleton className='h-6 w-[65%]' />
-                    <Skeleton className='h-6 w-[50%]' />
+                    <Skeleton className='h-4 w-[14%]' />
+                    <div className='grid grid-cols-4 gap-4 w-full'>
+                        <Skeleton className='h-6 col-span-2' />
+                        <Skeleton className='h-6 col-span-1' />
+                        <Skeleton className='h-6 col-span-1' />
+                    </div>
+                    <Skeleton className='h-4 w-[14%]' />
+                    <div className='grid grid-cols-4 gap-4 w-full'>
+                        <Skeleton className='h-6 col-span-2' />
+                        <Skeleton className='h-6 col-span-1' />
+                        <Skeleton className='h-6 col-span-1' />
+                    </div>
+                    <Skeleton className='h-4 w-[14%]' />
+                    <div className='grid grid-cols-4 gap-4 w-full'>
+                        <Skeleton className='h-6 col-span-2' />
+                        <Skeleton className='h-6 col-span-1' />
+                        <Skeleton className='h-6 col-span-1' />
+                    </div>
                 </section>
             )}
             {!isLoading && data && data?.length > 0 && (
@@ -59,7 +73,7 @@ export default function Orders() {
                         width={250}
                         height={250}
                         className='drop-shadow-lg rounded-3xl'
-                        style={{width: 250, height: 250}}
+                        style={{ width: 250, height: 250 }}
                         priority
                     />
                     <p className='text-2xl text-gray-600'>

@@ -1,25 +1,25 @@
 'use client';
 import PagesNavBar from '@/components/pages-navbar';
 import React, { useState, useEffect } from 'react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+// import {
+//     Table,
+//     TableBody,
+//     TableCell,
+//     TableHead,
+//     TableHeader,
+//     TableRow,
+// } from '@/components/ui/table';
+// import { Input } from '@/components/ui/input';
+// import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    useReactTable,
-} from '@tanstack/react-table';
-import { Dot } from 'lucide-react';
+// import {
+//     flexRender,
+//     getCoreRowModel,
+//     getFilteredRowModel,
+//     getPaginationRowModel,
+//     useReactTable,
+// } from '@tanstack/react-table';
+// import { Dot } from 'lucide-react';
 import noOrdersPic from '/public/illustrations/barista.svg';
 import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
@@ -114,7 +114,8 @@ export default function Stores() {
     useEffect(() => {
         const fetchStoreOrders = async () => {
             try {
-                let regResponse; let bakeryResponse;
+                let regResponse;
+                let bakeryResponse;
 
                 if (userRole === 'admin') {
                     [regResponse, bakeryResponse] = await Promise.all([
@@ -178,10 +179,24 @@ export default function Stores() {
             </section>
             {isLoading && !mergedData && (
                 <section className='flex flex-col gap-3'>
-                    <Skeleton className='h-12 w-[80%]' />
-                    <Skeleton className='h-6 w-[80%]' />
-                    <Skeleton className='h-6 w-[65%]' />
-                    <Skeleton className='h-6 w-[50%]' />
+                    <Skeleton className='h-4 w-[14%]' />
+                    <div className='grid grid-cols-4 gap-4 w-full'>
+                        <Skeleton className='h-6 col-span-2' />
+                        <Skeleton className='h-6 col-span-1' />
+                        <Skeleton className='h-6 col-span-1' />
+                    </div>
+                    <Skeleton className='h-4 w-[14%]' />
+                    <div className='grid grid-cols-4 gap-4 w-full'>
+                        <Skeleton className='h-6 col-span-2' />
+                        <Skeleton className='h-6 col-span-1' />
+                        <Skeleton className='h-6 col-span-1' />
+                    </div>
+                    <Skeleton className='h-4 w-[14%]' />
+                    <div className='grid grid-cols-4 gap-4 w-full'>
+                        <Skeleton className='h-6 col-span-2' />
+                        <Skeleton className='h-6 col-span-1' />
+                        <Skeleton className='h-6 col-span-1' />
+                    </div>
                 </section>
             )}
             {!isLoading && mergedData && mergedData?.length > 0 && (

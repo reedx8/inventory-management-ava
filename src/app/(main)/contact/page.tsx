@@ -45,12 +45,12 @@ export default function Contact() {
             </section>
             <section>
                 {isLoading && !data && (
-                    <div className='flex gap-3'>
+                    <div className='flex gap-3 pt-3 pr-3'>
                         <div className='flex flex-col space-y-2 w-full'>
-                            <Skeleton className='h-[75px] w-[100%] rounded-xl' />
+                            <Skeleton className='h-[90px] w-full rounded-xl' />
                             <div className='space-y-2'>
-                                <Skeleton className='h-4 w-[85%]' />
                                 <Skeleton className='h-4 w-[80%]' />
+                                <Skeleton className='h-4 w-[60%]' />
                             </div>
                         </div>
                     </div>

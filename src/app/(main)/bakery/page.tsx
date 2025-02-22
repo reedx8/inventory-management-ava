@@ -27,13 +27,7 @@ import { Button } from '@/components/ui/button';
 import SheetTemplate from '@/components/sheet/sheet-template';
 // import { zodResolver } from '@zod/form';
 // import { useForm } from 'react-hook-form';
-import {
-    Check,
-    CircleOff,
-    ListCheck,
-    Pencil,
-    Send,
-} from 'lucide-react';
+import { Check, CircleOff, ListCheck, Pencil, Send } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -468,10 +462,24 @@ export default function Bakery() {
             <section className='mb-6' />
             {isLoading && !data && (
                 <section className='flex flex-col gap-3'>
-                    <Skeleton className='h-12 w-[80%]' />
-                    <Skeleton className='h-6 w-[80%]' />
-                    <Skeleton className='h-6 w-[65%]' />
-                    <Skeleton className='h-6 w-[50%]' />
+                    <Skeleton className='h-4 w-[14%]' />
+                    <div className='grid grid-cols-4 gap-4 w-full'>
+                        <Skeleton className='h-6 col-span-2' />
+                        <Skeleton className='h-6 col-span-1' />
+                        <Skeleton className='h-6 col-span-1' />
+                    </div>
+                    <Skeleton className='h-4 w-[14%]' />
+                    <div className='grid grid-cols-4 gap-4 w-full'>
+                        <Skeleton className='h-6 col-span-2' />
+                        <Skeleton className='h-6 col-span-1' />
+                        <Skeleton className='h-6 col-span-1' />
+                    </div>
+                    <Skeleton className='h-4 w-[14%]' />
+                    <div className='grid grid-cols-4 gap-4 w-full'>
+                        <Skeleton className='h-6 col-span-2' />
+                        <Skeleton className='h-6 col-span-1' />
+                        <Skeleton className='h-6 col-span-1' />
+                    </div>
                 </section>
             )}
             {!isLoading && data && data?.length > 0 && (
@@ -550,7 +558,8 @@ export default function Bakery() {
                                     Total items due: {data.length}
                                 </p>
                                 <p className='text-neutral-500/70 text-xs'>
-                                    Orders from stores are due everyday by 9 A.M.
+                                    Orders from stores are due everyday by 9
+                                    A.M.
                                 </p>
                             </div>
                         }
