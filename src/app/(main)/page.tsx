@@ -91,12 +91,12 @@ export default function Home() {
                 const bakeryResponse = await fetch(
                     `api/v1/dashboard?fetch=bakeryDueToday`
                 );
-                let bakeryResult = await bakeryResponse.json();
+                const bakeryResult = await bakeryResponse.json();
 
                 if (!bakeryResponse.ok) {
                     throw new Error(bakeryResult.error);
                 }
-                console.log("bakeryResult: " + bakeryResult.data[0].count);
+                console.log('bakeryResult: ' + bakeryResult.data[0].count);
                 setBakeryDueTodayCount(bakeryResult.data[0].count);
             } catch (error) {
                 const err = error as Error;
@@ -113,7 +113,7 @@ export default function Home() {
                 if (!itemResponse.ok) {
                     throw new Error(itemResult.error);
                 }
-                console.log("itemResult: " + itemResult.data[0].count);
+                console.log('itemResult: ' + itemResult.data[0].count);
                 setItemCount(itemResult.data[0].count);
             } catch (error) {
                 const err = error as Error;

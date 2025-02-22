@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
 import { getBakeryDueTodayCount, getItemCount } from '@/db/queries/select';
+export const dynamic = 'force-dynamic'; // no caching
 
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
