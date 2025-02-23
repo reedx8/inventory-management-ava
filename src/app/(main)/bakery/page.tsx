@@ -1,7 +1,5 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import noPastriesPic from '/public/illustrations/cooking.svg';
-import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
 import { BakeryOrder } from '@/app/(main)/bakery/types';
 import { BakeryColumns } from '@/components/table/columns';
@@ -38,6 +36,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { STORE_LOCATIONS } from '@/components/types';
+import { NoPastriesDue } from '@/components/placeholders';
 
 // export const dummyData: BakeryOrder[] = [
 //     {
@@ -567,20 +566,8 @@ export default function Bakery() {
                 </section>
             )}
             {!isLoading && data && data?.length === 0 && (
-                <section className='flex flex-col items-center justify-center gap-2 mb-4'>
-                    <Image
-                        src={noPastriesPic}
-                        alt='no pastries pic'
-                        width={250}
-                        height={250}
-                        style={{ width: '250px', height: '250px' }}
-                        className='drop-shadow-lg'
-                    />
-                    <p className='text-2xl text-gray-600'>No Pastries Due!</p>
-                    <p className='text-sm text-gray-400'>
-                        No pastries are currently due
-                    </p>
-                    {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
+                <section className='flex justify-center'>
+                    <NoPastriesDue />
                 </section>
             )}
         </main>

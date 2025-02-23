@@ -1,27 +1,17 @@
-import PagesNavBar from "@/components/pages-navbar";
-import { HeaderBar } from "@/components/header-bar";
-import noStoresPic from '/public/illustrations/underConstruction.svg';
-import Image from 'next/image';
+import PagesNavBar from '@/components/pages-navbar';
+import { HeaderBar } from '@/components/header-bar';
+import { ComingSoon } from '@/components/placeholders';
 
 export default function ManageStores() {
     return (
         <main>
             <HeaderBar pageName={'Manage'} />
             <section>
-                <PagesNavBar/>
+                <PagesNavBar />
             </section>
-            <section className='flex flex-col items-center justify-center gap-2 mb-4'>
-                <Image
-                    src={noStoresPic}
-                    alt='no stores pic'
-                    width={400}
-                    height={400}
-                />
-                <p className='text-2xl text-gray-600'>Coming Soon</p>
-                <p className='text-sm text-gray-400'>
-                    No stores have been created yet
-                </p>
+            <section className='flex justify-center'>
+                <ComingSoon subtitle='There are no stores added yet' />
             </section>
         </main>
     );
-};
+}

@@ -19,7 +19,7 @@ import {
     useReactTable,
 } from '@tanstack/react-table';
 // import { Dot } from 'lucide-react';
-import noStockPic from '/public/illustrations/empty.svg';
+// import noStockPic from '/public/illustrations/empty.svg';
 import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
 import { useAuth } from '@/contexts/auth-context';
@@ -29,6 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import StockTable from './components/stock-table';
 import TrackWasteSheet from './components/track-waste-sheet';
 import MilkBreadSheet from './components/milk-bread-sheet';
+import { NoStockDue } from '@/components/placeholders';
 
 interface StockItem {
     id: number;
@@ -188,18 +189,8 @@ export default function Stock() {
             )}
             {!isLoading && data?.length === 0 && (
                 // <div className='flex flex-col justify-center'>
-                <section className='flex flex-col items-center justify-center gap-2 mb-4'>
-                    <Image
-                        src={noStockPic}
-                        alt='no stock counts due today pic'
-                        width={300}
-                        height={300}
-                        className='drop-shadow-lg'
-                    />
-                    <p className='text-2xl text-gray-600'>No Stock Due!</p>
-                    <p className='text-sm text-gray-400'>
-                        All stock counts have been sent
-                    </p>
+                <section className='flex justify-center'>
+                    <NoStockDue />
                 </section>
                 // </div>
             )}
