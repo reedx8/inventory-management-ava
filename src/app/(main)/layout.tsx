@@ -14,7 +14,7 @@ export default function MainLayout({
             <SidebarProvider>
                 <AppSidebar />
                 <SidebarTrigger />
-                <div className='w-full min-h-screen ml-2 mr-5 my-5'>
+                <div className='w-full min-h-screen pl-2 pr-5 py-5'>
                     {children}
                 </div>
                 <Toaster />
