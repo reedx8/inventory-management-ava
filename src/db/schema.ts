@@ -483,35 +483,62 @@ export const vendorItemsTable = pgTable(
     }
 );
 
-// Pars table for tracking daily/weekly par values, ie par = replacement level/value
-// TODO: may need a unique index/primary key on store_id, item_id (+ maybe day_of_week), or primary key on item_id and store_id
-export const storeParLevelsTable = pgTable(
-    'store_par_levels',
+// May rename to store_items (general use table)
+export const parsTable = pgTable('pars', {
+    id: serial('id').primaryKey(),
+    item_id: integer('item_id')
+        .notNull()
+        .references(() => itemsTable.id, { onDelete: 'cascade' }),
+    store_id: integer('store_id').references(() => storesTable.id),
+});
+
+// Item's par value for each day of week (for each store)
+export const parsDayTable = pgTable(
+    'pars_day',
     {
         id: serial('id').primaryKey(),
-        item_id: integer('item_id')
+        pars_id: integer('pars_id')
             .notNull()
-            .references(() => itemsTable.id, { onDelete: 'cascade' }),
-        store_id: integer('store_id').references(() => storesTable.id),
-        min_qty: decimal('min_qty', { precision: 10, scale: 2 }).notNull(), // Absolute minimum stock you want to have, Emergency buffer, should rarely hit this level
-        max_qty: decimal('max_qty', { precision: 10, scale: 2 }).notNull(),
-        reorder_point: decimal('reorder_point', { precision: 10, scale: 2 }), // Usually HIGHER than min_qty, Accounts for "lead time" (time between ordering and receiving)
-        day_of_week: integer('day_of_week').notNull(), // (0-6, where 0 is Sunday)
-        changed_at: timestamp('changed_at', {
-            precision: 3,
-            withTimezone: true,
-        })
-            .notNull()
-            .defaultNow(),
+            .references(() => parsTable.id, { onDelete: 'cascade' }),
+        dow: integer('dow').notNull(), // day of week (0-6, where 0 is Sunday)
+        value: decimal('value', { precision: 10, scale: 2 }).notNull(), // par value
     },
     (table) => {
         return [
-            check('positive_min_qty', sql`${table.min_qty} >= 0`),
-            check('positive_max_qty', sql`${table.max_qty} >= 0`),
-            check('positive_reorder_point', sql`${table.reorder_point} >= 0`),
+            check('positive_value', sql`${table.value} >= 0`),
+            check('valid_dow', sql`${table.dow} IN (0, 1, 2, 3, 4, 5, 6)`),
         ];
     }
 );
+// EDIT: deleted for now, this should instead by store_levels and only for implementing min/max_qty and reorder_point. pars and pars_day tables were sued instead for normalization purposes and for direct implementation
+// TODO: may need a unique index/primary key on store_id, item_id (+ maybe day_of_week), or primary key on item_id and store_id
+// export const storeParLevelsTable = pgTable(
+//     'store_par_levels',
+//     {
+//         id: serial('id').primaryKey(),
+//         item_id: integer('item_id')
+//             .notNull()
+//             .references(() => itemsTable.id, { onDelete: 'cascade' }),
+//         store_id: integer('store_id').references(() => storesTable.id),
+//         min_qty: decimal('min_qty', { precision: 10, scale: 2 }).notNull(), // Absolute minimum stock you want to have, Emergency buffer, should rarely hit this level
+//         max_qty: decimal('max_qty', { precision: 10, scale: 2 }).notNull(),
+//         reorder_point: decimal('reorder_point', { precision: 10, scale: 2 }), // Usually HIGHER than min_qty, Accounts for "lead time" (time between ordering and receiving)
+//         // day_of_week: integer('day_of_week').notNull(), // (0-6, where 0 is Sunday)
+//         changed_at: timestamp('changed_at', {
+//             precision: 3,
+//             withTimezone: true,
+//         })
+//             .notNull()
+//             .defaultNow(),
+//     },
+//     (table) => {
+//         return [
+//             check('positive_min_qty', sql`${table.min_qty} >= 0`),
+//             check('positive_max_qty', sql`${table.max_qty} >= 0`),
+//             check('positive_reorder_point', sql`${table.reorder_point} >= 0`),
+//         ];
+//     }
+// );
 
 // Schedules table for scheduling cron jobs (schedule-type level) (if user-created cron jobs needed). TODO: MAY DELETE (duplicate prurpose essentially to inventory_schedule table)
 export const schedulesTable = pgTable('schedules', {
@@ -597,9 +624,19 @@ export type SelectStore = typeof storesTable.$inferSelect;
 export type InsertVendorItem = typeof vendorItemsTable.$inferInsert;
 export type SelectVendorItem = typeof vendorItemsTable.$inferSelect;
 // export type UpdateVendorItem = typeof vendorItemsTable.$inferUpdate;
-export type InsertStoreParLevels = typeof storeParLevelsTable.$inferInsert;
-export type SelectStoreParLevels = typeof storeParLevelsTable.$inferSelect;
+
+// export type InsertStoreParLevels = typeof storeParLevelsTable.$inferInsert;
+// export type SelectStoreParLevels = typeof storeParLevelsTable.$inferSelect;
 // export type UpdateStoreParLevels = typeof storeParLevelsTable.$inferUpdate;
+
+export type InsertPars = typeof parsTable.$inferInsert;
+export type SelectPars = typeof parsTable.$inferSelect;
+// export type UpdatePars = typeof parsTable.$inferUpdate;
+
+export type InsertParsDay = typeof parsDayTable.$inferInsert;
+export type SelectParsDay = typeof parsDayTable.$inferSelect;
+// export type UpdateParsDay = typeof parsDayTable.$inferUpdate;
+
 export type InsertSchedule = typeof schedulesTable.$inferInsert;
 export type SelectSchedule = typeof schedulesTable.$inferSelect;
 // export type UpdateSchedule = typeof schedulesTable.$inferUpdate;

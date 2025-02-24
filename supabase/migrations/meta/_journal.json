@@ -484,6 +484,13 @@
       "when": 1740093622872,
       "tag": "0068_last_captain_flint",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1740436681048,
+      "tag": "0069_careless_maggott",
+      "breakpoints": true
     }
   ]
 }
