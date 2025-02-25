@@ -20,8 +20,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 //     useReactTable,
 // } from '@tanstack/react-table';
 // import { Dot } from 'lucide-react';
-import noOrdersPic from '/public/illustrations/barista.svg';
-import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
 import { useAuth } from '@/contexts/auth-context';
 import OrderTable from './components/order-table';

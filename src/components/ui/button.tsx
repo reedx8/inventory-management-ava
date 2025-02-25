@@ -19,8 +19,11 @@ const buttonVariants = cva(
         ghost: "hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-50",
         link: "text-neutral-900 underline-offset-4 hover:underline dark:text-neutral-50",
         link2: "",
-        myTheme: "bg-myDarkbrown text-neutral-50 hover:bg-myDarkbrown/90 dark:bg-myDarkbrown dark:text-white dark:hover:bg-myDarkbrown/90",
+        myTheme: "bg-myDarkbrown text-white hover:bg-myDarkbrown/90 dark:bg-myDarkbrown dark:text-white dark:hover:bg-myDarkbrown/90",
         myTheme2: "bg-myBrown text-neutral-900 hover:bg-myBrown/90 dark:bg-myBrown dark:text-neutral-900 dark:hover:bg-myBrown/90",
+        myTheme3: "bg-white text-myDarkbrown hover:bg-myDarkbrown hover:text-white shadow-sm border rounded-full w-fit",
+        myTheme4: "bg-transparent text-myDarkbrown hover:text-myDarkbrown/80 hover:underline",
+        myTheme5: "bg-myDarkbrown text-white hover:bg-myDarkbrown/90 rounded-full shadow-sm w-fit",
       },
       size: {
         default: "h-10 px-4 py-2",

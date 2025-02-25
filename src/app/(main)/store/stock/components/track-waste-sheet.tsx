@@ -56,7 +56,7 @@ export default function TrackWasteSheet() {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant='myTheme'><Trash className='h-4 w-4'/> Track Waste</Button>
+                <Button variant='myTheme3'><Trash className='h-4 w-4'/> Track Waste</Button>
             </SheetTrigger>
             <SheetContent>
                 <SheetHeader>

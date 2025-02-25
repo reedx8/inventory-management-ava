@@ -338,8 +338,8 @@ export default function MilkBreadSheet() {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant='myTheme'>
-                    <Milk className='h-4 w-4' /> Milk / Bread
+                <Button variant='myTheme3'>
+                    <Milk className='h-4 w-4' /> Milk & Bread
                 </Button>
             </SheetTrigger>
             <SheetContent>

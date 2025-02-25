@@ -275,7 +275,7 @@ export default function OrderTable({
                         body: JSON.stringify(bakeryOrders),
                     }
                 );
-                let res = await response.json();
+                const res = await response.json();
 
                 if (!response.ok) {
                     const msg = res.message;
@@ -319,7 +319,7 @@ export default function OrderTable({
                         // body: JSON.stringify(progressOrders),
                     }
                 );
-                let res = await response.json();
+                const res = await response.json();
 
                 if (!response.ok) {
                     const msg = res.message;
@@ -452,7 +452,7 @@ export default function OrderTable({
                                 filteredData.length > 0 && (
                                     <Button
                                         type='submit'
-                                        variant='myTheme'
+                                        variant='myTheme5'
                                         disabled={isSubmitting}
                                     >
                                         Submit <Send />

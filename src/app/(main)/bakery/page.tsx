@@ -488,8 +488,9 @@ export default function Bakery() {
                             title='Edit Completed Orders'
                             trigger={
                                 <Button
-                                    variant='outline'
-                                    className='border-myDarkbrown text-myDarkbrown'
+                                    variant='myTheme4'
+                                    // variant='outline'
+                                    // className='border-myDarkbrown text-myDarkbrown'
                                 >
                                     <Pencil className='' />
                                     Edit
@@ -507,7 +508,7 @@ export default function Bakery() {
                         </SheetTemplate>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant='myTheme' className='w-fit'>
+                                <Button variant='myTheme5'>
                                     <ListCheck />
                                     Batch Complete
                                 </Button>
