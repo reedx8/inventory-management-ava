@@ -50,6 +50,7 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                     and(
                         eq(storeBakeryOrdersTable.store_id, storeId),
                         eq(itemsTable.is_active, true),
+                        sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
                         // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         isNull(storeBakeryOrdersTable.submitted_at)
                         // eq(orderStagesTable.stage_name, 'DUE')
@@ -102,6 +103,7 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                 .where(
                     and(
                         eq(itemsTable.is_active, true),
+                        sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
                         // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         isNull(storeBakeryOrdersTable.submitted_at)
                         // eq(orderStagesTable.stage_name, 'DUE')
@@ -162,8 +164,10 @@ export async function getStoreOrders(store_location_id: string | null) {
                 .where(
                     and(
                         eq(storeOrdersTable.store_id, storeId),
-                        // eq(storeOrdersTable.created_at, sql`<WITHIN THE WEEK>`),
+                        sql`${storeOrdersTable.created_at}
+                            >= now() - interval '72 hours'`,
                         eq(itemsTable.is_active, true)
+                        // eq(storeOrdersTable.created_at, sql`<WITHIN THE WEEK>`),
                         // eq(orderStagesTable.stage_name, 'DUE')
                     )
                 );
@@ -208,7 +212,13 @@ export async function getStoreOrders(store_location_id: string | null) {
                     storesTable,
                     eq(storesTable.id, storeOrdersTable.store_id)
                 )
-                .where(and(eq(itemsTable.is_active, true)));
+                .where(
+                    and(
+                        eq(itemsTable.is_active, true),
+                        sql`${storeOrdersTable.created_at}
+                            >= now() - interval '72 hours'`
+                    )
+                );
             // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
 
             return {
@@ -316,7 +326,7 @@ export async function getMilkBreadStock(store_location_id: string) {
                 eq(itemsTable.is_active, true),
                 eq(vendorItemsTable.is_active, true),
                 isNull(stockTable.submitted_at),
-                gt(stockTable.created_at, sql`now() - interval '1 day'`),
+                gt(stockTable.created_at, sql`now() - interval '2 day'`),
                 or(
                     eq(itemsTable.cron_categ, 'MILK'),
                     eq(itemsTable.cron_categ, 'BREAD')
@@ -385,7 +395,9 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                     and(
                         eq(itemsTable.is_active, true),
                         eq(storeBakeryOrdersTable.store_id, storeId),
-                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
+                        sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
+                        // Only works up to 4pm, after that it will return no results:
+                        // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         gt(sql`${storeBakeryOrdersTable.order_qty}::decimal`, 0)
                     )
                 );
@@ -429,7 +441,8 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                 .where(
                     and(
                         eq(itemsTable.is_active, true),
-                        sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`
+                        sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`
+                        // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`
                     )
                 )
                 .groupBy(

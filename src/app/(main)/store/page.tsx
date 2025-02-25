@@ -26,6 +26,7 @@ import { HeaderBar } from '@/components/header-bar';
 import { useAuth } from '@/contexts/auth-context';
 import OrderTable from './components/order-table';
 import { OrderItem } from '@/app/(main)/store/types';
+import { NoStoreOrdersDue } from '@/components/placeholders';
 // import { getStoreOrders } from '@/db/queries/select';
 // import { init } from 'next/dist/compiled/webpack/webpack';
 // import next from 'next';
@@ -318,25 +319,8 @@ export default function Stores() {
             )}
             {!isLoading && mergedData && mergedData?.length <= 0 && (
                 // <div className='flex flex-col justify-center'>
-                <section className='flex flex-col items-center justify-center gap-2 mb-4'>
-                    <Image
-                        src={noOrdersPic}
-                        alt='no orders due today pic'
-                        width={175}
-                        height={175}
-                        style={{ width: '175px', height: '175px' }}
-                        className='drop-shadow-lg'
-                    />
-                    <p className='text-2xl text-gray-600'>No Orders Due!</p>
-                    <p className='text-sm text-gray-400'>
-                        All orders have been sent
-                    </p>
-                    {/* <p className='text-sm text-gray-400'>
-                        Create an order below if needed
-                    </p>
-                    <Button size='lg' variant='myTheme'>
-                        Create Order
-                    </Button> */}
+                <section className='flex justify-center'>
+                    <NoStoreOrdersDue />
                 </section>
                 // </div>
             )}

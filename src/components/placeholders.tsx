@@ -3,6 +3,7 @@ import constructionPic from '/public/illustrations/underConstruction.svg';
 import noOrdersPic from '/public/illustrations/emptyCart.svg';
 import noPastriesPic from '/public/illustrations/cooking.svg';
 import noStockPic from '/public/illustrations/empty.svg';
+import baristaPic from '/public/illustrations/barista.svg';
 
 // Coming soon placeholder
 export function ComingSoon({ subtitle }: { subtitle: string }) {
@@ -21,7 +22,7 @@ export function ComingSoon({ subtitle }: { subtitle: string }) {
     );
 }
 
-// No orders placeholder
+// No orders placeholder (supply chain coordinator)
 export function NoOrders({ subtitle }: { subtitle: string }) {
     return (
         <div className='w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] flex flex-col items-center justify-center gap-2 bg-white p-2 rounded-2xl shadow-md mt-2'>
@@ -81,6 +82,29 @@ export function NoStockDue() {
             <p className='text-xs sm:text-sm text-gray-400'>
                 All stock counts have been sent
             </p>
+        </div>
+    );
+}
+
+export function NoStoreOrdersDue() {
+    return (
+        <div className='w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] flex flex-col items-center justify-center gap-1 bg-white p-2 rounded-2xl shadow-md mt-2'>
+            <Image
+                src={baristaPic}
+                alt='no orders due today pic'
+                width={175}
+                height={175}
+                // style={{ width: '200px', height: '200px' }}
+                className='drop-shadow-lg'
+            />
+            <p className='text-xl sm:text-2xl text-gray-600'>No Orders Due!</p>
+            <p className='text-xs sm:text-sm text-gray-400'>All orders have been sent</p>
+            {/* <p className='text-sm text-gray-400'>
+        Create an order below if needed
+    </p>
+    <Button size='lg' variant='myTheme'>
+        Create Order
+    </Button> */}
         </div>
     );
 }
