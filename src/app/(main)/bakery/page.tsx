@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/select';
 import { STORE_LOCATIONS } from '@/components/types';
 import { NoPastriesDue } from '@/components/placeholders';
+import PagesNavBar from '@/components/pages-navbar';
 
 // export const dummyData: BakeryOrder[] = [
 //     {
@@ -457,7 +458,7 @@ export default function Bakery() {
     return (
         <main>
             <HeaderBar pageName={'Bakery'} />
-            {/* <div className='mb-6'><PagesNavBar /></div> */}
+            <div className='mb-6'><PagesNavBar /></div>
             <section className='mb-6' />
             {isLoading && !data && (
                 <section className='flex flex-col gap-3'>

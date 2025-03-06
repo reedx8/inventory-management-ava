@@ -1,6 +1,5 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
     /* config options here */
     images: {
         remotePatterns: [
@@ -10,6 +9,12 @@ const nextConfig: NextConfig = {
                 port: '',
                 pathname: 'storage/v1/object/public/media/vendorLogos/**',
                 search: '',
+            },
+            {
+                protocol: 'https',
+                hostname: 'images.squarespace-cdn.com',
+                port: '',
+                pathname: '/content/v1/**',
             },
         ],
     },
@@ -24,4 +29,4 @@ const nextConfig: NextConfig = {
     },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

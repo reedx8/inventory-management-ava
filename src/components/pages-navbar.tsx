@@ -83,6 +83,17 @@ const contactPages : NavItem[] = [
     }
 ]
 
+const bakeryPages: NavItem[] = [
+    {
+        title: "Daily Orders",
+        url: PAGE_NAMES[2],
+    },
+    {
+        title: "Cake Orders",
+        url: PAGE_NAMES[2] + "/cake-orders",
+    }
+];
+
 export default function PagesNavBar() {
     const [currentPage, setCurrentPage] = useState('/');
     const [navItems, setNavItems] = useState<NavItem[]>([]);
@@ -97,6 +108,8 @@ export default function PagesNavBar() {
             setNavItems(managePages); 
         } else if (pathname.split('/')[1] === 'contact') {
             setNavItems(contactPages);
+        } else if (pathname.split('/')[1] === 'bakery') {
+            setNavItems(bakeryPages);
         } else {
             setNavItems([]);
         }
