@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 export default function ListView({ data }: { data: any }) {
     return (
         <div>
-            <ScrollArea className='h-[60vh] md:h-[70vh] overflow-y-auto py-3 pr-3'>
+            <ScrollArea className='h-[60vh] md:h-[70vh] overflow-y-auto p-3 border rounded-lg'>
                 <div className='flex flex-col gap-3 h-full'>
                     {data.map((order: any) => (
                         <Button
@@ -49,7 +49,7 @@ function OrderCardDetails({ order }: { order: any }) {
             {/* Order Header */}
             <div className='flex justify-between items-center mb-2'>
                 <div className='flex items-center gap-2'>
-                    <h2 className='text-lg font-medium'>Order # {order.orderNumber}</h2>
+                    <h2 className='text-lg font-medium'>Order #{order.orderNumber}</h2>
                     {selectIcon(order.cron_categ ?? 'PASTRY')}
                 </div>
                 <div className='text-sm text-neutral-500'>

@@ -104,7 +104,7 @@ export default function CakeOrders() {
     return (
         <main>
             <HeaderBar pageName={'Bakery'} />
-            <div className='mb-6'>
+            <div>
                 <PagesNavBar />
             </div>
             {/* <h1>Cake Orders</h1> */}
