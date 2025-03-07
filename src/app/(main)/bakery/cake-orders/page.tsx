@@ -3,6 +3,8 @@ import { HeaderBar } from '@/components/header-bar';
 import PagesNavBar from '@/components/pages-navbar';
 import React, { useState, useEffect } from 'react';
 import ListView from '@/components/listview';
+import { NoOrders } from '@/components/placeholders';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Squarespace API version 1.0 response
 type ApiOrder = {
@@ -40,19 +42,6 @@ type Address = {
     phone: string;
 };
 
-// Current list of Coffee bean product ids on squarespace site. See squarespace products API
-// There is no category property in the API, hence used for quick filtering between cakes and coffee beans (for now)
-const coffeeBeanProductIds = [
-    '5e72e8c880d20849616fa0f8', // colombia
-    '62b641a2f0e47433e1639029', // ava blend
-    '62ba0412153ecc070bc7eb1e', // sumatra
-    '62ba07d6b98ee165b4348f69', // india
-    '62ba08a0f0e47433e1649770', // ethiopia
-    '62ba0b3029e1736db10c3b8b', // brazil
-    '62ba0c6129e1736db10c3c4a', // ava decaf
-];
-const cakeItemProductIds = ['67bf770abb34477609d0b4ff'];
-
 export default function CakeOrders() {
     const [data, setData] = useState<ApiOrder[]>(); // will assign values only on matching properties
     // const [data, setData] = useState([] as any[]);
@@ -65,30 +54,22 @@ export default function CakeOrders() {
     //     )
     // );
 
-    // Pending cake orders from squarespace
-    const cakeOrders = data?.filter(
-        (order) =>
-            // order.refundedTotal.value === '0.00' && // leave commented out during testing
-            order.fulfillmentStatus === 'PENDING' && // leave commented out during testing?
-            order.testmode === false &&
-            order.channel === 'web' && // Needed since fulfillmentStatus=FULFILLED automatically when channel=pos, and we onyl want pending orders
-            order.lineItems.some((item) =>
-                cakeItemProductIds.includes(item.productId)
-            )
-    );
-
     useEffect(() => {
-        const fetchSquarespaceOrders = async () => {
+        const fetchSquarespaceCakeOrders = async () => {
             try {
-                const response = await fetch('/api/v1/squarespace-orders');
+                const response = await fetch(
+                    '/api/v1/squarespace-orders?fetch=cakes'
+                );
                 const result = await response.json();
                 if (!response.ok) {
                     throw new Error('Squarespace API request failed');
                 }
-                console.log(result.result);
+                console.log(result);
+                // console.log(result.result);
 
                 // TODO: filter out test items here
-                setData(result.result);
+                setData(result);
+                // setData(result.result);
             } catch (error) {
                 const err = error as Error;
                 console.log('fetchCakeOrders error: ', err);
@@ -96,7 +77,7 @@ export default function CakeOrders() {
             }
             setIsLoading(false);
         };
-        fetchSquarespaceOrders();
+        fetchSquarespaceCakeOrders();
     }, []);
 
     // console.log(data);
@@ -107,21 +88,29 @@ export default function CakeOrders() {
             <div>
                 <PagesNavBar />
             </div>
-            {/* <h1>Cake Orders</h1> */}
             <section className='mb-6'>
-                {
-                    !isLoading && data && data.length > 0 && cakeOrders && (
-                        <div className='flex flex-col'>
-                            <h2 className='self-end'>Open Orders: {cakeOrders.length}</h2>
-                            <ListView data={cakeOrders} />
+                {isLoading && !data && (
+                    <div className='flex gap-3 py-3 pr-3'>
+                        <div className='flex flex-col space-y-2 w-full'>
+                            <Skeleton className='h-[90px] w-full rounded-xl' />
+                            <div className='space-y-2'>
+                                <Skeleton className='h-4 w-[80%]' />
+                                <Skeleton className='h-4 w-[60%]' />
+                            </div>
                         </div>
-                    )
-                    // cakeOrders.map((order) => (
-                    //     <div key={order.id}>
-                    //         <p>{order.lineItems[0].productName}</p>
-                    //     </div>
-                    // ))
-                }
+                    </div>
+                )}
+                {!isLoading && data && data.length > 0 && (
+                    <div className='flex flex-col'>
+                        <h2 className='self-end'>Open Orders: {data.length}</h2>
+                        <ListView data={data} />
+                    </div>
+                )}
+                {!isLoading && data && data.length === 0 && (
+                    <div className='flex flex-col justify-center items-center'>
+                        <NoOrders subtitle='No open cake orders' />
+                    </div>
+                )}
             </section>
         </main>
     );

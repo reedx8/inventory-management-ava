@@ -13,19 +13,17 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import { Separator } from "@/components/ui/separator"
-// import {
-//     Carousel,
-//     CarouselContent,
-//     CarouselItem,
-// } from '@/components/ui/carousel';
-import { CalendarDays, Box, Cake, ChevronDown, Store } from 'lucide-react';
-// import Autoplay from 'embla-carousel-autoplay';
+import {
+    CalendarDays,
+    Box,
+    Cake,
+    ChevronDown,
+    Store,
+    ChevronRight,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HeaderBar, todaysDay } from '@/components/header-bar';
-// import { title } from 'process';
-// import { Separator } from '@/components/ui/separator';
-// import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
 
 const orderSchedule = [
     {
@@ -82,6 +80,7 @@ export default function Home() {
         number | null
     >(null);
     const [itemCount, setItemCount] = useState<number | undefined>();
+    // const [openCakeOrders, setOpenCakeOrders] = useState<number | undefined>();
     // const [isLoading, setIsLoading] = useState<boolean>(true);
     // const todaysDate : string = new Date().toISOString().split('T')[0];
 
@@ -153,6 +152,9 @@ export default function Home() {
                 </div>
             </section>
             <section className='flex flex-col gap-2 mt-4'>
+                <div>
+                    <OpenCakeOrders />
+                </div>
                 <h2 className='text-2xl flex'>Due Today {scheduleBtn()}</h2>
                 <div className='flex flex-wrap gap-3 sm:grid sm:grid-cols-[auto_1fr] sm:gap-3'>
                     <Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
@@ -307,6 +309,54 @@ function miniStockCards() {
                 Items
             </div>
         </div>
+    );
+}
+
+// Open/Pending cake orders from squarespace card
+function OpenCakeOrders() {
+    const [openCakeOrders, setOpenCakeOrders] = useState<number | undefined>();
+
+    useEffect(() => {
+        const getOpenSquarespaceCakeOrderCount = async () => {
+            try {
+                const response = await fetch(
+                    'api/v1/squarespace-orders?fetch=cakes'
+                );
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error);
+                }
+                console.log('openCakeOrders: ' + result.length);
+                setOpenCakeOrders(result.length);
+            } catch (error) {
+                const err = error as Error;
+                console.log(err.message);
+                setOpenCakeOrders(0);
+            }
+        };
+        getOpenSquarespaceCakeOrderCount();
+    }, []);
+
+    return (
+        <Card className='h-full shadow-md flex flex-col items-center relative'>
+            <CardHeader className='text-center'>
+                <CardTitle className='font-normal'>Open Cake Orders</CardTitle>
+                <CardDescription className='text-neutral-400 text-balance'>
+                    {`New cake orders made on AVA's website`}
+                </CardDescription>
+            </CardHeader>
+            <CardContent className='flex'>
+                <p className='text-5xl text-myBrown drop-shadow-sm'>
+                    {openCakeOrders ?? '--'}
+                </p>
+            </CardContent>
+            <Link href='/bakery/cake-orders' className='absolute right-2 bottom-2'>
+            {/* <Link href='/bakery/cake-orders' className='self-end'> */}
+                <Button variant='ghost'>
+                    <ChevronRight className='h-2 w-2' />
+                </Button>
+            </Link>
+        </Card>
     );
 }
 

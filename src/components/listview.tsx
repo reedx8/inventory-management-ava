@@ -30,9 +30,7 @@ export default function ListView({ data }: { data: any }) {
                             variant='link2'
                             // onClick={() => openOrder(order.orderNumber)}
                         >
-                            <Card
-                                className='w-full h-full py-1 shadow-md hover:-translate-y-1 duration-300'
-                            >
+                            <Card className='w-full h-full py-1 shadow-md hover:-translate-y-1 duration-300'>
                                 <OrderCardDetails order={order} />
                             </Card>
                         </Button>
@@ -49,34 +47,75 @@ function OrderCardDetails({ order }: { order: any }) {
             {/* Order Header */}
             <div className='flex justify-between items-center mb-2'>
                 <div className='flex items-center gap-2'>
-                    <h2 className='text-lg font-medium'>Order #{order.orderNumber}</h2>
+                    <h2 className='text-xl'>Order #{order.orderNumber}</h2>
                     {selectIcon(order.cron_categ ?? 'PASTRY')}
                 </div>
                 <div className='text-sm text-neutral-500'>
                     <p>
-                        <span className='font-bold'>Customer:</span> {order.billingAddress.firstName} {order.billingAddress.lastName}
+                        <span className='font-bold'>Customer:</span>{' '}
+                        {order.billingAddress.firstName}{' '}
+                        {order.billingAddress.lastName}
                     </p>
                 </div>
             </div>
-            
+
             {/* Customer Details */}
             <div className='grid grid-cols-2 gap-2 text-sm text-neutral-500 mb-2'>
-                <p>
-                    <span className='font-bold'>Phone:</span>{' '}
-                    {order.billingAddress.phone === '' ? '--' : order.billingAddress.phone}
-                </p>
-                <p>
-                    <span className='font-bold'>Pickup Location:</span>{' '}
-                    {order.formSubmission && (order.formSubmission[1].value === '' ? '--' : order.formSubmission[1].value)}
-                </p>
+                <div>
+                    <p>
+                        <span className='font-bold'>Order Placed:</span>{' '}
+                        {new Date(order.createdOn).toDateString()}
+                    </p>
+                    <p>
+                        <span className='font-bold'>Shipping/Pickup:</span>{' '}
+                        {order.formSubmission[1].value === 'Shipping'
+                            ? 'Shipping'
+                            : 'Pickup'}
+                    </p>
+                    {order.formSubmission &&
+                        order.formSubmission[1].value !== 'Shipping' && (
+                            <p>
+                                <span className='font-bold'>
+                                    Pickup Location:
+                                </span>{' '}
+                                {order.formSubmission &&
+                                    (order.formSubmission[1].value === ''
+                                        ? '--'
+                                        : order.formSubmission[1].value)}
+                            </p>
+                        )}
+                </div>
+                <div>
+                    <p>
+                        <span className='font-bold'>Phone:</span>{' '}
+                        {order.billingAddress.phone === ''
+                            ? '--'
+                            : order.billingAddress.phone}
+                    </p>
+                    <p>
+                        <span className='font-bold'>Email:</span>{' '}
+                        {order.customerEmail === ''
+                            ? '--'
+                            : order.customerEmail}
+                    </p>
+                </div>
             </div>
-            
+            {order.formSubmission && order.formSubmission[2]?.value && (
+                <p className='text-neutral-500 text-wrap'>
+                    <span className='font-bold'>Decoration:</span>{' '}
+                    {order.formSubmission[2].value}
+                </p>
+            )}
+
             {/* Order Items */}
             <div className='border-t pt-2'>
                 <h3 className='text-sm font-medium mb-2'>Order Items:</h3>
                 <div className='flex flex-col gap-2'>
                     {order.lineItems.map((item: any) => (
-                        <div key={item.id} className='grid grid-cols-[40px_1fr] gap-4 py-1 border-b last:border-b-0'>
+                        <div
+                            key={item.id}
+                            className='grid grid-cols-[40px_1fr] gap-4 py-1 border-b last:border-b-0'
+                        >
                             <div className='flex justify-center items-center'>
                                 <Image
                                     src={item.imageUrl}
@@ -88,19 +127,19 @@ function OrderCardDetails({ order }: { order: any }) {
                             </div>
                             <div className='flex flex-col'>
                                 <div className='flex items-center gap-2'>
-                                    <p className='font-medium'>{item.productName}</p>
+                                    <p className='font-medium'>
+                                        {item.productName}
+                                    </p>
                                 </div>
                                 <div className='flex flex-col items-start text-xs text-neutral-500'>
                                     <p>
                                         <span className='font-bold'>Size:</span>{' '}
                                         {item.variantOptions[0].value ?? '--'}
                                     </p>
-                                    {order.formSubmission && order.formSubmission[2]?.value && (
-                                        <p>
-                                            <span className='font-bold'>Decoration:</span>{' '}
-                                            {order.formSubmission[2].value}
-                                        </p>
-                                    )}
+                                    <p>
+                                        <span className='font-bold'>Qty:</span>{' '}
+                                        {item.quantity ?? '--'}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -127,11 +166,7 @@ function ItemCardDetails(item: any) {
                 <div className='flex items-center gap-4'>
                     <h2 className='text-lg flex items-center gap-1'>
                         {item.is_active ? (
-                            <Image
-                                src={greenDot}
-                                alt='enabled'
-                                width={15}
-                            />
+                            <Image src={greenDot} alt='enabled' width={15} />
                         ) : (
                             <Image src={redDot} alt='disabled' width={15} />
                         )}

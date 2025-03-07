@@ -1,9 +1,9 @@
 import Image from 'next/image';
 import constructionPic from '/public/illustrations/underConstruction.svg';
-import noOrdersPic from '/public/illustrations/emptyCart.svg';
 import noPastriesPic from '/public/illustrations/cooking.svg';
 import noStockPic from '/public/illustrations/empty.svg';
 import baristaPic from '/public/illustrations/barista.svg';
+import wellDone from '/public/illustrations/wellDone.svg';
 
 // Coming soon placeholder
 export function ComingSoon({ subtitle }: { subtitle: string }) {
@@ -27,7 +27,7 @@ export function NoOrders({ subtitle }: { subtitle: string }) {
     return (
         <div className='w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] flex flex-col items-center justify-center gap-2 bg-white p-2 rounded-2xl shadow-md mt-2'>
             <Image
-                src={noOrdersPic}
+                src={wellDone}
                 alt='all orders complete pic'
                 width={200}
                 height={200}
