@@ -53,12 +53,12 @@ export async function GET(request: NextRequest) {
             // return count of all pending cake orders made on squarespace site
             const cakeItemProductIds = ['67bf770abb34477609d0b4ff']; // squareapce product ids for cakes
             const cakeOrders = data?.result.filter(
-                (order) =>
+                (order: any) =>
                     // order.refundedTotal.value === '0.00' && // leave commented out during testing
                     order.fulfillmentStatus === 'PENDING' && // leave commented out during testing?
                     order.testmode === false &&
                     order.channel === 'web' && // Needed since fulfillmentStatus=FULFILLED automatically when channel=pos, and we onyl want pending orders
-                    order.lineItems.some((item) =>
+                    order.lineItems.some((item: any) =>
                         cakeItemProductIds.includes(item.productId)
                     )
             );
