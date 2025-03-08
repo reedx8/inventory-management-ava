@@ -68,12 +68,12 @@ function OrderCardDetails({ order }: { order: any }) {
                     </p>
                     <p>
                         <span className='font-bold'>Shipping/Pickup:</span>{' '}
-                        {order.formSubmission[1].value === 'Shipping'
+                        {(order.formSubmission[1].value === 'Shipping' || order.formSubmission[1].value === '')
                             ? 'Shipping'
                             : 'Pickup'}
                     </p>
                     {order.formSubmission &&
-                        order.formSubmission[1].value !== 'Shipping' && (
+                        (order.formSubmission[1].value !== 'Shipping' && order.formSubmission[1].value !== '') && (
                             <p>
                                 <span className='font-bold'>
                                     Pickup Location:
