@@ -20,8 +20,8 @@ import { Badge } from '@/components/ui/badge';
 export default function ListView({ data }: { data: any }) {
     return (
         <div>
-            <ScrollArea className='h-[60vh] md:h-[70vh] overflow-y-auto p-3 border rounded-lg'>
-                <div className='flex flex-col gap-3 h-full'>
+            <ScrollArea className='h-[60vh] md:h-[70vh] overflow-y-auto pr-3'>
+                <div className='flex flex-col gap-4 h-full'>
                     {data.map((order: any) => (
                         <Button
                             asChild
@@ -30,7 +30,7 @@ export default function ListView({ data }: { data: any }) {
                             variant='link2'
                             // onClick={() => openOrder(order.orderNumber)}
                         >
-                            <Card className='w-full h-full py-1 shadow-md hover:-translate-y-1 duration-300'>
+                            <Card className='w-full h-full py-1 shadow-md hover:bg-neutral-50 hover:border-myDarkbrown duration-300'>
                                 <OrderCardDetails order={order} />
                             </Card>
                         </Button>
@@ -47,7 +47,7 @@ function OrderCardDetails({ order }: { order: any }) {
             {/* Order Header */}
             <div className='flex justify-between items-center mb-2'>
                 <div className='flex items-center gap-2'>
-                    <h2 className='text-xl'>Order #{order.orderNumber}</h2>
+                    <h2 className='text-2xl'>Order #{order.orderNumber}</h2>
                     {selectIcon(order.cron_categ ?? 'PASTRY')}
                 </div>
                 <div className='text-sm text-neutral-500'>
@@ -66,24 +66,19 @@ function OrderCardDetails({ order }: { order: any }) {
                         <span className='font-bold'>Order Placed:</span>{' '}
                         {new Date(order.createdOn).toDateString()}
                     </p>
-                    <p>
+                    {/* <p>
                         <span className='font-bold'>Shipping/Pickup:</span>{' '}
                         {(order.formSubmission[1].value === 'Shipping' || order.formSubmission[1].value === '')
                             ? 'Shipping'
                             : 'Pickup'}
+                    </p> */}
+                    <p>
+                        <span className='font-bold'>Pickup Location:</span>{' '}
+                        {order.formSubmission &&
+                            (order.formSubmission[1].value === ''
+                                ? '--'
+                                : order.formSubmission[1].value)}
                     </p>
-                    {order.formSubmission &&
-                        (order.formSubmission[1].value !== 'Shipping' && order.formSubmission[1].value !== '') && (
-                            <p>
-                                <span className='font-bold'>
-                                    Pickup Location:
-                                </span>{' '}
-                                {order.formSubmission &&
-                                    (order.formSubmission[1].value === ''
-                                        ? '--'
-                                        : order.formSubmission[1].value)}
-                            </p>
-                        )}
                 </div>
                 <div>
                     <p>
@@ -100,12 +95,10 @@ function OrderCardDetails({ order }: { order: any }) {
                     </p>
                 </div>
             </div>
-            {order.formSubmission && order.formSubmission[2]?.value && (
-                <p className='text-neutral-500 text-wrap'>
-                    <span className='font-bold'>Decoration:</span>{' '}
-                    {order.formSubmission[2].value}
-                </p>
-            )}
+            <p className='text-neutral-500 text-wrap'>
+                <span className='font-bold'>Pickup Date/Time:</span>{' '}
+                {order.formSubmission && order.formSubmission[2].value}
+            </p>
 
             {/* Order Items */}
             <div className='border-t pt-2'>
@@ -139,6 +132,22 @@ function OrderCardDetails({ order }: { order: any }) {
                                     <p>
                                         <span className='font-bold'>Qty:</span>{' '}
                                         {item.quantity ?? '--'}
+                                    </p>
+                                    <p className='text-wrap'>
+                                        <span className='font-bold'>
+                                            Birthday Name:
+                                        </span>{' '}
+                                        {item.customizations
+                                            ? item.customizations[0].value
+                                            : '--'}
+                                    </p>
+                                    <p className='text-wrap'>
+                                        <span className='font-bold'>
+                                            Anniversary Name:
+                                        </span>{' '}
+                                        {item.customizations
+                                            ? item.customizations[1].value
+                                            : '--'}
                                     </p>
                                 </div>
                             </div>
@@ -200,7 +209,7 @@ function ItemCardDetails(item: any) {
 
 // Uses cron_categ
 function selectIcon(categ: string | undefined) {
-    const iconStyle = 'text-myBrown w-5 h-5';
+    const iconStyle = 'text-myBrown w-7 h-7';
     if (categ === 'MILK') {
         return <Milk className={iconStyle} />;
     } else if (categ === 'PASTRY') {

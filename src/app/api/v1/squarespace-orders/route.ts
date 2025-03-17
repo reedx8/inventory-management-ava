@@ -46,12 +46,19 @@ export async function GET(request: NextRequest) {
             }
         );
         const data = await response.json();
+        // console.log('Data: ', data);
 
         let processedData;
 
         if (fetchType === 'cakes') {
             // return count of all pending cake orders made on squarespace site
-            const cakeItemProductIds = ['67bf770abb34477609d0b4ff']; // squareapce product ids for cakes
+            const cakeItemProductIds = [
+                '67bf770abb34477609d0b4ff', // strawberry whip cream cake
+                '67d092a737af9573f62edee1', // ava chocolate cake
+                '67d0900937af9573f62edb31', // raspberry espresso ganache
+                '67d093971db0b0451a3caf5f', // espresso ganache
+            ]; // squarespace product ids for cakes
+
             const cakeOrders = data?.result.filter(
                 (order: any) =>
                     // order.refundedTotal.value === '0.00' && // leave commented out during testing
