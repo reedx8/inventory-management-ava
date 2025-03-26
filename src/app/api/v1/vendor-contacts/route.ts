@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         if (!response.success) {
             return NextResponse.json(response, { status: 400 });
         }
+        // console.log(response.currentUser);
         return NextResponse.json(response.data, { status: 200 });
     } catch (error) {
         const err = error as Error;

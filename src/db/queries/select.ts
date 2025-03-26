@@ -522,24 +522,23 @@ export async function searchItems(query: string) {
     return result;
 }
 
-// custom lower function
-export function lower(name: PgColumn) {
-    return sql`lower(${name})`;
-}
-
 export async function getVendorContacts() {
     try {
-        const result = await db
-            .select({
-                id: vendorsTable.id,
-                name: vendorsTable.name,
-                email: vendorsTable.email,
-                logo: vendorsTable.logo,
-                website: vendorsTable.website,
-                phone: vendorsTable.phone,
-            })
-            .from(vendorsTable)
-            .orderBy(asc(vendorsTable.name));
+        const result = await db.transaction(async (tx) => {
+            await tx.execute(sql`SET LOCAL ROLE authenticated`);
+
+            return await tx
+                .select({
+                    id: vendorsTable.id,
+                    name: vendorsTable.name,
+                    email: vendorsTable.email,
+                    logo: vendorsTable.logo,
+                    website: vendorsTable.website,
+                    phone: vendorsTable.phone,
+                })
+                .from(vendorsTable)
+                .orderBy(asc(vendorsTable.name));
+        });
 
         return {
             success: true,
@@ -761,4 +760,9 @@ export async function getAllItems() {
             data: [],
         };
     }
+}
+
+// custom lower function
+export function lower(name: PgColumn) {
+    return sql`lower(${name})`;
 }

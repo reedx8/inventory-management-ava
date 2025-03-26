@@ -11,8 +11,10 @@ import {
     primaryKey,
     check,
     uniqueIndex,
+    pgPolicy,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
+import { authenticatedRole } from 'drizzle-orm/supabase';
 
 // General items of Ava Roasteria for every store
 export const itemsTable = pgTable(
@@ -361,28 +363,44 @@ export const storeBakeryOrdersTable = pgTable(
 // );
 
 // List of vendors that stores can order from. Lookup table.
-export const vendorsTable = pgTable('vendors', {
-    id: serial('id').primaryKey(),
-    name: varchar('name').notNull().unique(), // vendors name (Ava Design, Bakery, Sysco, McDonalds, Javastock, Winco, Restaurant Depot, Chef Store, Costco, Grand Central (Jelena), Petes Milk (Jelena), Fred Meyer, and Safeway
-    email: varchar('email'), // email for orders (if any)
-    phone: varchar('phone'), // phone number for orders (if any)
-    contact_name: varchar('contact_name'), // name of contact person for orders (if any)
-    website: text('website'), // website for orders (if any)
-    logo: varchar('logo'),
-    is_active: boolean('is_active').notNull().default(true),
-    is_exclusive_supplier: boolean('is_exclusive_supplier')
-        .notNull()
-        .default(false), // If in Exclusive Supply Agreement (ESA) with vendor, eg Sysco atm (non-ccp items if false. ccp = cost controlled product)
-    agreement_start_date: timestamp('agreement_start_date', {
-        precision: 3,
-        withTimezone: true,
-    }), // ESA start date for vendor (if any)
-    agreement_end_date: timestamp('agreement_end_date', {
-        precision: 3,
-        withTimezone: true,
-    }), // ESA end date for vendor (if any)
-    comments: text('comments'),
-});
+export const vendorsTable = pgTable(
+    'vendors',
+    {
+        id: serial('id').primaryKey(),
+        name: varchar('name').notNull().unique(), // vendors name (Ava Design, Bakery, Sysco, McDonalds, Javastock, Winco, Restaurant Depot, Chef Store, Costco, Grand Central (Jelena), Petes Milk (Jelena), Fred Meyer, and Safeway
+        email: varchar('email'), // email for orders (if any)
+        phone: varchar('phone'), // phone number for orders (if any)
+        contact_name: varchar('contact_name'), // name of contact person for orders (if any)
+        website: text('website'), // website for orders (if any)
+        logo: varchar('logo'),
+        is_active: boolean('is_active').notNull().default(true),
+        is_exclusive_supplier: boolean('is_exclusive_supplier')
+            .notNull()
+            .default(false), // If in Exclusive Supply Agreement (ESA) with vendor, eg Sysco atm (non-ccp items if false. ccp = cost controlled product)
+        agreement_start_date: timestamp('agreement_start_date', {
+            precision: 3,
+            withTimezone: true,
+        }), // ESA start date for vendor (if any)
+        agreement_end_date: timestamp('agreement_end_date', {
+            precision: 3,
+            withTimezone: true,
+        }), // ESA end date for vendor (if any)
+        comments: text('comments'),
+    },
+    (t) => [
+        pgPolicy('Enable update for authenticated users only', {
+            for: 'update',
+            to: authenticatedRole,
+            using: sql`true`, // This allows all authenticated users to select all rows
+            withCheck: sql`true`,
+        }),
+        pgPolicy('Enable read for authenticated users only', {
+            for: 'select',
+            to: authenticatedRole,
+            using: sql`true`, // This allows all authenticated users to select all rows
+        }),
+    ]
+);
 
 // Tracks if an order was split between multiple vendors when processed (if any)
 // Eg: if an item has orders.tot_qty_vendor = 10 when order delivered, and item's order used 2 vendors, then eg vendor_split.qty = 8, vendor_split.qty = 2 may (and should) be here (or any valid sum combination)

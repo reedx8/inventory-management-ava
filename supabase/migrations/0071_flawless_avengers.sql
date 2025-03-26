@@ -1,0 +1,2 @@
+ALTER TABLE "vendors" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "Enable update for authenticated users only" ON "vendors" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);
