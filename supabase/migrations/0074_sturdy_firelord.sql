@@ -1,0 +1,1 @@
+CREATE POLICY "Enable read for authenticated users only" ON "items" AS PERMISSIVE FOR SELECT TO "authenticated" USING (true);

@@ -524,9 +524,7 @@ export async function searchItems(query: string) {
 
 export async function getVendorContacts() {
     try {
-        const result = await db.transaction(async (tx) => {
-            await tx.execute(sql`SET LOCAL ROLE authenticated`);
-
+        const result = await queryWithAuthRole(async (tx) => {
             return await tx
                 .select({
                     id: vendorsTable.id,
@@ -554,6 +552,39 @@ export async function getVendorContacts() {
         };
     }
 }
+
+// export async function getVendorContacts() {
+//     try {
+//         const result = await db.transaction(async (tx) => {
+//             await tx.execute(sql`SET LOCAL ROLE authenticated`);
+
+//             return await tx
+//                 .select({
+//                     id: vendorsTable.id,
+//                     name: vendorsTable.name,
+//                     email: vendorsTable.email,
+//                     logo: vendorsTable.logo,
+//                     website: vendorsTable.website,
+//                     phone: vendorsTable.phone,
+//                 })
+//                 .from(vendorsTable)
+//                 .orderBy(asc(vendorsTable.name));
+//         });
+
+//         return {
+//             success: true,
+//             error: null,
+//             data: result,
+//         };
+//     } catch (error) {
+//         const err = error as Error;
+//         return {
+//             success: false,
+//             error: err.message,
+//             data: null,
+//         };
+//     }
+// }
 
 export async function getBakeryDueTodayCount() {
     try {
@@ -588,130 +619,21 @@ export async function getBakeryDueTodayCount() {
     }
 }
 
-// export async function getBakeryDueTodayCount() {
-//     try {
-//         // Get local timezone offset in minutes
-//         const offset = new Date().getTimezoneOffset();
-
-//         // Create start and end dates adjusted for timezone
-//         const start = new Date();
-//         start.setHours(0, 0, 0, 0);
-//         start.setMinutes(start.getMinutes() - offset);
-
-//         const end = new Date();
-//         end.setHours(24, 0, 0, 0);
-//         end.setMinutes(end.getMinutes() - offset);
-
-//         // Debug logging that will work
-//         console.log('Query parameters:', {
-//             start: start.toISOString(),
-//             end: end.toISOString(),
-//             currentTime: new Date().toISOString(),
-//             offset: offset,
-//         });
-
-//         const result = await db
-//             .select({
-//                 count: count(storeBakeryOrdersTable.id),
-//             })
-//             .from(storeBakeryOrdersTable)
-//             .where(
-//                 and(
-//                     sql`${
-//                         storeBakeryOrdersTable.created_at
-//                     } >= ${start.toISOString()}`,
-//                     sql`${
-//                         storeBakeryOrdersTable.created_at
-//                     } < ${end.toISOString()}`,
-//                     isNull(storeBakeryOrdersTable.submitted_at)
-//                 )
-//             );
-
-//         // Log the actual count
-//         console.log('Query result:', result);
-
-//         return {
-//             success: true,
-//             error: null,
-//             data: result,
-//         };
-//     } catch (error) {
-//         const err = error as Error;
-//         console.error('Query error:', err);
-//         return {
-//             success: false,
-//             error: err.message,
-//             data: [],
-//         };
-//     }
-// }
-
-// export async function getBakeryDueTodayCount() {
-//     try {
-//         // const now = new Date();
-//         // // Create dates in client's timezone
-//         // const clientNow = new Date(
-//         //     now.toLocaleString('en-US', { timeZone: timezone })
-//         // );
-//         // const startOfDay = new Date(
-//         //     clientNow.getFullYear(),
-//         //     clientNow.getMonth(),
-//         //     clientNow.getDate()
-//         // );
-//         // const endOfDay = new Date(startOfDay);
-//         // endOfDay.setDate(endOfDay.getDate() + 1);
-
-//         const result = await db
-//             .select({
-//                 count: count(storeBakeryOrdersTable.id),
-//             })
-//             .from(storeBakeryOrdersTable)
-//             .where(
-//                 and(
-//                     // The following commented out code didnt work in getting todays entries:
-//                     // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
-//                     // Convert both dates to the same timezone before comparing
-//                     // sql`DATE(${storeBakeryOrdersTable.created_at} AT TIME ZONE 'UTC' AT TIME ZONE CURRENT_SETTING('TIMEZONE')) = CURRENT_DATE`,
-//                     // sql`${
-//                     //     storeBakeryOrdersTable.created_at
-//                     // } >= ${startOfDay.toISOString()}`,
-//                     // sql`${
-//                     //     storeBakeryOrdersTable.created_at
-//                     // } < ${endOfDay.toISOString()}`,
-//                     // sql`DATE(${storeBakeryOrdersTable.created_at}) = DATE(${todaysDate})`,
-
-//                     // Works in dev environemnt, but not on deployed site (get 0, shoudl get 8)
-//                      // it doesnt seem the case that date() is UTC b/c supabase is UTC, rather Date() is relative to your dev server, while date when deployed is UTC?
-//                     sql`${storeBakeryOrdersTable.created_at} >= ${new Date(
-//                         new Date().setHours(0, 0, 0, 0)
-//                     ).toISOString()}`,
-//                     sql`${storeBakeryOrdersTable.created_at} < ${new Date(
-//                         new Date().setHours(24, 0, 0, 0)
-//                     ).toISOString()}`,
-//                     isNull(storeBakeryOrdersTable.submitted_at)
-//                 )
-//             );
-//         return {
-//             success: true,
-//             error: null,
-//             data: result,
-//         };
-//     } catch (error) {
-//         const err = error as Error;
-//         return {
-//             success: false,
-//             error: err.message,
-//             data: [],
-//         };
-//     }
-// }
 export async function getItemCount() {
     try {
-        const result = await db
-            .select({
-                count: count(itemsTable.id),
-            })
-            .from(itemsTable);
+        const result = await queryWithAuthRole(async (tx) => {
+            return await tx
+                .select({
+                    count: count(itemsTable.id),
+                })
+                .from(itemsTable);
+        });
+
+        // const result = await db
+        //     .select({
+        //         count: count(itemsTable.id),
+        //     })
+        //     .from(itemsTable);
         return {
             success: true,
             error: null,
@@ -727,25 +649,48 @@ export async function getItemCount() {
     }
 }
 
+// Returns all items (eg for manage -> inventory page)
 export async function getAllItems() {
     try {
-        const result = await db
-            .select({
-                id: itemsTable.id,
-                name: itemsTable.name,
-                vendor_name: vendorsTable.name,
-                is_active: itemsTable.is_active,
-                list_price: itemsTable.list_price,
-                units: itemsTable.units,
-                is_waste_tracked: itemsTable.is_waste_tracked,
-                invoice_categ: itemsTable.invoice_categ,
-                store_categ: itemsTable.store_categ,
-                cron_categ: itemsTable.cron_categ,
-                picture: itemsTable.picture,
-            })
-            .from(itemsTable)
-            .innerJoin(vendorsTable, eq(itemsTable.vendor_id, vendorsTable.id))
-            .orderBy(asc(itemsTable.name));
+        const result = await queryWithAuthRole(async (tx) => {
+            return await tx
+                .select({
+                    id: itemsTable.id,
+                    name: itemsTable.name,
+                    vendor_name: vendorsTable.name,
+                    is_active: itemsTable.is_active,
+                    list_price: itemsTable.list_price,
+                    units: itemsTable.units,
+                    is_waste_tracked: itemsTable.is_waste_tracked,
+                    invoice_categ: itemsTable.invoice_categ,
+                    store_categ: itemsTable.store_categ,
+                    picture: itemsTable.picture,
+                })
+                .from(itemsTable)
+                .innerJoin(
+                    vendorsTable,
+                    eq(itemsTable.vendor_id, vendorsTable.id)
+                )
+                .orderBy(asc(itemsTable.name));
+        });
+
+        // const result = await db
+        //     .select({
+        //         id: itemsTable.id,
+        //         name: itemsTable.name,
+        //         vendor_name: vendorsTable.name,
+        //         is_active: itemsTable.is_active,
+        //         list_price: itemsTable.list_price,
+        //         units: itemsTable.units,
+        //         is_waste_tracked: itemsTable.is_waste_tracked,
+        //         invoice_categ: itemsTable.invoice_categ,
+        //         store_categ: itemsTable.store_categ,
+        //         cron_categ: itemsTable.cron_categ,
+        //         picture: itemsTable.picture,
+        //     })
+        //     .from(itemsTable)
+        //     .innerJoin(vendorsTable, eq(itemsTable.vendor_id, vendorsTable.id))
+        //     .orderBy(asc(itemsTable.name));
 
         return {
             success: true,
@@ -761,8 +706,17 @@ export async function getAllItems() {
         };
     }
 }
+
+// Helper functions
 
 // custom lower function
 export function lower(name: PgColumn) {
     return sql`lower(${name})`;
+}
+
+async function queryWithAuthRole<T>(queryFn: (tx: any) => Promise<T>) {
+    return await db.transaction(async (tx) => {
+        await tx.execute(sql`SET LOCAL ROLE authenticated`);
+        return await queryFn(tx);
+    });
 }

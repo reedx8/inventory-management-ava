@@ -112,7 +112,8 @@ export default function Home() {
                 if (!itemResponse.ok) {
                     throw new Error(itemResult.error);
                 }
-                console.log('itemResult: ' + itemResult.data[0].count);
+                // console.log("test: " + JSON.stringify(itemResult))
+                // console.log('itemResult: ' + itemResult.data[0].count);
                 setItemCount(itemResult.data[0].count);
             } catch (error) {
                 const err = error as Error;

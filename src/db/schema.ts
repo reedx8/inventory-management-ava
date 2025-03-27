@@ -68,6 +68,17 @@ export const itemsTable = pgTable(
                 'cron_category_check',
                 sql`${table.cron_categ} IN ('PASTRY', 'MILK', 'BREAD', 'RETAILBEANS', 'MEATS', 'NONE')`
             ),
+            pgPolicy('Enable update for authenticated users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable Items read for authenticated users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );
@@ -387,7 +398,7 @@ export const vendorsTable = pgTable(
         }), // ESA end date for vendor (if any)
         comments: text('comments'),
     },
-    (t) => [
+    () => [
         pgPolicy('Enable update for authenticated users only', {
             for: 'update',
             to: authenticatedRole,
