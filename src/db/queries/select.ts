@@ -501,23 +501,25 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
 export async function searchItems(query: string) {
     query = query.trim().toLowerCase();
 
-    const result = await db
-        .select({
-            id: itemsTable.id,
-            name: itemsTable.name,
-            vendor_name: vendorsTable.name,
-            units: itemsTable.units,
-            store_categ: itemsTable.store_categ,
-            item_description: itemsTable.item_description,
-            is_active: itemsTable.is_active,
-            email: vendorsTable.email,
-            phone: vendorsTable.phone,
-            categ: itemsTable.cron_categ,
-            // due_date: sql`${dummyDate}`, // dummy data for now
-        })
-        .from(itemsTable)
-        .innerJoin(vendorsTable, eq(vendorsTable.id, itemsTable.vendor_id))
-        .where(like(lower(itemsTable.name), `%${query}%`));
+    const result = await queryWithAuthRole(async (tx) => {
+        return await tx
+            .select({
+                id: itemsTable.id,
+                name: itemsTable.name,
+                vendor_name: vendorsTable.name,
+                units: itemsTable.units,
+                store_categ: itemsTable.store_categ,
+                item_description: itemsTable.item_description,
+                is_active: itemsTable.is_active,
+                email: vendorsTable.email,
+                phone: vendorsTable.phone,
+                categ: itemsTable.cron_categ,
+                // due_date: sql`${dummyDate}`, // dummy data for now
+            })
+            .from(itemsTable)
+            .innerJoin(vendorsTable, eq(vendorsTable.id, itemsTable.vendor_id))
+            .where(like(lower(itemsTable.name), `%${query}%`));
+    });
 
     return result;
 }
@@ -552,39 +554,6 @@ export async function getVendorContacts() {
         };
     }
 }
-
-// export async function getVendorContacts() {
-//     try {
-//         const result = await db.transaction(async (tx) => {
-//             await tx.execute(sql`SET LOCAL ROLE authenticated`);
-
-//             return await tx
-//                 .select({
-//                     id: vendorsTable.id,
-//                     name: vendorsTable.name,
-//                     email: vendorsTable.email,
-//                     logo: vendorsTable.logo,
-//                     website: vendorsTable.website,
-//                     phone: vendorsTable.phone,
-//                 })
-//                 .from(vendorsTable)
-//                 .orderBy(asc(vendorsTable.name));
-//         });
-
-//         return {
-//             success: true,
-//             error: null,
-//             data: result,
-//         };
-//     } catch (error) {
-//         const err = error as Error;
-//         return {
-//             success: false,
-//             error: err.message,
-//             data: null,
-//         };
-//     }
-// }
 
 export async function getBakeryDueTodayCount() {
     try {
@@ -629,11 +598,6 @@ export async function getItemCount() {
                 .from(itemsTable);
         });
 
-        // const result = await db
-        //     .select({
-        //         count: count(itemsTable.id),
-        //     })
-        //     .from(itemsTable);
         return {
             success: true,
             error: null,
@@ -673,24 +637,6 @@ export async function getAllItems() {
                 )
                 .orderBy(asc(itemsTable.name));
         });
-
-        // const result = await db
-        //     .select({
-        //         id: itemsTable.id,
-        //         name: itemsTable.name,
-        //         vendor_name: vendorsTable.name,
-        //         is_active: itemsTable.is_active,
-        //         list_price: itemsTable.list_price,
-        //         units: itemsTable.units,
-        //         is_waste_tracked: itemsTable.is_waste_tracked,
-        //         invoice_categ: itemsTable.invoice_categ,
-        //         store_categ: itemsTable.store_categ,
-        //         cron_categ: itemsTable.cron_categ,
-        //         picture: itemsTable.picture,
-        //     })
-        //     .from(itemsTable)
-        //     .innerJoin(vendorsTable, eq(itemsTable.vendor_id, vendorsTable.id))
-        //     .orderBy(asc(itemsTable.name));
 
         return {
             success: true,

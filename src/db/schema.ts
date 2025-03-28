@@ -79,6 +79,11 @@ export const itemsTable = pgTable(
                 to: authenticatedRole,
                 using: sql`true`, // This allows all authenticated users to select all rows
             }),
+            pgPolicy('Enable inserting items for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
         ];
     }
 );
@@ -410,6 +415,11 @@ export const vendorsTable = pgTable(
             to: authenticatedRole,
             using: sql`true`, // This allows all authenticated users to select all rows
         }),
+        pgPolicy('Enable inserting vendors for auth users only', {
+            for: 'insert',
+            to: authenticatedRole,
+            withCheck: sql`true`,
+        }),
     ]
 );
 
@@ -450,6 +460,22 @@ export const storesTable = pgTable(
     (table) => {
         return [
             check('positive_weekly_budget', sql`${table.weekly_budget} >= 0`),
+            pgPolicy('Enable inserting stores for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating stores for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading stores for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );

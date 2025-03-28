@@ -1,0 +1,1 @@
+CREATE POLICY "Enable inserting items for auth users only" ON "items" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (true);

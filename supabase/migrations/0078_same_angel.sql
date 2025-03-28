@@ -1,0 +1,1 @@
+CREATE POLICY "Enable inserting vendors for auth users only" ON "vendors" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (true);
