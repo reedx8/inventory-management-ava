@@ -3,6 +3,7 @@ import { getStoresBakeryOrders } from '@/db/queries/select';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
 
+// store -> orders due page
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const storeId: string | null = searchParams.get('storeId'); // storeId = null for all stores

@@ -225,6 +225,27 @@ export const ordersTable = pgTable(
                 sql`${table.ordered_via} IN ('MANUALLY', 'EMAIL', 'WEB', 'API')`
             ),
             check('positive_group_order_no', sql`${table.group_order_no} >= 0`),
+            pgPolicy('Enable inserting orders for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating orders for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading orders for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting orders for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );
@@ -263,7 +284,30 @@ export const storeOrdersTable = pgTable(
         }),
     },
     (table) => {
-        return [check('positive_qty', sql`${table.qty} >= 0`)];
+        return [
+            check('positive_qty', sql`${table.qty} >= 0`),
+            pgPolicy('Enable inserting store orders for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating store orders for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading store orders for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting store orders for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+        ];
     }
 );
 
@@ -303,6 +347,27 @@ export const bakeryOrdersTable = pgTable(
             ),
             check('positive_temp_tot_made', sql`${table.temp_tot_made} >= 0`),
             check('positive_group_order_no', sql`${table.group_order_no} >= 0`),
+            pgPolicy('Enable inserting bakery orders for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating bakery orders for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading bakery orders for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting bakery orders for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );
@@ -338,7 +403,30 @@ export const storeBakeryOrdersTable = pgTable(
         }),
     },
     (table) => {
-        return [check('positive_order_qty', sql`${table.order_qty} >= 0`)];
+        return [
+            check('positive_order_qty', sql`${table.order_qty} >= 0`),
+            pgPolicy('Enable inserting bakery orders for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating bakery orders for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading bakery orders for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting bakery orders for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+        ];
     }
 );
 

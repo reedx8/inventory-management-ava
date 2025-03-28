@@ -561,6 +561,20 @@
       "when": 1743195737705,
       "tag": "0079_clumsy_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1743197360218,
+      "tag": "0080_modern_luckman",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1743202987801,
+      "tag": "0081_naive_black_widow",
+      "breakpoints": true
     }
   ]
 }
