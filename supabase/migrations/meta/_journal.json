@@ -575,6 +575,13 @@
       "when": 1743202987801,
       "tag": "0081_naive_black_widow",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1743449123072,
+      "tag": "0082_pink_mantis",
+      "breakpoints": true
     }
   ]
 }

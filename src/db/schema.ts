@@ -154,6 +154,27 @@ export const stockTable = pgTable(
             ),
             check('expired_count_check', sql`${table.expired_count} >= 0`),
             check('reused_count_check', sql`${table.reused_count} >= 0`),
+            pgPolicy('Enable inserting stock for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating stock for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading stock for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting stock for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );
@@ -303,6 +324,27 @@ export const storeOrdersTable = pgTable(
                 using: sql`true`, // This allows all authenticated users to select all rows
             }),
             pgPolicy('Enable deleting store orders for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable inserting orders for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating orders for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading orders for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting orders for auth users only', {
                 for: 'delete',
                 to: authenticatedRole,
                 using: sql`true`, // This allows all authenticated users to select all rows
@@ -529,6 +571,27 @@ export const vendorSplitTable = pgTable(
         return [
             check('positive_qty', sql`${table.qty} >= 0`),
             check('positive_total_spent', sql`${table.total_spent} >= 0`),
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting deleting for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );
@@ -569,17 +632,48 @@ export const storesTable = pgTable(
 );
 
 // Record table for tracking changes to records across tables
-export const historyTable = pgTable('history', {
-    id: serial('id').primaryKey(),
-    table_name: varchar('table_name').notNull(),
-    record_id: integer('record_id').notNull(),
-    field_name: varchar('field_name').notNull(),
-    old_value: decimal('old_value', { precision: 10, scale: 2 }),
-    new_value: decimal('new_value', { precision: 10, scale: 2 }),
-    changed_at: timestamp('changed_at', { precision: 3, withTimezone: true })
-        .notNull()
-        .defaultNow(),
-});
+export const historyTable = pgTable(
+    'history',
+    {
+        id: serial('id').primaryKey(),
+        table_name: varchar('table_name').notNull(),
+        record_id: integer('record_id').notNull(),
+        field_name: varchar('field_name').notNull(),
+        old_value: decimal('old_value', { precision: 10, scale: 2 }),
+        new_value: decimal('new_value', { precision: 10, scale: 2 }),
+        changed_at: timestamp('changed_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
+    },
+    () => {
+        return [
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+        ];
+    }
+);
 
 // Vendor-specific item details when neccessary, for edge cases where vendors have different names or details for the same general/internal item we use
 // Primary Use: For automating the generating/emailing of excel files for/to vendors that need exact details
@@ -622,18 +716,62 @@ export const vendorItemsTable = pgTable(
                 table.item_id,
                 table.is_primary
             ),
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );
 
 // May rename to store_items (general use table)
-export const parsTable = pgTable('pars', {
-    id: serial('id').primaryKey(),
-    item_id: integer('item_id')
-        .notNull()
-        .references(() => itemsTable.id, { onDelete: 'cascade' }),
-    store_id: integer('store_id').references(() => storesTable.id),
-});
+export const parsTable = pgTable(
+    'pars',
+    {
+        id: serial('id').primaryKey(),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id, { onDelete: 'cascade' }),
+        store_id: integer('store_id').references(() => storesTable.id),
+    },
+    () => {
+        return [
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+        ];
+    }
+);
 
 // Item's par value for each day of week (for each store)
 export const parsDayTable = pgTable(
@@ -650,6 +788,22 @@ export const parsDayTable = pgTable(
         return [
             check('positive_value', sql`${table.value} >= 0`),
             check('valid_dow', sql`${table.dow} IN (0, 1, 2, 3, 4, 5, 6)`),
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );
@@ -684,18 +838,44 @@ export const parsDayTable = pgTable(
 // );
 
 // Schedules table for scheduling cron jobs (schedule-type level) (if user-created cron jobs needed). TODO: MAY DELETE (duplicate prurpose essentially to inventory_schedule table)
-export const schedulesTable = pgTable('schedules', {
-    id: serial('id').primaryKey(),
-    name: varchar('name').notNull().unique(),
-    description: text('description'),
-    is_active: boolean('is_active').notNull().default(true),
-    created_at: timestamp('created_at', { precision: 3, withTimezone: true })
-        .notNull()
-        .defaultNow(),
-    exec_time: timestamp('exec_time', { precision: 3, withTimezone: true }),
-    days_of_week: integer('days_of_week').array().notNull(), // 0-6, where 0 is Sunday
-    last_run: timestamp('last_run', { precision: 3, withTimezone: true }),
-});
+export const schedulesTable = pgTable(
+    'schedules',
+    {
+        id: serial('id').primaryKey(),
+        name: varchar('name').notNull().unique(),
+        description: text('description'),
+        is_active: boolean('is_active').notNull().default(true),
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
+        exec_time: timestamp('exec_time', { precision: 3, withTimezone: true }),
+        days_of_week: integer('days_of_week').array().notNull(), // 0-6, where 0 is Sunday
+        last_run: timestamp('last_run', { precision: 3, withTimezone: true }),
+    },
+    () => {
+        return [
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+        ];
+    }
+);
 
 // Junction table for cron job scheduling (orders). TODO: MAY DELETE
 export const order_item_schedulesTable = pgTable(
@@ -708,6 +888,27 @@ export const order_item_schedulesTable = pgTable(
         return [
             // composite key
             primaryKey({ columns: [table.item_id, table.schedule_id] }),
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );
@@ -723,6 +924,27 @@ export const stock_item_schedulesTable = pgTable(
         return [
             // composite key
             primaryKey({ columns: [table.item_id, table.schedule_id] }),
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
         ];
     }
 );
