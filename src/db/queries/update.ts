@@ -22,7 +22,7 @@ export async function putStoreOrders(
 
     // TODO: where should include a date check as well, + will cause 'some updates failed' when store ids dont match, ie admin view submitting orders)
     try {
-        const updates = await db.transaction(async (trx) => {
+        const updates = await executeWithAuthRole(async (trx) => {
             const results = await Promise.all(
                 data.map(async (order) => {
                     try {
@@ -87,7 +87,7 @@ export async function putStoreOrders(
     }
 }
 
-// Send store's orders for bakery only (store page)
+// Send store's orders for bakery items only (store -> orders due page's submit btn)
 export async function putStoreBakeryOrders(
     storeIdNum: string,
     data: OrderItem[]
@@ -97,7 +97,7 @@ export async function putStoreBakeryOrders(
 
     // TODO: where should include a date check as well, + will cause 'some updates failed' when store ids dont match, ie admin view submitting orders)
     try {
-        const updates = await db.transaction(async (trx) => {
+        const updates = await executeWithAuthRole(async (trx) => {
             const results = await Promise.all(
                 data.map(async (order) => {
                     try {
@@ -176,7 +176,7 @@ export async function postMilkBreadStock(
     try {
         const storeId = parseInt(store_location_id);
 
-        const updates = await db.transaction(async (trx) => {
+        const updates = await executeWithAuthRole(async (trx) => {
             const results = await Promise.all(
                 data.items.map(async (item) => {
                     try {
@@ -245,7 +245,7 @@ export async function putBakeryEditOrders(
     data: Array<{ id: number; order_qty: number }>
 ) {
     try {
-        const updates = await db.transaction(async (trx) => {
+        const updates = await executeWithAuthRole(async (trx) => {
             const results = await Promise.all(
                 data.map(async (order) => {
                     try {
@@ -305,9 +305,10 @@ export async function putBakeryEditOrders(
 }
 
 // Batch Complete Btn Pressed: batch complete today's orders not already made
+// TODO: should send in exact orders to batck complete instead
 export async function putBakeryBatchCompleteOrders() {
     try {
-        const updates = await db.transaction(async (trx) => {
+        const updates = await executeWithAuthRole(async (trx) => {
             try {
                 const updated = await trx
                     .update(storeBakeryOrdersTable)
@@ -318,7 +319,8 @@ export async function putBakeryBatchCompleteOrders() {
                     .where(
                         and(
                             isNull(storeBakeryOrdersTable.made_qty),
-                            sql`DATE(created_at) = CURRENT_DATE`
+                            sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`
+                            // sql`DATE(created_at) = CURRENT_DATE`
                         )
                     )
                     .returning();
@@ -361,6 +363,14 @@ export async function putBakeryBatchCompleteOrders() {
             error: err.message,
         };
     }
+}
+
+// Helper function for authenticated transactions
+async function executeWithAuthRole<T>(queryFn: (tx: any) => Promise<T>) {
+    return await db.transaction(async (tx) => {
+        await tx.execute(sql`SET LOCAL ROLE authenticated`);
+        return await queryFn(tx);
+    });
 }
 
 // Send bakery's batch complete orders (from batch complete btn) (used for testing stages and when i used temp_* fields)

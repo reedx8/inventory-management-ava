@@ -55,9 +55,9 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                             eq(storeBakeryOrdersTable.store_id, storeId),
                             eq(itemsTable.is_active, true),
                             sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
-                            // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                             isNull(storeBakeryOrdersTable.submitted_at)
                             // eq(orderStagesTable.stage_name, 'DUE')
+                            // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         )
                     );
             });
@@ -113,9 +113,9 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                         and(
                             eq(itemsTable.is_active, true),
                             sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
-                            // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                             isNull(storeBakeryOrdersTable.submitted_at)
                             // eq(orderStagesTable.stage_name, 'DUE')
+                            // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         )
                     );
             });
@@ -482,8 +482,8 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                     )
                     .where(
                         and(
-                            eq(itemsTable.is_active, true),
-                            sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`
+                            eq(itemsTable.is_active, true)
+                            // sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`
 
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`
                         )

@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// Send store orders (store page)
+// Send store's orders for bakery items only (store -> orders due page's submit btn)
 export async function PUT(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const storeId: string | null = searchParams.get('storeId');
