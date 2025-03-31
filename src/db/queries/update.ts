@@ -325,7 +325,7 @@ export async function putBakeryBatchCompleteOrders() {
                     )
                     .returning();
 
-                return updated.map((row) => ({
+                return updated.map((row: { id: any }) => ({
                     id: row.id,
                     updated: true,
                 }));
@@ -341,7 +341,9 @@ export async function putBakeryBatchCompleteOrders() {
             }
         });
 
-        const failures = updates.filter((update) => update.updated === false);
+        const failures = updates.filter(
+            (update: { updated: boolean }) => update.updated === false
+        );
         if (failures.length > 0) {
             return {
                 success: false,
