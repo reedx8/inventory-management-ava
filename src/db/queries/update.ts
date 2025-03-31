@@ -259,7 +259,8 @@ export async function putBakeryEditOrders(
                             .where(
                                 and(
                                     eq(storeBakeryOrdersTable.id, order.id),
-                                    sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`
+                                    sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`
+                                    // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`
                                 )
                             )
                             .returning();
