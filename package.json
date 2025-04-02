@@ -4,6 +4,11 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
+        "dev:test": "APP_ENV=test next dev",
+        "gen": "drizzle-kit generate --config=drizzle.config.ts && drizzle-kit generate --config=drizzle-test.config.ts",
+        "push": "supabase db push && drizzle-kit push --config=drizzle-test.config.ts",
+        "gen:test": "drizzle-kit generate --config=drizzle-test.config.ts",
+        "gen:dev": "drizzle-kit generate --config=drizzle.config.ts",
         "build": "next build",
         "start": "next start",
         "lint": "next lint"
