@@ -677,6 +677,31 @@ export async function getAllItems() {
     }
 }
 
+export async function getStoreCount() {
+    try {
+        const result = await queryWithAuthRole(async (tx) => {
+            return await tx
+                .select({
+                    count: count(storesTable.id),
+                })
+                .from(storesTable);
+        });
+
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
+        };
+    }
+}
+
 // Helper functions
 
 // custom lower function

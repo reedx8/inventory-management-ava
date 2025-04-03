@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
-import { getBakeryDueTodayCount, getItemCount } from '@/db/queries/select';
+import {
+    getBakeryDueTodayCount,
+    getItemCount,
+    getStoreCount,
+} from '@/db/queries/select';
 export const dynamic = 'force-dynamic'; // no caching
 
 export async function GET(request: NextRequest) {
@@ -23,10 +27,12 @@ export async function GET(request: NextRequest) {
             response = await getBakeryDueTodayCount();
         } else if (fetchType === 'itemCount') {
             response = await getItemCount();
+        } else if (fetchType === 'storeCount') {
+            response = await getStoreCount();
         } else {
             return NextResponse.json(
                 {
-                    error: 'You need to pass "fetch" (or "todaysDate") in API url with the data (eg bakeryDueToday)',
+                    error: 'You need to pass "fetch" in API url with the data needed (eg bakeryDueToday)',
                 },
                 { status: 400 }
             );

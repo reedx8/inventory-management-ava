@@ -80,53 +80,43 @@ export default function Home() {
         number | null
     >(null);
     const [itemCount, setItemCount] = useState<number | undefined>();
+    const [storeCount, setStoreCount] = useState<number | undefined>();
     // const [openCakeOrders, setOpenCakeOrders] = useState<number | undefined>();
     // const [isLoading, setIsLoading] = useState<boolean>(true);
     // const todaysDate : string = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
-        const getBakeryDueTodayCounts = async () => {
+        const getDashboardData = async () => {
             try {
-                const bakeryResponse = await fetch(
-                    `api/v1/dashboard?fetch=bakeryDueToday`
-                );
-                const bakeryResult = await bakeryResponse.json();
+                const [bakeryResponse, itemResponse, storeResponse] =
+                    await Promise.all([
+                        fetch('api/v1/dashboard?fetch=bakeryDueToday'),
+                        fetch('api/v1/dashboard?fetch=itemCount'),
+                        fetch('api/v1/dashboard?fetch=storeCount'),
+                    ]);
 
-                if (!bakeryResponse.ok) {
-                    throw new Error(bakeryResult.error);
-                }
-                console.log('bakeryResult: ' + bakeryResult.data[0].count);
-                setBakeryDueTodayCount(bakeryResult.data[0].count);
-            } catch (error) {
-                const err = error as Error;
-                console.log(err);
-                setBakeryDueTodayCount(0);
-            }
-        };
-        const getItemCount = async () => {
-            try {
-                const itemResponse = await fetch(
-                    'api/v1/dashboard?fetch=itemCount'
-                );
+                const bakeryResult = await bakeryResponse.json();
                 const itemResult = await itemResponse.json();
-                if (!itemResponse.ok) {
-                    throw new Error(itemResult.error);
-                }
-                // console.log("test: " + JSON.stringify(itemResult))
-                // console.log('itemResult: ' + itemResult.data[0].count);
+                const storeResult = await storeResponse.json();
+
+                if (!bakeryResponse.ok) throw new Error(bakeryResult.error);
+                if (!itemResponse.ok) throw new Error(itemResult.error);
+                if (!storeResponse.ok) throw new Error(storeResult.error);
+
+                setBakeryDueTodayCount(bakeryResult.data[0].count);
                 setItemCount(itemResult.data[0].count);
+                setStoreCount(storeResult.data[0].count);
             } catch (error) {
                 const err = error as Error;
-                console.log(err.message);
+                console.log('Dashboard data fetch failed:' + err);
+                // Reset all counts on error
+                setBakeryDueTodayCount(0);
                 setItemCount(0);
+                setStoreCount(0);
             }
         };
-        getBakeryDueTodayCounts();
-        getItemCount();
+        getDashboardData();
     }, []);
-    // console.log(dueTodayCount)
-    // console.log(bakeryDueTodayCount);
-    // console.log(today);
 
     return (
         <main>
@@ -141,13 +131,16 @@ export default function Home() {
                 <div className='flex flex-col items-end'>
                     <h2 className='flex items-center'>
                         <Store width={17} className='mr-1 text-myBrown' /> Store
-                        Locations: <span className='ml-1 text-lg'>4</span>
+                        Locations:{' '}
+                        <span className='ml-1 text-lg'>
+                            {storeCount === undefined ? '--' : storeCount}
+                        </span>
                     </h2>
                     <h2 className='flex items-center'>
                         <Box width={17} className='mr-1 text-myBrown' />
                         Item Count:
                         <span className='ml-1 text-lg'>
-                            {itemCount ? itemCount : '--'}
+                            {itemCount === undefined ? '--' : itemCount}
                         </span>
                     </h2>
                 </div>
@@ -327,7 +320,7 @@ function OpenCakeOrders() {
                 if (!response.ok) {
                     throw new Error(result.error);
                 }
-                console.log('openCakeOrders: ' + result.length);
+                // console.log('openCakeOrders: ' + result.length);
                 setOpenCakeOrders(result.length);
             } catch (error) {
                 const err = error as Error;
@@ -351,8 +344,11 @@ function OpenCakeOrders() {
                     {openCakeOrders ?? '--'}
                 </p>
             </CardContent>
-            <Link href='/bakery/cake-orders' className='absolute right-2 bottom-2'>
-            {/* <Link href='/bakery/cake-orders' className='self-end'> */}
+            <Link
+                href='/bakery/cake-orders'
+                className='absolute right-2 bottom-2'
+            >
+                {/* <Link href='/bakery/cake-orders' className='self-end'> */}
                 <Button variant='ghost'>
                     <ChevronRight className='h-2 w-2' />
                 </Button>
