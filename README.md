@@ -25,7 +25,7 @@ After getting started, refer to the following. See `package.json` for more detai
 -   `npm run dev:test` to run app while manually testing against test DB.
 -   Automated testing coming soon (via `npm run test`)
 
-#### Migration
+### Migration
 
 Production/dev db and test db use the same schema. Keep DB schemas in sync for now.
 
