@@ -109,7 +109,6 @@ export default function Home() {
             } catch (error) {
                 const err = error as Error;
                 console.log('Dashboard data fetch failed:' + err);
-                // Reset all counts on error
                 setBakeryDueTodayCount(0);
                 setItemCount(0);
                 setStoreCount(0);
