@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Get the current branch name
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+echo "Running build and tests before pushing to $current_branch..."
+
+# Run build
+echo "Running build..."
+npm run build
+build_status=$?
+
+# If build failed, prevent the push
+if [ $build_status -ne 0 ]; then
+    echo "Build failed. Push aborted."
+    exit 1
+fi
+
+# Run tests
+echo "Running tests..."
+npm test
+test_status=$?
+
+# If tests failed, prevent the push
+if [ $test_status -ne 0 ]; then
+    echo "Tests failed. Push aborted."
+    exit 1
+fi
+
+# If we got here, both build and tests passed
+echo "Build and tests passed. Continuing with push."
+exit 0
