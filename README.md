@@ -1,13 +1,15 @@
-# Ava Roasteria
+# IMS
 
-Ava Roasteria's inventory management system. A React / Next.js / TypeScript / Drizzle / Supabase project.
+Ava Roasteria's Inventory Management System (IMS).
+A React / Next.js / TypeScript / Drizzle / Supabase project.
 
 ## Getting Started
 
 1. Clone repo
-2. Create `.env` and `.env.local` files in project's parent folder (message repo owner for `.env` contents)
-3. Run `npm i`
-4. Finally, run `npm run dev` to start dev server, and open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. cd to project folder and run `git config core.hooksPath .githooks` to set up the project's git hooks. See `.githooks/pre-push` for more details.
+3. Create `.env` and `.env.local` files in project's parent folder (message repo owner for file contents)
+4. Run `npm i`
+5. Finally, run `npm run dev` to start dev server, and open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## CI/CD workflows
 
@@ -23,7 +25,7 @@ After getting started, refer to the following. See `package.json` for more detai
 ### Testing
 
 -   `npm run dev:test` to run app while manually testing against test DB.
--   Automated testing coming soon (via `npm run test`)
+-   Tests (and build) will automatically run before any direct push to main via `.githooks/pre-push` file.
 
 ### Migration
 
