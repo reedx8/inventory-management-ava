@@ -25,7 +25,7 @@ After getting started, refer to the following. See `package.json` for more detai
 ### Testing
 
 -   `npm run dev:test` to run app while manually testing against test DB.
--   Tests (and build) will automatically run before any direct push to main via `.githooks/pre-push` file.
+-   Tests (and build) will automatically run before any direct push to main branch via `.githooks/pre-push` file.
 
 ### Migration
 
