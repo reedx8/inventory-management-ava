@@ -1,7 +1,7 @@
 # IMS
 
-Ava Roasteria's Inventory Management System (IMS).
-A React / Next.js / TypeScript / Drizzle / Supabase project.
+-   AVA Roasteria's Inventory Management System (IMS).
+-   React / Next.js / TypeScript / Drizzle ORM / Supabase / Tailwind project.
 
 ## Getting Started
 

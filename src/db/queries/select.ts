@@ -14,6 +14,8 @@ import {
     // storeOrdersTable,
 } from '../schema';
 import { PgColumn } from 'drizzle-orm/pg-core';
+import { config } from 'dotenv';
+config({ path: '.env' });
 
 // Get each store's daily bakery orders (store -> orders due page)
 export async function getStoresBakeryOrders(store_location_id: string | null) {
@@ -686,6 +688,11 @@ export async function getStoreCount() {
                 })
                 .from(storesTable);
         });
+        // const result = await db
+        //     .select({
+        //         count: count(storesTable.id),
+        //     })
+        //     .from(storesTable);
 
         return {
             success: true,
@@ -711,7 +718,9 @@ export function lower(name: PgColumn) {
 
 async function queryWithAuthRole<T>(queryFn: (tx: any) => Promise<T>) {
     return await db.transaction(async (tx) => {
-        await tx.execute(sql`SET LOCAL ROLE authenticated`);
+        if (process.env.APP_ENV !== 'test') {
+            await tx.execute(sql`SET LOCAL ROLE authenticated`);
+        }
         return await queryFn(tx);
     });
 }

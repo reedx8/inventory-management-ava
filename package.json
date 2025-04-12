@@ -5,6 +5,8 @@
     "scripts": {
         "dev": "next dev",
         "dev:test": "APP_ENV=test next dev",
+        "seed:test": "APP_ENV=test tsx __tests__/seed.ts",
+        "test:setup": "npm run seed:test && npm run dev:test",
         "gen": "drizzle-kit generate --config=drizzle.config.ts && drizzle-kit generate --config=drizzle-test.config.ts",
         "push": "supabase db push && drizzle-kit push --config=drizzle-test.config.ts",
         "gen:test": "drizzle-kit generate --config=drizzle-test.config.ts",
@@ -46,6 +48,7 @@
         "embla-carousel-react": "^8.5.1",
         "lucide-react": "^0.468.0",
         "next": "15.0.3",
+        "pg": "^8.14.1",
         "postgres": "^3.4.5",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
@@ -57,6 +60,7 @@
     "devDependencies": {
         "@types/jest": "^29.5.14",
         "@types/node": "^20",
+        "@types/pg": "^8.11.11",
         "@types/react": "^18",
         "@types/react-dom": "^18",
         "@types/supertest": "^6.0.3",
@@ -72,6 +76,7 @@
         "supertest": "^7.1.0",
         "tailwindcss": "^3.4.16",
         "ts-jest": "^29.3.1",
+        "tsx": "^4.19.3",
         "typescript": "^5"
     }
 }

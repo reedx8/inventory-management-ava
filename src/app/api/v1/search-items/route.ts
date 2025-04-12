@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
         const items = await searchItems(query as string);
         return Response.json(items);
     } catch (error) {
-        console.error('Error fetching bakerys orders: ', error);
+        console.error('Error fetching search items: ', error);
         return Response.json(
-            { error: 'Failed to fetch orders' },
+            { error: 'Failed to fetch search items' },
             { status: 500 }
         );
     }
