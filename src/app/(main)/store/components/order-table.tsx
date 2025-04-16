@@ -250,6 +250,7 @@ export default function OrderTable({
 
         e.preventDefault();
         if (!storeId) {
+            // This is because storeId is needed for submission
             console.log('Admin view work in-progress');
             return; // TODO: admin view
         }
@@ -264,6 +265,7 @@ export default function OrderTable({
             const bakeryOrders = filteredData.filter(
                 (order) => order.cron_categ === 'PASTRY'
             );
+            // console.log('bakeryOrders: ', bakeryOrders);
             try {
                 const response = await fetch(
                     `/api/v1/store-orders?storeId=${storeId}&vendor=bakery`,

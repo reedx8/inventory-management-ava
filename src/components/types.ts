@@ -31,7 +31,7 @@ export type SheetTemplateProps = {
     onOpenChange?: (open: boolean) => void;
 };
 
-// Active store locations only
+// Active store locations only. Names matter -- must match as app table's use the name (and not id, better for testing since id's can seed randomly causing confusion in testing)
 export const STORE_LOCATIONS = ['Hall', 'Progress', 'Kruse', 'Orenco'] as const;
 
 export type StoreLocation = (typeof STORE_LOCATIONS)[number];

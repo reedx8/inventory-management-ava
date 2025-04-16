@@ -62,12 +62,13 @@ export const UNITS: string[] = [
     '1/4 Cake',
 ];
 
+// Do NOT change order of stores below - it Must match with what app's tables use and production's stores table
 export const STORES: string[] = [
     'Hall',
-    'Barrows',
+    'Progress',
     'Kruse',
     'Orenco',
-    'Tigard',
+    // 'Tigard',
 ];
 
 export const INVOICE_CATEG: string[] = [

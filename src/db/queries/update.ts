@@ -11,6 +11,8 @@ import {
 } from '../schema';
 import { OrderItem } from '@/app/(main)/store/types';
 // import { parse } from 'path';
+import { config } from 'dotenv';
+config({ path: '.env' });
 
 // Send store's orders for external vendors only (store page)
 export async function putStoreOrders(
@@ -94,6 +96,8 @@ export async function putStoreBakeryOrders(
     // data: Array<{ id: number; order: number }>
 ) {
     const storeId = parseInt(storeIdNum);
+    // console.log('storeId: ', storeId);
+    // console.log('data: ', data);
 
     // TODO: where should include a date check as well, + will cause 'some updates failed' when store ids dont match, ie admin view submitting orders)
     try {
@@ -371,7 +375,9 @@ export async function putBakeryBatchCompleteOrders() {
 // Helper function for authenticated transactions
 async function executeWithAuthRole<T>(queryFn: (tx: any) => Promise<T>) {
     return await db.transaction(async (tx) => {
-        await tx.execute(sql`SET LOCAL ROLE authenticated`);
+        if (process.env.APP_ENV !== 'test') {
+            await tx.execute(sql`SET LOCAL ROLE authenticated`);
+        }
         return await queryFn(tx);
     });
 }

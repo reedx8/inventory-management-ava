@@ -11,6 +11,7 @@ import {
 } from './test-data';
 import { config } from 'dotenv';
 import { PgTableWithColumns } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 config({ path: '.env' });
 
 const TEST_CONNECTION_STRING = process.env.TEST_DATABASE_URL;
@@ -21,9 +22,9 @@ if (!TEST_CONNECTION_STRING) {
 const TEST_DB = drizzle(TEST_CONNECTION_STRING!);
 
 async function main() {
-    seedTodaysDailyBakery();
+    // should run in this order due to deletions
     // seedItemsVendorsTables();
-    // seedStoresTable();
+    seedTodaysDailyBakery();
     // seedVendorsTable();
 }
 
@@ -52,13 +53,15 @@ async function seedTodaysDailyBakery() {
     storeDateMax.setMinutes(0);
     storeDateMax.setSeconds(0);
 
-    const bakeryOrderIds = 5;
+    const numOfOrders = 10;
+
+    // randomly seed bakery_orders table with drizzle-seed
     await seed(TEST_DB, {
         bakeryOrders: schema.bakeryOrdersTable,
     }).refine((f) => ({
         bakeryOrders: {
             columns: {
-                item_id: f.int({ minValue: 1, maxValue: 25, isUnique: true }), // Must match with existing items table
+                item_id: f.int({ minValue: 1, maxValue: 40, isUnique: true }), // TODO:
                 units: f.valuesFromArray({
                     values: UNITS,
                 }), // cron job should copy items.units to bakeryOrders.units
@@ -70,107 +73,72 @@ async function seedTodaysDailyBakery() {
                 temp_tot_order_qty: f.valuesFromArray({ values: [0] }),
                 is_checked_off: f.valuesFromArray({ values: [false] }),
             },
-            count: bakeryOrderIds, // an order for each item
+            count: numOfOrders, // an order for each item
         },
     }));
 
-    return; 
-
-    // let i = 1;
-    // const store_id = [1, 2, 3, 4, 5];
-
-    // Makes bakeryOrderIds x store_id.length store bakery orders in total
-    // while (i <= bakeryOrderIds) {
-    //     for (const s of store_id) {
-    //         await seed(TEST_DB, {
-    //             storeBakeryOrders: schema.storeBakeryOrdersTable,
-    //         }).refine((f) => ({
-    //             storeBakeryOrders: {
-    //                 columns: {
-    //                     order_id: f.valuesFromArray({ values: [i] }),
-    //                     store_id: f.valuesFromArray({ values: [s] }),
-    //                     order_qty: f.int({ minValue: 0, maxValue: 20 }),
-    //                     made_qty: f.valuesFromArray({ values: [undefined]}),
-    //                     is_par_submit: f.valuesFromArray({ values: [false] }),
-    //                     comments: f.valuesFromArray({ values: [undefined] }),
-    //                     created_at: f.date({
-    //                         minDate: today,
-    //                         maxDate: todayMax,
-    //                     }),
-    //                     submitted_at: f.date({
-    //                         minDate: storeDate,
-    //                         maxDate: storeDateMax,
-    //                     }),
-    //                     bakery_completed_at: undefined,
-    //                 },
-    //             },
-    //         }));
-    //     }
-    //     i++;
-    // }
-
-    // await seed(TEST_DB, {
-    //     bakeryOrders: schema.bakeryOrdersTable,
-    //     storeBakeryOrders: schema.storeBakeryOrdersTable,
-    // }).refine((f) => ({
-    //     bakeryOrders: {
-    //         columns: {
-    //             item_id: f.int({ minValue: 1, maxValue: 25, isUnique: true }), // TODO:
-    //             units: f.valuesFromArray({
-    //                 values: UNITS,
-    //             }), // cron job should copy items.units to bakeryOrders.units
-    //             group_order_no: f.valuesFromArray({ values: [1] }),
-    //             // group_order_no: f.int({ minValue: 1, maxValue: 10 }),
-    //             created_at: f.date({ minDate: today, maxDate: todayMax }), // create order between 5 and 6 AM today to mimic cron job
-    //             completed_at: undefined,
-    //             bakery_comments: undefined,
-    //             temp_tot_made: undefined,
-    //             temp_tot_order_qty: undefined,
-    //             is_checked_off: f.valuesFromArray({ values: [false] }),
-    //         },
-    //         count: 5, // an order for each item
-    //         with: {
-    //             storeBakeryOrders: STORES.length, // each store has 1 store bakery order
-    //         },
-    //     },
-    //     storeBakeryOrders: {
-    //         columns: {
-    //             store_id: f.int({ minValue: 1, maxValue: STORES.length }),
-    //             order_qty: f.int({ minValue: 1, maxValue: 10 }),
-    //             made_qty: undefined,
-    //             is_par_submit: f.valuesFromArray({ values: [false] }),
-    //             comments: undefined,
-    //             created_at: f.date({ minDate: today, maxDate: todayMax }),
-    //             submitted_at: f.date({
-    //                 minDate: storeDate,
-    //                 maxDate: storeDateMax,
-    //             }),
-    //             bakery_completed_at: undefined,
-    //         },
-    //     },
-    // }));
+    // manually seed store_bakery_orders table instead due to drizzle-seed's lack of support for row-level seeding
+    // row-level seeding needed since i need a very specific pattern per storeBakeryOrder.order_id: store_id 1,2,3,4
+    for (let i = 1; i <= numOfOrders; ++i) {
+        for (let id = 1; id <= STORES.length; ++id) {
+            await TEST_DB.insert(schema.storeBakeryOrdersTable).values({
+                order_id: i,
+                store_id: id,
+                // order_qty: sql`floor(random() * 20 + 1)`, // generate a random integer between 1 and 20 (inclusive)
+                is_par_submit: false,
+                // created_at: sql`now()`,
+                created_at: today,
+            });
+        }
+    }
 }
 
-// Seed only stores table for manual testing (eg npm run seed:test)
+// async function seedStoreBakeryOrdersTable(bakeryOrderIds: number) {
+//     let i = 1;
+//     const store_id = [1, 2, 3, 4, 5];
+
+//     // Makes (bakeryOrderIds x store_id.length) store bakery orders in total
+//     while (i <= bakeryOrderIds) {
+//         for (const s of store_id) {
+//             await seed(TEST_DB, {
+//                 storeBakeryOrders: schema.storeBakeryOrdersTable,
+//             }).refine((f) => ({
+//                 storeBakeryOrders: {
+//                     columns: {
+//                         order_id: f.valuesFromArray({ values: [i] }),
+//                         store_id: f.valuesFromArray({ values: [s] }),
+//                         order_qty: f.int({ minValue: 0, maxValue: 20 }),
+//                         made_qty: f.valuesFromArray({ values: [undefined] }),
+//                         is_par_submit: f.valuesFromArray({ values: [false] }),
+//                         comments: f.valuesFromArray({ values: [undefined] }),
+//                         created_at: f.date({
+//                             minDate: today,
+//                             maxDate: todayMax,
+//                         }),
+//                         submitted_at: f.date({
+//                             minDate: storeDate,
+//                             maxDate: storeDateMax,
+//                         }),
+//                         bakery_completed_at: undefined,
+//                     },
+//                 },
+//             }));
+//         }
+//         i++;
+//     }
+// }
+
+// drizzle-seed lacks support for row-level seeding. Instead, we use raw SQL commands to seed table
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function seedStoresTable() {
-    // Seed table with default setup but with weekly_budget column between 0 and 5000 IOT respect column's check constraint
-    await seed(TEST_DB, { stores: schema.storesTable }).refine((f) => ({
-        stores: {
-            columns: {
-                name: f.valuesFromArray({
-                    values: STORES,
-                    isUnique: true,
-                }),
-                weekly_budget: f.number({
-                    minValue: 500,
-                    maxValue: 4000,
-                    precision: 2,
-                }),
-            },
-            count: STORES.length,
-        },
-    }));
+    // Ensures match with production's stores table (necessary)
+    for (let i = 0; i < STORES.length; ++i) {
+        await TEST_DB.insert(schema.storesTable).values({
+            id: i + 1,
+            name: STORES[i],
+            weekly_budget: sql`random() * 3000 + 500`,
+        });
+    }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -179,7 +147,7 @@ async function seedVendorsTable() {
         vendors: {
             columns: {
                 name: f.companyName({ isUnique: true }),
-                phone: f.phoneNumber(),
+                phone: f.phoneNumber({ template: '(###) ###-####' }),
                 email: f.email(),
                 comments: f.loremIpsum({ sentencesCount: 3 }),
                 contact_name: f.firstName(),
@@ -190,6 +158,9 @@ async function seedVendorsTable() {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function seedItemsVendorsTables() {
+    await clearTable(schema.itemsTable);
+    await clearTable(schema.vendorsTable);
+
     await seed(TEST_DB, {
         items: schema.itemsTable,
         vendors: schema.vendorsTable,
@@ -201,10 +172,11 @@ async function seedItemsVendorsTables() {
             },
             columns: {
                 name: f.companyName({ isUnique: true }),
-                phone: f.phoneNumber(),
+                phone: f.phoneNumber({ template: '(###) ###-####' }),
                 email: f.email(),
                 comments: f.loremIpsum({ sentencesCount: 3 }),
                 contact_name: f.firstName(),
+                is_active: f.valuesFromArray({ values: [true] }),
             },
         },
         items: {
@@ -232,6 +204,7 @@ async function seedItemsVendorsTables() {
                 }),
                 item_description: f.loremIpsum({ sentencesCount: 1 }),
                 vendor_description: f.loremIpsum({ sentencesCount: 2 }),
+                is_active: f.valuesFromArray({ values: [true] }),
             },
             // count: 35,
         },
