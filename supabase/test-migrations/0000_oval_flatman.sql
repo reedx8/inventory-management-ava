@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS "items" (
 --> statement-breakpoint
 ALTER TABLE "items" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "order_item_schedules" (
-	"item_id" integer,
-	"schedule_id" integer,
+	"item_id" integer NOT NULL,
+	"schedule_id" integer NOT NULL,
 	CONSTRAINT "order_item_schedules_item_id_schedule_id_pk" PRIMARY KEY("item_id","schedule_id")
 );
 --> statement-breakpoint
@@ -85,20 +85,27 @@ CREATE TABLE IF NOT EXISTS "orders" (
 );
 --> statement-breakpoint
 ALTER TABLE "orders" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "pars_day" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"pars_id" integer NOT NULL,
-	"dow" integer NOT NULL,
-	"value" numeric(10, 2) NOT NULL,
-	CONSTRAINT "positive_value" CHECK ("pars_day"."value" >= 0),
-	CONSTRAINT "valid_dow" CHECK ("pars_day"."dow" IN (0, 1, 2, 3, 4, 5, 6))
-);
---> statement-breakpoint
-ALTER TABLE "pars_day" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "pars" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"item_id" integer NOT NULL,
-	"store_id" integer
+	"store_id" integer NOT NULL,
+	"monday" numeric(10, 2) NOT NULL,
+	"tuesday" numeric(10, 2) NOT NULL,
+	"wednesday" numeric(10, 2) NOT NULL,
+	"thursday" numeric(10, 2) NOT NULL,
+	"friday" numeric(10, 2) NOT NULL,
+	"saturday" numeric(10, 2) NOT NULL,
+	"sunday" numeric(10, 2) NOT NULL,
+	"weekly" numeric(10, 2) NOT NULL,
+	"test" numeric(10, 2) NOT NULL,
+	CONSTRAINT "positive_monday" CHECK ("pars"."monday" >= 0),
+	CONSTRAINT "positive_tuesday" CHECK ("pars"."tuesday" >= 0),
+	CONSTRAINT "positive_wednesday" CHECK ("pars"."wednesday" >= 0),
+	CONSTRAINT "positive_thursday" CHECK ("pars"."thursday" >= 0),
+	CONSTRAINT "positive_friday" CHECK ("pars"."friday" >= 0),
+	CONSTRAINT "positive_saturday" CHECK ("pars"."saturday" >= 0),
+	CONSTRAINT "positive_sunday" CHECK ("pars"."sunday" >= 0),
+	CONSTRAINT "positive_weekly" CHECK ("pars"."weekly" >= 0)
 );
 --> statement-breakpoint
 ALTER TABLE "pars" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
@@ -143,8 +150,8 @@ CREATE TABLE IF NOT EXISTS "stock" (
 --> statement-breakpoint
 ALTER TABLE "stock" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "stock_item_schedules" (
-	"item_id" integer,
-	"schedule_id" integer,
+	"item_id" integer NOT NULL,
+	"schedule_id" integer NOT NULL,
 	CONSTRAINT "stock_item_schedules_item_id_schedule_id_pk" PRIMARY KEY("item_id","schedule_id")
 );
 --> statement-breakpoint
@@ -206,7 +213,7 @@ CREATE TABLE IF NOT EXISTS "vendor_items" (
 ALTER TABLE "vendor_items" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "vendor_split" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"order_id" integer,
+	"order_id" integer NOT NULL,
 	"vendor_id" integer NOT NULL,
 	"qty" numeric(10, 2),
 	"units" varchar,
@@ -270,13 +277,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "pars_day" ADD CONSTRAINT "pars_day_pars_id_pars_id_fk" FOREIGN KEY ("pars_id") REFERENCES "public"."pars"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "pars" ADD CONSTRAINT "pars_item_id_items_id_fk" FOREIGN KEY ("item_id") REFERENCES "public"."items"("id") ON DELETE cascade ON UPDATE no action;
+ ALTER TABLE "pars" ADD CONSTRAINT "pars_item_id_items_id_fk" FOREIGN KEY ("item_id") REFERENCES "public"."items"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -380,9 +381,6 @@ CREATE POLICY "Enable inserting orders for auth users only" ON "orders" AS PERMI
 CREATE POLICY "Enable updating orders for auth users only" ON "orders" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);--> statement-breakpoint
 CREATE POLICY "Enable reading orders for auth users only" ON "orders" AS PERMISSIVE FOR SELECT TO "authenticated" USING (true);--> statement-breakpoint
 CREATE POLICY "Enable deleting orders for auth users only" ON "orders" AS PERMISSIVE FOR DELETE TO "authenticated" USING (true);--> statement-breakpoint
-CREATE POLICY "Enable inserting for auth users only" ON "pars_day" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (true);--> statement-breakpoint
-CREATE POLICY "Enable updating for auth users only" ON "pars_day" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);--> statement-breakpoint
-CREATE POLICY "Enable reading for auth users only" ON "pars_day" AS PERMISSIVE FOR SELECT TO "authenticated" USING (true);--> statement-breakpoint
 CREATE POLICY "Enable inserting for auth users only" ON "pars" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (true);--> statement-breakpoint
 CREATE POLICY "Enable updating for auth users only" ON "pars" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);--> statement-breakpoint
 CREATE POLICY "Enable reading for auth users only" ON "pars" AS PERMISSIVE FOR SELECT TO "authenticated" USING (true);--> statement-breakpoint

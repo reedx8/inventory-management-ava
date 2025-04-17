@@ -1,0 +1,1 @@
+ALTER TABLE "pars" DROP COLUMN IF EXISTS "test";

@@ -1,6 +1,6 @@
 {
-  "id": "1b84c617-009f-4b6a-b086-b41addb1b6c4",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "e66c11ae-e412-4d5c-9438-fd9576eae49e",
+  "prevId": "8b04b757-daf9-4e98-8a78-7c1178711352",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -430,13 +430,13 @@
           "name": "item_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "schedule_id": {
           "name": "schedule_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},
@@ -743,7 +743,7 @@
           "name": "store_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "monday": {
           "name": "monday",
@@ -792,12 +792,6 @@
           "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true
-        },
-        "test": {
-          "name": "test",
-          "type": "numeric(10, 2)",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},
@@ -812,7 +806,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "pars_store_id_stores_id_fk": {
@@ -1210,13 +1204,13 @@
           "name": "item_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "schedule_id": {
           "name": "schedule_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},
@@ -1924,7 +1918,7 @@
           "name": "order_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "vendor_id": {
           "name": "vendor_id",

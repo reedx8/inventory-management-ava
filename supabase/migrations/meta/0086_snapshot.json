@@ -1,6 +1,6 @@
 {
-  "id": "1b84c617-009f-4b6a-b086-b41addb1b6c4",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "156fb7f7-9335-4bbb-9077-67dbd5a3a124",
+  "prevId": "88021c8e-59a7-4f06-be18-9125ae36e1bb",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -789,12 +789,6 @@
         },
         "weekly": {
           "name": "weekly",
-          "type": "numeric(10, 2)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "test": {
-          "name": "test",
           "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true

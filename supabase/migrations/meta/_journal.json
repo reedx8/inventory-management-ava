@@ -582,6 +582,41 @@
       "when": 1743449123072,
       "tag": "0082_pink_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1744919689112,
+      "tag": "0083_brief_zuras",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1744926426598,
+      "tag": "0084_common_spot",
+      "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1744928595147,
+      "tag": "0085_giant_black_crow",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1744932064192,
+      "tag": "0086_wet_lockheed",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1744932245003,
+      "tag": "0087_strong_silver_centurion",
+      "breakpoints": true
     }
   ]
 }

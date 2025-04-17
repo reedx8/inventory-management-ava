@@ -1,6 +1,6 @@
 {
-  "id": "1b84c617-009f-4b6a-b086-b41addb1b6c4",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "c25dfeac-f8cd-4e64-b15d-1aa34d475535",
+  "prevId": "4636f7e2-6140-4022-8630-5035238954e5",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -749,55 +749,49 @@
           "name": "monday",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "tuesday": {
           "name": "tuesday",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "wednesday": {
           "name": "wednesday",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "thursday": {
           "name": "thursday",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "friday": {
           "name": "friday",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "saturday": {
           "name": "saturday",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "sunday": {
           "name": "sunday",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "weekly": {
           "name": "weekly",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": true
-        },
-        "test": {
-          "name": "test",
-          "type": "numeric(10, 2)",
-          "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},
@@ -812,7 +806,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "pars_store_id_stores_id_fk": {

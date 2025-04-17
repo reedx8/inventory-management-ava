@@ -1,0 +1,1 @@
+ALTER TABLE "pars" ADD COLUMN "test" numeric(10, 2) NOT NULL;

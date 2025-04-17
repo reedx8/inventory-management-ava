@@ -559,7 +559,9 @@ export const vendorSplitTable = pgTable(
     'vendor_split',
     {
         id: serial('id').primaryKey(),
-        order_id: integer('order_id').references(() => ordersTable.id),
+        order_id: integer('order_id')
+            .notNull()
+            .references(() => ordersTable.id),
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id),
@@ -741,18 +743,38 @@ export const vendorItemsTable = pgTable(
     }
 );
 
-// May rename to store_items (general use table)
+// Pars values for all stores and items
 export const parsTable = pgTable(
     'pars',
     {
         id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
-            .references(() => itemsTable.id, { onDelete: 'cascade' }),
-        store_id: integer('store_id').references(() => storesTable.id),
+            .references(() => itemsTable.id, {
+                onDelete: 'cascade',
+            }),
+        store_id: integer('store_id')
+            .notNull()
+            .references(() => storesTable.id),
+        monday: decimal('monday', { precision: 10, scale: 2 }),
+        tuesday: decimal('tuesday', { precision: 10, scale: 2 }),
+        wednesday: decimal('wednesday', { precision: 10, scale: 2 }),
+        thursday: decimal('thursday', { precision: 10, scale: 2 }),
+        friday: decimal('friday', { precision: 10, scale: 2 }),
+        saturday: decimal('saturday', { precision: 10, scale: 2 }),
+        sunday: decimal('sunday', { precision: 10, scale: 2 }),
+        weekly: decimal('weekly', { precision: 10, scale: 2 }),
     },
-    () => {
+    (table) => {
         return [
+            check('positive_monday', sql`${table.monday} >= 0`),
+            check('positive_tuesday', sql`${table.tuesday} >= 0`),
+            check('positive_wednesday', sql`${table.wednesday} >= 0`),
+            check('positive_thursday', sql`${table.thursday} >= 0`),
+            check('positive_friday', sql`${table.friday} >= 0`),
+            check('positive_saturday', sql`${table.saturday} >= 0`),
+            check('positive_sunday', sql`${table.sunday} >= 0`),
+            check('positive_weekly', sql`${table.weekly} >= 0`),
             pgPolicy('Enable inserting for auth users only', {
                 for: 'insert',
                 to: authenticatedRole,
@@ -773,40 +795,72 @@ export const parsTable = pgTable(
     }
 );
 
-// Item's par value for each day of week (for each store)
-export const parsDayTable = pgTable(
-    'pars_day',
-    {
-        id: serial('id').primaryKey(),
-        pars_id: integer('pars_id')
-            .notNull()
-            .references(() => parsTable.id, { onDelete: 'cascade' }),
-        dow: integer('dow').notNull(), // day of week (0-6, where 0 is Sunday)
-        value: decimal('value', { precision: 10, scale: 2 }).notNull(), // par value
-    },
-    (table) => {
-        return [
-            check('positive_value', sql`${table.value} >= 0`),
-            check('valid_dow', sql`${table.dow} IN (0, 1, 2, 3, 4, 5, 6)`),
-            pgPolicy('Enable inserting for auth users only', {
-                for: 'insert',
-                to: authenticatedRole,
-                withCheck: sql`true`,
-            }),
-            pgPolicy('Enable updating for auth users only', {
-                for: 'update',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-                withCheck: sql`true`,
-            }),
-            pgPolicy('Enable reading for auth users only', {
-                for: 'select',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-            }),
-        ];
-    }
-);
+// May rename to store_items (can be a general use table: simple map b/w item and store)
+// export const parsTable = pgTable(
+//     'pars',
+//     {
+//         id: serial('id').primaryKey(),
+//         item_id: integer('item_id')
+//             .notNull()
+//             .references(() => itemsTable.id, { onDelete: 'cascade' }),
+//         store_id: integer('store_id').references(() => storesTable.id),
+//     },
+//     () => {
+//         return [
+//             pgPolicy('Enable inserting for auth users only', {
+//                 for: 'insert',
+//                 to: authenticatedRole,
+//                 withCheck: sql`true`,
+//             }),
+//             pgPolicy('Enable updating for auth users only', {
+//                 for: 'update',
+//                 to: authenticatedRole,
+//                 using: sql`true`, // This allows all authenticated users to select all rows
+//                 withCheck: sql`true`,
+//             }),
+//             pgPolicy('Enable reading for auth users only', {
+//                 for: 'select',
+//                 to: authenticatedRole,
+//                 using: sql`true`, // This allows all authenticated users to select all rows
+//             }),
+//         ];
+//     }
+// );
+
+// // Item's par value for each day of week (for each store)
+// export const parsDayTable = pgTable(
+//     'pars_day',
+//     {
+//         id: serial('id').primaryKey(),
+//         pars_id: integer('pars_id')
+//             .notNull()
+//             .references(() => parsTable.id, { onDelete: 'cascade' }),
+//         dow: integer('dow').notNull(), // day of week (0-6, where 0 is Sunday)
+//         value: decimal('value', { precision: 10, scale: 2 }).notNull(), // par value
+//     },
+//     (table) => {
+//         return [
+//             check('positive_value', sql`${table.value} >= 0`),
+//             check('valid_dow', sql`${table.dow} IN (0, 1, 2, 3, 4, 5, 6)`),
+//             pgPolicy('Enable inserting for auth users only', {
+//                 for: 'insert',
+//                 to: authenticatedRole,
+//                 withCheck: sql`true`,
+//             }),
+//             pgPolicy('Enable updating for auth users only', {
+//                 for: 'update',
+//                 to: authenticatedRole,
+//                 using: sql`true`, // This allows all authenticated users to select all rows
+//                 withCheck: sql`true`,
+//             }),
+//             pgPolicy('Enable reading for auth users only', {
+//                 for: 'select',
+//                 to: authenticatedRole,
+//                 using: sql`true`, // This allows all authenticated users to select all rows
+//             }),
+//         ];
+//     }
+// );
 // EDIT: deleted for now, this should instead by store_levels and only for implementing min/max_qty and reorder_point. pars and pars_day tables were sued instead for normalization purposes and for direct implementation
 // TODO: may need a unique index/primary key on store_id, item_id (+ maybe day_of_week), or primary key on item_id and store_id
 // export const storeParLevelsTable = pgTable(
@@ -881,8 +935,12 @@ export const schedulesTable = pgTable(
 export const order_item_schedulesTable = pgTable(
     'order_item_schedules',
     {
-        item_id: integer('item_id').references(() => itemsTable.id),
-        schedule_id: integer('schedule_id').references(() => schedulesTable.id),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id),
+        schedule_id: integer('schedule_id')
+            .notNull()
+            .references(() => schedulesTable.id),
     },
     (table) => {
         return [
@@ -917,8 +975,12 @@ export const order_item_schedulesTable = pgTable(
 export const stock_item_schedulesTable = pgTable(
     'stock_item_schedules',
     {
-        item_id: integer('item_id').references(() => itemsTable.id),
-        schedule_id: integer('schedule_id').references(() => schedulesTable.id),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id),
+        schedule_id: integer('schedule_id')
+            .notNull()
+            .references(() => schedulesTable.id),
     },
     (table) => {
         return [
@@ -998,8 +1060,8 @@ export type InsertPars = typeof parsTable.$inferInsert;
 export type SelectPars = typeof parsTable.$inferSelect;
 // export type UpdatePars = typeof parsTable.$inferUpdate;
 
-export type InsertParsDay = typeof parsDayTable.$inferInsert;
-export type SelectParsDay = typeof parsDayTable.$inferSelect;
+// export type InsertParsDay = typeof parsDayTable.$inferInsert;
+// export type SelectParsDay = typeof parsDayTable.$inferSelect;
 // export type UpdateParsDay = typeof parsDayTable.$inferUpdate;
 
 export type InsertSchedule = typeof schedulesTable.$inferInsert;

@@ -1,6 +1,6 @@
 {
-  "id": "1b84c617-009f-4b6a-b086-b41addb1b6c4",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "88021c8e-59a7-4f06-be18-9125ae36e1bb",
+  "prevId": "ebd3c017-9bec-4b3c-af15-865eb3c5d699",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -430,13 +430,13 @@
           "name": "item_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "schedule_id": {
           "name": "schedule_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},
@@ -737,13 +737,13 @@
           "name": "item_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "store_id": {
           "name": "store_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "monday": {
           "name": "monday",
@@ -1210,13 +1210,13 @@
           "name": "item_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "schedule_id": {
           "name": "schedule_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},
@@ -1924,7 +1924,7 @@
           "name": "order_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "vendor_id": {
           "name": "vendor_id",
