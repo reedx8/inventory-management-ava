@@ -9,6 +9,6 @@ const connectionString =
         ? process.env.TEST_DATABASE_URL
         : process.env.DATABASE_URL;
 
-const client = postgres(connectionString!);
+const client = postgres(connectionString!, { prepare: false });
 // const client = postgres(process.env.DATABASE_URL!);
 export const db = drizzle({ client });

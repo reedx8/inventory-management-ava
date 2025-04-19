@@ -1,0 +1,1 @@
+ALTER TABLE "pars" DROP CONSTRAINT "pars_item_id_store_id_pk";

@@ -186,6 +186,10 @@ export default function OrderTable({
             header: 'Qty/Order',
         },
         {
+            accessorKey: 'pars_value',
+            header: 'Pars',
+        },
+        {
             accessorKey: 'order',
             header: 'Order',
             // size: 200,

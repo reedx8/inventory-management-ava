@@ -11,6 +11,7 @@ import {
     storeBakeryOrdersTable,
     vendorsTable,
     storeOrdersTable,
+    parsTable,
     // storeOrdersTable,
 } from '../schema';
 import { PgColumn } from 'drizzle-orm/pg-core';
@@ -18,7 +19,12 @@ import { config } from 'dotenv';
 config({ path: '.env' });
 
 // Get each store's daily bakery orders (store -> orders due page)
-export async function getStoresBakeryOrders(store_location_id: string | null) {
+export async function getStoresBakeryOrders(
+    store_location_id: string | null,
+    dow: number
+) {
+    const day = getDaysName(dow);
+
     if (store_location_id) {
         try {
             const storeId = parseInt(store_location_id);
@@ -35,6 +41,9 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                         // due_date: ordersTable.due_date,
                         store_name: storesTable.name,
                         cron_categ: itemsTable.cron_categ,
+                        pars_value: sql`${
+                            parsTable[day as keyof typeof parsTable]
+                        }`,
                     })
                     .from(storeBakeryOrdersTable)
                     .innerJoin(
@@ -52,16 +61,19 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                         storesTable,
                         eq(storesTable.id, storeBakeryOrdersTable.store_id)
                     )
+                    .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
                     .where(
                         and(
                             eq(storeBakeryOrdersTable.store_id, storeId),
                             eq(itemsTable.is_active, true),
+                            eq(parsTable.store_id, storeId),
                             sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
                             isNull(storeBakeryOrdersTable.submitted_at)
                             // eq(orderStagesTable.stage_name, 'DUE')
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         )
-                    );
+                    )
+                    .orderBy(asc(bakeryOrdersTable.item_id));
             });
 
             return {
@@ -94,6 +106,9 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                         // due_date: ordersTable.due_date,
                         store_name: storesTable.name,
                         cron_categ: itemsTable.cron_categ,
+                        pars_value: sql`${
+                            parsTable[day as keyof typeof parsTable]
+                        }`,
                     })
                     .from(storeBakeryOrdersTable)
                     .innerJoin(
@@ -111,15 +126,21 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
                         storesTable,
                         eq(storesTable.id, storeBakeryOrdersTable.store_id)
                     )
+                    .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
                     .where(
                         and(
                             eq(itemsTable.is_active, true),
+                            eq(
+                                parsTable.store_id,
+                                storeBakeryOrdersTable.store_id
+                            ),
                             sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
                             isNull(storeBakeryOrdersTable.submitted_at)
                             // eq(orderStagesTable.stage_name, 'DUE')
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         )
-                    );
+                    )
+                    .orderBy(asc(storeBakeryOrdersTable.store_id));
             });
             // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
 
@@ -144,8 +165,11 @@ export async function getStoresBakeryOrders(store_location_id: string | null) {
 }
 
 // Get external vendor orders for each store (store -> orders due page)
-export async function getStoreOrders(store_location_id: string | null) {
-    // const dummyDate: string = '2025-06-15'; // dummy data for now
+export async function getStoreOrders(
+    store_location_id: string | null,
+    dow: number
+) {
+    const day = getDaysName(dow);
 
     if (store_location_id) {
         try {
@@ -163,6 +187,9 @@ export async function getStoreOrders(store_location_id: string | null) {
                         // due_date: ordersTable.due_date,
                         store_name: storesTable.name,
                         cron_categ: itemsTable.cron_categ,
+                        pars_value: sql`${
+                            parsTable[day as keyof typeof parsTable]
+                        }`,
                     })
                     .from(storeOrdersTable)
                     .innerJoin(
@@ -177,16 +204,19 @@ export async function getStoreOrders(store_location_id: string | null) {
                         storesTable,
                         eq(storesTable.id, storeOrdersTable.store_id)
                     )
+                    .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
                     .where(
                         and(
                             eq(storeOrdersTable.store_id, storeId),
                             sql`${storeOrdersTable.created_at}
                             >= now() - interval '72 hours'`,
+                            eq(parsTable.store_id, storeId),
                             eq(itemsTable.is_active, true)
                             // eq(storeOrdersTable.created_at, sql`<WITHIN THE WEEK>`),
                             // eq(orderStagesTable.stage_name, 'DUE')
                         )
-                    );
+                    )
+                    .orderBy(asc(ordersTable.item_id));
             });
             // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
             return {
@@ -219,6 +249,9 @@ export async function getStoreOrders(store_location_id: string | null) {
                         // due_date: ordersTable.due_date,
                         store_name: storesTable.name,
                         cron_categ: itemsTable.cron_categ,
+                        pars_value: sql`${
+                            parsTable[day as keyof typeof parsTable]
+                        }`,
                     })
                     .from(storeOrdersTable)
                     .innerJoin(
@@ -233,13 +266,16 @@ export async function getStoreOrders(store_location_id: string | null) {
                         storesTable,
                         eq(storesTable.id, storeOrdersTable.store_id)
                     )
+                    .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
                     .where(
                         and(
                             eq(itemsTable.is_active, true),
                             sql`${storeOrdersTable.created_at}
-                            >= now() - interval '72 hours'`
+                            >= now() - interval '72 hours'`,
+                            eq(parsTable.store_id, storeOrdersTable.store_id)
                         )
-                    );
+                    )
+                    .orderBy(asc(storeOrdersTable.store_id));
             });
             // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
 
@@ -714,6 +750,21 @@ export async function getStoreCount() {
 // custom lower function
 export function lower(name: PgColumn) {
     return sql`lower(${name})`;
+}
+
+function getDaysName(dow: number): string {
+    // order of weekdays[] elements matters -- must match with JS's Date implementation
+    const weekdays = [
+        'sunday',
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+    ];
+
+    return weekdays[dow];
 }
 
 async function queryWithAuthRole<T>(queryFn: (tx: any) => Promise<T>) {

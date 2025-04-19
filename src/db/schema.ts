@@ -747,7 +747,7 @@ export const vendorItemsTable = pgTable(
 export const parsTable = pgTable(
     'pars',
     {
-        id: serial('id').primaryKey(),
+        // id: serial('id').primaryKey(),
         item_id: integer('item_id')
             .notNull()
             .references(() => itemsTable.id, {
@@ -767,6 +767,7 @@ export const parsTable = pgTable(
     },
     (table) => {
         return [
+            primaryKey({ columns: [table.item_id, table.store_id] }),
             check('positive_monday', sql`${table.monday} >= 0`),
             check('positive_tuesday', sql`${table.tuesday} >= 0`),
             check('positive_wednesday', sql`${table.wednesday} >= 0`),

@@ -88,86 +88,205 @@ export async function putStoreOrders(
         };
     }
 }
-
-// Send store's orders for bakery items only (store -> orders due page's submit btn)
 export async function putStoreBakeryOrders(
     storeIdNum: string,
     data: OrderItem[]
-    // data: Array<{ id: number; order: number }>
 ) {
     const storeId = parseInt(storeIdNum);
-    // console.log('storeId: ', storeId);
-    // console.log('data: ', data);
+    console.log('putStoreBakeryOrders');
+    const updates = await executeWithAuthRole(async (trx) => {
+        const results = [];
 
-    // TODO: where should include a date check as well, + will cause 'some updates failed' when store ids dont match, ie admin view submitting orders)
-    try {
-        const updates = await executeWithAuthRole(async (trx) => {
-            const results = await Promise.all(
-                data.map(async (order) => {
-                    try {
-                        const updated = await trx
-                            .update(storeBakeryOrdersTable)
-                            .set({
-                                order_qty: sql`${order.order}::decimal`,
-                                submitted_at: sql`now()`,
-                            })
-                            .where(
-                                and(
-                                    eq(
-                                        storeBakeryOrdersTable.store_id,
-                                        storeId
-                                    ),
-                                    eq(storeBakeryOrdersTable.id, order.id)
-                                )
-                            )
-                            .returning({
-                                id: storeBakeryOrdersTable.id,
-                                store_id: storeBakeryOrdersTable.store_id,
-                            });
+        for (const order of data) {
+            try {
+                const updated = await trx.execute(
+                    sql`UPDATE store_bakery_orders 
+                        SET order_qty = ${order.order}, submitted_at = now() 
+                        WHERE store_id = ${storeId} AND id = ${order.id}
+                        RETURNING id, store_id, order_qty`
+                );
+                // console.log(
+                //     `Updating order ID: ${order.id} with qty: ${order.order}`
+                // );
 
-                        return {
-                            id: order.id,
-                            updated: updated.length > 0,
-                            updatedRow: updated,
-                            error: null,
-                        };
-                    } catch (error) {
-                        const err = error as Error;
-                        return {
-                            id: order.id,
-                            updated: false,
-                            error: err.message,
-                        };
-                    }
-                })
-            );
-            return results;
-        });
+                // // Check if record exists first
+                // const exists = await trx
+                //     .select({ id: storeBakeryOrdersTable.id })
+                //     .from(storeBakeryOrdersTable)
+                //     .where(
+                //         and(
+                //             eq(storeBakeryOrdersTable.store_id, storeId),
+                //             eq(storeBakeryOrdersTable.id, order.id)
+                //         )
+                //     )
+                //     .limit(1);
 
-        const failures = updates.filter((update) => update.updated === false);
-        if (failures.length > 0) {
-            return {
-                success: false,
-                message: 'Some or all updates failed',
-                updates,
-            };
+                // if (exists.length === 0) {
+                //     console.log(
+                //         `Order ${order.id} not found for store ${storeId}`
+                //     );
+                //     results.push({
+                //         id: order.id,
+                //         updated: false,
+                //         error: 'Record not found',
+                //     });
+                //     continue;
+                // }
+
+                // // Perform the update
+                // const updated = await trx
+                //     .update(storeBakeryOrdersTable)
+                //     .set({
+                //         order_qty: order.order,
+                //         submitted_at: sql`now()`,
+                //     })
+                //     .where(
+                //         and(
+                //             eq(storeBakeryOrdersTable.store_id, storeId),
+                //             eq(storeBakeryOrdersTable.id, order.id)
+                //         )
+                //     )
+                //     .returning({
+                //         id: storeBakeryOrdersTable.id,
+                //         store_id: storeBakeryOrdersTable.store_id,
+                //         order_qty: storeBakeryOrdersTable.order_qty,
+                //     });
+
+                console.log('Updated:', updated);
+                results.push({
+                    id: order.id,
+                    updated: updated.length > 0,
+                    updatedRow: updated,
+                    error: null,
+                });
+            } catch (error) {
+                const err = error as Error;
+                console.error(`Error updating order ${order.id}:`, err);
+                results.push({
+                    id: order.id,
+                    updated: false,
+                    error: err.message,
+                });
+            }
         }
 
-        return {
-            success: true,
-            message: 'All updates successful',
-            updates,
-        };
-    } catch (error) {
-        // transaction failed
-        const err = error as Error;
+        return results;
+    });
+    const failures = updates.filter((update) => update.updated === false);
+    if (failures.length > 0) {
         return {
             success: false,
-            message: 'Transaction failed',
-            error: err.message,
+            message: 'Some or all updates failed',
+            updates,
         };
     }
+
+    return {
+        success: true,
+        message: 'All updates successful',
+        updates,
+    };
 }
+
+// Send store's orders for bakery items only (store -> orders due page's submit btn)
+// export async function putStoreBakeryOrders(
+//     storeIdNum: string,
+//     data: OrderItem[]
+//     // data: Array<{ id: number; order: number }>
+// ) {
+//     const storeId = parseInt(storeIdNum);
+//     console.log('putStoreBakeryOrders');
+//     // console.log('storeId: ', storeId);
+//     // console.log('data: ', data);
+
+//     // TODO: where should include a date check as well, + will cause 'some updates failed' when store ids dont match, ie admin view submitting orders)
+//     try {
+//         const updates = await executeWithAuthRole(async (trx) => {
+//             const results = await Promise.all(
+//                 data.map(async (order) => {
+//                     try {
+//                         const before = await trx
+//                             .select()
+//                             .from(storeBakeryOrdersTable)
+//                             .where(
+//                                 and(
+//                                     eq(
+//                                         storeBakeryOrdersTable.store_id,
+//                                         storeId
+//                                     ),
+//                                     eq(storeBakeryOrdersTable.id, order.id)
+//                                 )
+//                             );
+//                         console.log('Before: ', before);
+
+//                         const updated = await trx
+//                             .update(storeBakeryOrdersTable)
+//                             .set({
+//                                 order_qty: order.order,
+//                                 // order_qty: sql`${order.order}::decimal`,
+//                                 submitted_at: sql`now()`,
+//                             })
+//                             .where(
+//                                 and(
+//                                     eq(
+//                                         storeBakeryOrdersTable.store_id,
+//                                         storeId
+//                                     ),
+//                                     eq(storeBakeryOrdersTable.id, order.id)
+//                                 )
+//                             )
+//                             .returning({
+//                                 id: storeBakeryOrdersTable.id,
+//                                 store_id: storeBakeryOrdersTable.store_id,
+//                                 order_qty: storeBakeryOrdersTable.order_qty,
+//                                 affected_rows: sql`xmax <> 0`, // This will tell you if rows were actually modified
+//                             });
+
+//                         console.log('After: ', updated);
+
+//                         return {
+//                             id: order.id,
+//                             updated: updated.length > 0,
+//                             updatedRow: updated,
+//                             error: null,
+//                         };
+//                     } catch (error) {
+//                         const err = error as Error;
+//                         return {
+//                             id: order.id,
+//                             updated: false,
+//                             error: err.message,
+//                         };
+//                     }
+//                 })
+//             );
+//             return results;
+//         });
+
+//         const failures = updates.filter((update) => update.updated === false);
+//         if (failures.length > 0) {
+//             return {
+//                 success: false,
+//                 message: 'Some or all updates failed',
+//                 updates,
+//             };
+//         }
+
+//         return {
+//             success: true,
+//             message: 'All updates successful',
+//             updates,
+//         };
+//     } catch (error) {
+//         // transaction failed
+//         const err = error as Error;
+//         return {
+//             success: false,
+//             message: 'Transaction failed',
+//             error: err.message,
+//         };
+//     }
+// }
 
 // Post milk break stock counts
 export async function postMilkBreadStock(
@@ -377,7 +496,9 @@ async function executeWithAuthRole<T>(queryFn: (tx: any) => Promise<T>) {
     return await db.transaction(async (tx) => {
         if (process.env.APP_ENV !== 'test') {
             await tx.execute(sql`SET LOCAL ROLE authenticated`);
+            console.log('Auth role set');
         }
+        await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL READ COMMITTED`);
         return await queryFn(tx);
     });
 }

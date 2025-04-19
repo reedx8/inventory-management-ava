@@ -22,6 +22,27 @@
       "when": 1744932245263,
       "tag": "0002_silky_energizer",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1745005877380,
+      "tag": "0003_pink_morlun",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1745006353993,
+      "tag": "0004_easy_hex",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1745006471973,
+      "tag": "0005_opposite_whirlwind",
+      "breakpoints": true
     }
   ]
 }

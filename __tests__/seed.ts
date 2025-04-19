@@ -22,9 +22,8 @@ if (!TEST_CONNECTION_STRING) {
 const TEST_DB = drizzle(TEST_CONNECTION_STRING!);
 
 async function main() {
-    // should run in this order due to deletions
-    // seedItemsVendorsTables();
-    seedTodaysDailyBakery();
+    // seedItemsVendorsTables(); // Items and vendors table need to be seeded first
+    seedTodaysDailyBakery(); // then you can do storeBakeryOrders and bakeryOrders
     // seedVendorsTable();
 }
 
@@ -61,9 +60,9 @@ async function seedTodaysDailyBakery() {
     }).refine((f) => ({
         bakeryOrders: {
             columns: {
-                item_id: f.int({ minValue: 1, maxValue: 40, isUnique: true }), // TODO:
+                item_id: f.int({ minValue: 14, maxValue: 46, isUnique: true }), // id's 14-46 = pastry items
                 units: f.valuesFromArray({
-                    values: UNITS,
+                    values: UNITS, // TODO; should seed with items.units instead
                 }), // cron job should copy items.units to bakeryOrders.units
                 group_order_no: f.valuesFromArray({ values: [1] }),
                 created_at: f.date({ minDate: today, maxDate: todayMax }), // create order between 5 and 6 AM today to mimic cron job

@@ -116,16 +116,22 @@ export default function Stores() {
                 let regResponse;
                 let bakeryResponse;
 
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tom_dow_num = tomorrow.getDay();
+
                 if (userRole === 'admin') {
                     [regResponse, bakeryResponse] = await Promise.all([
-                        fetch('/api/v1/store-orders'),
-                        fetch('/api/v1/store-bakery-orders'),
+                        fetch(`/api/v1/store-orders?dow=${tom_dow_num}`),
+                        fetch(`/api/v1/store-bakery-orders?dow=${tom_dow_num}`),
                     ]);
                 } else if (userRole === 'store_manager') {
                     [regResponse, bakeryResponse] = await Promise.all([
-                        fetch(`/api/v1/store-orders?storeId=${userStoreId}`),
                         fetch(
-                            `/api/v1/store-bakery-orders?storeId=${userStoreId}`
+                            `/api/v1/store-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
+                        ),
+                        fetch(
+                            `/api/v1/store-bakery-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
                         ),
                     ]);
                 } else {
@@ -144,14 +150,21 @@ export default function Stores() {
                     setMergedData(mergedOrders);
                     console.log('mergedOrders: ', mergedOrders);
                 } else {
-                    console.error('Error fetching orders:', {
-                        regularOrders: regData,
-                        bakeryOrders: bakeryData,
-                    });
-                    setMergedData([]);
+                    throw new Error(
+                        'Store Orders Error: ' +
+                            (regData.error || 'Ok') +
+                            `\nBakery Orders Error: ` +
+                            (bakeryData.error || 'Ok')
+                    );
                 }
+                //     console.error('Caught Error: ', regData.error, bakeryData.error, {
+                //         regularOrders: regData,
+                //         bakeryOrders: bakeryData,
+                //     });
+                //     setMergedData([]);
+                // }
             } catch (error) {
-                console.error('Error fetching store orders:', error);
+                console.error(error);
                 setMergedData([]);
                 // setData([]);
                 // setStoreData([]);

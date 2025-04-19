@@ -9,7 +9,18 @@ import { OrderItem } from '@/app/(main)/store/types';
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const storeId: string | null = searchParams.get('storeId'); // storeId = null for all stores
+    const dow_num: number = parseInt(searchParams.get('dow')!);
     // console.log('storeId: ', storeId);
+
+    const valid_days = [0, 1, 2, 3, 4, 5, 6];
+    if (dow_num === null || !valid_days.includes(dow_num)) {
+        return NextResponse.json(
+            {
+                error: `You need to pass tomorrow's day of week number to api/v1/store-orders (e.g. 0-6)`,
+            },
+            { status: 400 }
+        );
+    }
 
     const supabase = await createClient();
     const {
@@ -22,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const response = await getStoreOrders(storeId); //
+        const response = await getStoreOrders(storeId, dow_num); //
         if (!response.success) {
             return NextResponse.json(response.error, { status: 400 });
         }
@@ -41,6 +52,15 @@ export async function PUT(request: NextRequest) {
     const vendor: string | null = searchParams.get('vendor'); // vendor = "bakery" or "external"
     const data: OrderItem[] = await request.json();
 
+    if (!storeId) {
+        return NextResponse.json(
+            {
+                error: 'You need to pass in a store id to PUT api/v1/store-orders',
+            },
+            { status: 400 }
+        );
+    }
+
     const supabase = await createClient();
     const {
         data: { user },
@@ -49,13 +69,6 @@ export async function PUT(request: NextRequest) {
     if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         // return Response.redirect('/login');
-    }
-
-    if (!storeId) {
-        return NextResponse.json(
-            { error: 'You need to pass in a store id to this API route' },
-            { status: 400 }
-        );
     }
 
     try {
