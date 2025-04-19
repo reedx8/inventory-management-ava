@@ -1,186 +1,74 @@
 'use client';
 import PagesNavBar from '@/components/pages-navbar';
 import React, { useState, useEffect } from 'react';
-// import {
-//     Table,
-//     TableBody,
-//     TableCell,
-//     TableHead,
-//     TableHeader,
-//     TableRow,
-// } from '@/components/ui/table';
-// import { Input } from '@/components/ui/input';
-// import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-// import {
-//     flexRender,
-//     getCoreRowModel,
-//     getFilteredRowModel,
-//     getPaginationRowModel,
-//     useReactTable,
-// } from '@tanstack/react-table';
-// import { Dot } from 'lucide-react';
 import { HeaderBar } from '@/components/header-bar';
 import { useAuth } from '@/contexts/auth-context';
 import OrderTable from './components/order-table';
 import { OrderItem } from '@/app/(main)/store/types';
 import { NoStoreOrdersDue } from '@/components/placeholders';
-// import { getStoreOrders } from '@/db/queries/select';
-// import { init } from 'next/dist/compiled/webpack/webpack';
-// import next from 'next';
-
-// const STORE_CATEGORIES = [
-//     'ALL',
-//     'PASTRY',
-//     'FRONT',
-//     'GENERAL',
-//     'FRIDGE',
-//     'STOCKROOM',
-//     'BEANS&TEA',
-// ] as const;
-
-// const dummyData: OrderItem[] = [
-//     {
-//         id: 1,
-//         name: 'Strawberry & Cream Cheese Turnover',
-//         due_date: '2025-06-15',
-//         qty_per_order: '1 Pc',
-//         order: 0,
-//         store_categ: 'PASTRY',
-//         store_name: 'Progress',
-//     },
-//     {
-//         id: 2,
-//         name: 'Peach & Cream Cheese Turnover',
-//         due_date: '2025-06-15',
-//         qty_per_order: '1 Pc',
-//         order: 0,
-//         store_categ: 'PASTRY',
-//         store_name: 'Progress',
-//     },
-//     {
-//         id: 3,
-//         name: 'Cream Cheese Turnover',
-//         due_date: '2025-06-15',
-//         qty_per_order: '1 Pc',
-//         order: 0,
-//         store_categ: 'PASTRY',
-//         store_name: 'Orenco',
-//     },
-//     {
-//         id: 4,
-//         name: 'Sesame Bagel',
-//         due_date: '2025-06-15',
-//         qty_per_order: '4 Pcs/Pack',
-//         order: 0,
-//         store_categ: 'PASTRY',
-//         store_name: 'Orenco',
-//     },
-//     {
-//         id: 5,
-//         name: 'Zu Zus',
-//         due_date: '2025-06-15',
-//         qty_per_order: '12 Pcs',
-//         order: 0,
-//         store_categ: 'PASTRY',
-//         store_name: 'Progress',
-//     },
-//     {
-//         id: 6,
-//         name: 'Strawberry Whip Cream Cake (Full)',
-//         due_date: '2025-06-15',
-//         qty_per_order: '1 cake',
-//         order: 0,
-//         store_categ: 'PASTRY',
-//         store_name: 'Progress',
-//     },
-//     {
-//         id: 7,
-//         name: 'Strawberry Whip Cream Cake (Half)',
-//         due_date: '2025-06-15',
-//         qty_per_order: '1/2 cake',
-//         order: 0,
-//         store_categ: 'PASTRY',
-//         store_name: 'Orenco',
-//     },
-// ];
 
 export default function Stores() {
     const { userRole, userStoreId } = useAuth();
     const [mergedData, setMergedData] = useState<OrderItem[] | undefined>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const fetchStoreOrders = async () => {
+        try {
+            let regResponse;
+            let bakeryResponse;
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tom_dow_num = tomorrow.getDay();
+
+            if (userRole === 'admin') {
+                [regResponse, bakeryResponse] = await Promise.all([
+                    fetch(`/api/v1/store-orders?dow=${tom_dow_num}`),
+                    fetch(`/api/v1/store-bakery-orders?dow=${tom_dow_num}`),
+                ]);
+            } else if (userRole === 'store_manager') {
+                [regResponse, bakeryResponse] = await Promise.all([
+                    fetch(
+                        `/api/v1/store-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
+                    ),
+                    fetch(
+                        `/api/v1/store-bakery-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
+                    ),
+                ]);
+            } else {
+                // dont fetch orders for other roles
+                return;
+            }
+
+            const [regData, bakeryData] = await Promise.all([
+                regResponse.json(),
+                bakeryResponse.json(),
+            ]);
+            // const data = await response.json();
+            // const theBakeryData = await response2.json();
+            if (regResponse.ok && bakeryResponse.ok) {
+                const mergedOrders = [...regData, ...bakeryData];
+                setMergedData(mergedOrders);
+                console.log('mergedOrders: ', mergedOrders);
+            } else {
+                throw new Error(
+                    'Store Orders Error: ' +
+                        (regData.error || 'Ok') +
+                        `\nBakery Orders Error: ` +
+                        (bakeryData.error || 'Ok')
+                );
+            }
+        } catch (error) {
+            console.error(error);
+            setMergedData([]);
+            // setData([]);
+            // setStoreData([]);
+        }
+        setIsLoading(false);
+    };
 
     useEffect(() => {
-        const fetchStoreOrders = async () => {
-            try {
-                let regResponse;
-                let bakeryResponse;
-
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const tom_dow_num = tomorrow.getDay();
-
-                if (userRole === 'admin') {
-                    [regResponse, bakeryResponse] = await Promise.all([
-                        fetch(`/api/v1/store-orders?dow=${tom_dow_num}`),
-                        fetch(`/api/v1/store-bakery-orders?dow=${tom_dow_num}`),
-                    ]);
-                } else if (userRole === 'store_manager') {
-                    [regResponse, bakeryResponse] = await Promise.all([
-                        fetch(
-                            `/api/v1/store-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
-                        ),
-                        fetch(
-                            `/api/v1/store-bakery-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
-                        ),
-                    ]);
-                } else {
-                    // dont fetch orders for other roles
-                    return;
-                }
-
-                const [regData, bakeryData] = await Promise.all([
-                    regResponse.json(),
-                    bakeryResponse.json(),
-                ]);
-                // const data = await response.json();
-                // const theBakeryData = await response2.json();
-                if (regResponse.ok && bakeryResponse.ok) {
-                    const mergedOrders = [...regData, ...bakeryData];
-                    setMergedData(mergedOrders);
-                    console.log('mergedOrders: ', mergedOrders);
-                } else {
-                    throw new Error(
-                        'Store Orders Error: ' +
-                            (regData.error || 'Ok') +
-                            `\nBakery Orders Error: ` +
-                            (bakeryData.error || 'Ok')
-                    );
-                }
-                //     console.error('Caught Error: ', regData.error, bakeryData.error, {
-                //         regularOrders: regData,
-                //         bakeryOrders: bakeryData,
-                //     });
-                //     setMergedData([]);
-                // }
-            } catch (error) {
-                console.error(error);
-                setMergedData([]);
-                // setData([]);
-                // setStoreData([]);
-            }
-            setIsLoading(false);
-        };
-
         fetchStoreOrders();
-
-        // testing:
-        // const myPromise = new Promise((resolve) => {
-        //     setTimeout(() => {
-        //         setIsLoading(false);
-        //         setData([]);
-        //     }, 2000);
-        // });
     }, [userRole, userStoreId]);
 
     return (
@@ -216,6 +104,7 @@ export default function Stores() {
                     data={mergedData}
                     setData={setMergedData}
                     storeId={userStoreId}
+                    refreshPage={fetchStoreOrders}
                 />
                 // <>
                 //     <div className='flex flex-wrap gap-x-2 gap-y-0'>

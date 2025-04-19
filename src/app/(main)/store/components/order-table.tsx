@@ -50,10 +50,12 @@ export default function OrderTable({
     data,
     setData,
     storeId,
+    refreshPage,
 }: {
     data: OrderItem[];
     setData: React.Dispatch<React.SetStateAction<OrderItem[] | undefined>>;
     storeId: number | undefined;
+    refreshPage: () => void;
 }) {
     const [activeCateg, setActiveCateg] = useState<StoreCategory>(
         STORE_CATEGORIES[1]
@@ -61,10 +63,6 @@ export default function OrderTable({
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [filteredData, setFilteredData] = useState<OrderItem[]>(data);
     const { toast } = useToast();
-
-    // if (!data) {
-    //     return <div></div>;
-    // }
 
     // Accepts integers only
     const OrderCell = ({
@@ -211,6 +209,7 @@ export default function OrderTable({
         globalFilterFn: (row, columnId, filterValue) => {
             return row.original.store_categ === filterValue;
         },
+        autoResetPageIndex: false, // prevents table resetting/refreshing back to pg 1 when user navigates away from an input field
         meta: {
             updateData: (rowIndex, columnId, value) => {
                 setData((old) =>
@@ -302,13 +301,6 @@ export default function OrderTable({
                 });
             }
         } else {
-            // console.log(filteredData);
-            // let store_id = 2; // dummy for storeId
-            // console.log(externalVendorOrders);
-            // let progressOrders = externalVendorOrders.filter((order) => order.store_name === 'Progress');
-            // console.log(progressOrders)
-            // setIsSubmitting(false);
-            // return;
             const externalOrders = filteredData.filter(
                 (order) => order.cron_categ !== 'PASTRY'
             );
@@ -349,6 +341,7 @@ export default function OrderTable({
             }
         }
         setIsSubmitting(false);
+        refreshPage();
     };
 
     useEffect(() => {
