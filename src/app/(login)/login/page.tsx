@@ -17,8 +17,8 @@ import menuLogo from '/public/menuLogo.png';
 import Image from 'next/image';
 import { createClient } from '@/app/utils/supabase/client';
 import { redirect } from 'next/navigation';
-import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Loader2, EyeOff, Eye } from 'lucide-react';
 // import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
@@ -27,6 +27,13 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+
+    function togglePWVisibility() {
+        setShowPassword(!showPassword);
+    }
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -39,7 +46,12 @@ export default function LoginPage() {
         const formData = new FormData();
         formData.append('email', values.email);
         formData.append('password', values.password);
-        await login(formData);
+        const error = await login(formData);
+        if (error) {
+            setErrorMessage(error.message);
+            return;
+        }
+        setErrorMessage(null);
     }
 
     useEffect(() => {
@@ -133,14 +145,32 @@ export default function LoginPage() {
                                         <FormLabel htmlFor={field.name}>
                                             Account Password
                                         </FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                className='focus:border-none text-white/80 bg-white/20 border-none'
-                                                placeholder='Password'
-                                                type='password'
-                                                {...field}
-                                            />
-                                        </FormControl>
+                                        <div className='flex'>
+                                            <FormControl>
+                                                <Input
+                                                    className='focus:border-none text-white/80 bg-white/20 border-none rounded-tl-md rounded-bl-md rounded-r-none'
+                                                    placeholder='Password'
+                                                    type={
+                                                        showPassword
+                                                            ? 'text'
+                                                            : 'password'
+                                                    }
+                                                    // type='password'
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <button
+                                                type='button'
+                                                onClick={togglePWVisibility}
+                                                className='focus:border-none text-white/80 bg-white/20 border-none rounded-r-md px-1'
+                                            >
+                                                {showPassword ? (
+                                                    <EyeOff size={14} />
+                                                ) : (
+                                                    <Eye size={14} />
+                                                )}
+                                            </button>
+                                        </div>
                                     </FormItem>
                                 )}
                             />
@@ -153,6 +183,13 @@ export default function LoginPage() {
                                     Remember for 30 days
                                 </label>
                             </div> */}
+                            {errorMessage && (
+                                <div className='flex gap-1'>
+                                    <p className='text-red-500 text-sm'>
+                                        {errorMessage}
+                                    </p>
+                                </div>
+                            )}
                             <Button
                                 type='submit'
                                 // variant='outline'
