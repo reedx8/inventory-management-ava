@@ -12,64 +12,66 @@ export default function Stores() {
     const { userRole, userStoreId } = useAuth();
     const [mergedData, setMergedData] = useState<OrderItem[] | undefined>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const fetchStoreOrders = async () => {
-        try {
-            let regResponse;
-            let bakeryResponse;
+    const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tom_dow_num = tomorrow.getDay();
-
-            if (userRole === 'admin') {
-                [regResponse, bakeryResponse] = await Promise.all([
-                    fetch(`/api/v1/store-orders?dow=${tom_dow_num}`),
-                    fetch(`/api/v1/store-bakery-orders?dow=${tom_dow_num}`),
-                ]);
-            } else if (userRole === 'store_manager') {
-                [regResponse, bakeryResponse] = await Promise.all([
-                    fetch(
-                        `/api/v1/store-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
-                    ),
-                    fetch(
-                        `/api/v1/store-bakery-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
-                    ),
-                ]);
-            } else {
-                // dont fetch orders for other roles
-                return;
-            }
-
-            const [regData, bakeryData] = await Promise.all([
-                regResponse.json(),
-                bakeryResponse.json(),
-            ]);
-            // const data = await response.json();
-            // const theBakeryData = await response2.json();
-            if (regResponse.ok && bakeryResponse.ok) {
-                const mergedOrders = [...regData, ...bakeryData];
-                setMergedData(mergedOrders);
-                console.log('mergedOrders: ', mergedOrders);
-            } else {
-                throw new Error(
-                    'Store Orders Error: ' +
-                        (regData.error || 'Ok') +
-                        `\nBakery Orders Error: ` +
-                        (bakeryData.error || 'Ok')
-                );
-            }
-        } catch (error) {
-            console.error(error);
-            setMergedData([]);
-            // setData([]);
-            // setStoreData([]);
-        }
-        setIsLoading(false);
-    };
 
     useEffect(() => {
+        const fetchStoreOrders = async () => {
+            try {
+                let regResponse;
+                let bakeryResponse;
+    
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tom_dow_num = tomorrow.getDay();
+    
+                if (userRole === 'admin') {
+                    [regResponse, bakeryResponse] = await Promise.all([
+                        fetch(`/api/v1/store-orders?dow=${tom_dow_num}`),
+                        fetch(`/api/v1/store-bakery-orders?dow=${tom_dow_num}`),
+                    ]);
+                } else if (userRole === 'store_manager') {
+                    [regResponse, bakeryResponse] = await Promise.all([
+                        fetch(
+                            `/api/v1/store-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
+                        ),
+                        fetch(
+                            `/api/v1/store-bakery-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
+                        ),
+                    ]);
+                } else {
+                    // dont fetch orders for other roles
+                    return;
+                }
+    
+                const [regData, bakeryData] = await Promise.all([
+                    regResponse.json(),
+                    bakeryResponse.json(),
+                ]);
+                // const data = await response.json();
+                // const theBakeryData = await response2.json();
+                if (regResponse.ok && bakeryResponse.ok) {
+                    const mergedOrders = [...regData, ...bakeryData];
+                    setMergedData(mergedOrders);
+                    console.log('mergedOrders: ', mergedOrders);
+                } else {
+                    throw new Error(
+                        'Store Orders Error: ' +
+                            (regData.error || 'Ok') +
+                            `\nBakery Orders Error: ` +
+                            (bakeryData.error || 'Ok')
+                    );
+                }
+            } catch (error) {
+                console.error(error);
+                setMergedData([]);
+                // setData([]);
+                // setStoreData([]);
+            }
+            setIsLoading(false);
+        };
         fetchStoreOrders();
-    }, [userRole, userStoreId]);
+    }, [userRole, userStoreId, refreshTrigger]);
 
     return (
         <main>
@@ -104,7 +106,7 @@ export default function Stores() {
                     data={mergedData}
                     setData={setMergedData}
                     storeId={userStoreId}
-                    refreshPage={fetchStoreOrders}
+                    setRefreshTrigger={setRefreshTrigger}
                 />
                 // <>
                 //     <div className='flex flex-wrap gap-x-2 gap-y-0'>

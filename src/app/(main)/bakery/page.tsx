@@ -43,6 +43,7 @@ export default function Bakery() {
     const [data, setData] = useState<BakeryOrder[] | undefined>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { toast } = useToast();
+    const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
     // handes edit button click on page basically
     const handleSheetSubmission = async (formData: BakeryOrder[]) => {
@@ -80,6 +81,9 @@ export default function Bakery() {
             });
         }
 
+        // refreshes view
+        setRefreshTrigger(prev => prev + 1);
+
         // Update local state, show success message, etc.
     };
     const handleBatchCompleteBtn = async () => {
@@ -116,6 +120,9 @@ export default function Bakery() {
                 variant: 'destructive',
             });
         }
+
+        // simply refreshes view (see useEffect dependency array)
+        setRefreshTrigger(prev => prev + 1);
     };
 
     useEffect(() => {
@@ -152,7 +159,7 @@ export default function Bakery() {
         // testing:
         // setData(dummyData);
         // setIsLoading(false);
-    }, [toast]);
+    }, [toast, refreshTrigger]);
 
     return (
         <main>

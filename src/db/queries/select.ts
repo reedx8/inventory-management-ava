@@ -521,8 +521,8 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                     .where(
                         and(
                             eq(itemsTable.is_active, true),
-                            sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`
-
+                            sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
+                            isNull(storeBakeryOrdersTable.bakery_completed_at)
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`
                         )
                     )

@@ -1,5 +1,5 @@
 'use client';
-import React, { act, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Table,
     TableBody,
@@ -38,6 +38,7 @@ import { useToast } from '@/hooks/use-toast';
 //     'BEANS&TEA': <p>Coffee bean and tea items</p>,
 // };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface TableMeta<TData> {
     updateData: (
         rowIndex: number,
@@ -50,12 +51,12 @@ export default function OrderTable({
     data,
     setData,
     storeId,
-    refreshPage,
+    setRefreshTrigger,
 }: {
     data: OrderItem[];
     setData: React.Dispatch<React.SetStateAction<OrderItem[] | undefined>>;
     storeId: number | undefined;
-    refreshPage: () => void;
+    setRefreshTrigger: React.Dispatch<React.SetStateAction<number>>;
 }) {
     const [activeCateg, setActiveCateg] = useState<StoreCategory>(
         STORE_CATEGORIES[1]
@@ -341,7 +342,8 @@ export default function OrderTable({
             }
         }
         setIsSubmitting(false);
-        refreshPage();
+        setRefreshTrigger(prev => prev + 1);
+        // refreshPage();
     };
 
     useEffect(() => {
