@@ -11,6 +11,8 @@
         "push": "supabase db push && drizzle-kit push --config=drizzle-test.config.ts",
         "gen:test": "drizzle-kit generate --config=drizzle-test.config.ts",
         "gen:dev": "drizzle-kit generate --config=drizzle.config.ts",
+        "push:test": "drizzle-kit push --config=drizzle-test.config.ts",
+        "push:dev": "supabase db push",
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
