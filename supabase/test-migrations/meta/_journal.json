@@ -50,6 +50,13 @@
       "when": 1745290314010,
       "tag": "0006_naive_felicia_hardy",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1745351266880,
+      "tag": "0007_shallow_big_bertha",
+      "breakpoints": true
     }
   ]
 }

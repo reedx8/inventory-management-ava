@@ -797,72 +797,50 @@ export const parsTable = pgTable(
     }
 );
 
-// May rename to store_items (can be a general use table: simple map b/w item and store)
-// export const parsTable = pgTable(
-//     'pars',
-//     {
-//         id: serial('id').primaryKey(),
-//         item_id: integer('item_id')
-//             .notNull()
-//             .references(() => itemsTable.id, { onDelete: 'cascade' }),
-//         store_id: integer('store_id').references(() => storesTable.id),
-//     },
-//     () => {
-//         return [
-//             pgPolicy('Enable inserting for auth users only', {
-//                 for: 'insert',
-//                 to: authenticatedRole,
-//                 withCheck: sql`true`,
-//             }),
-//             pgPolicy('Enable updating for auth users only', {
-//                 for: 'update',
-//                 to: authenticatedRole,
-//                 using: sql`true`, // This allows all authenticated users to select all rows
-//                 withCheck: sql`true`,
-//             }),
-//             pgPolicy('Enable reading for auth users only', {
-//                 for: 'select',
-//                 to: authenticatedRole,
-//                 using: sql`true`, // This allows all authenticated users to select all rows
-//             }),
-//         ];
-//     }
-// );
+export const vendorPriceHistoryTable = pgTable(
+    'vendor_price_history',
+    {
+        id: serial('id').primaryKey(),
+        vendor_id: integer('vendor_id')
+            .notNull()
+            .references(() => vendorsTable.id),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id),
+        list_price: decimal('list_price', {
+            precision: 10,
+            scale: 2,
+        }).notNull(),
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
+    },
+    (t) => {
+        return [
+            check('positive_list_price', sql`${t.list_price} >= 0`),
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+        ];
+    }
+);
 
-// // Item's par value for each day of week (for each store)
-// export const parsDayTable = pgTable(
-//     'pars_day',
-//     {
-//         id: serial('id').primaryKey(),
-//         pars_id: integer('pars_id')
-//             .notNull()
-//             .references(() => parsTable.id, { onDelete: 'cascade' }),
-//         dow: integer('dow').notNull(), // day of week (0-6, where 0 is Sunday)
-//         value: decimal('value', { precision: 10, scale: 2 }).notNull(), // par value
-//     },
-//     (table) => {
-//         return [
-//             check('positive_value', sql`${table.value} >= 0`),
-//             check('valid_dow', sql`${table.dow} IN (0, 1, 2, 3, 4, 5, 6)`),
-//             pgPolicy('Enable inserting for auth users only', {
-//                 for: 'insert',
-//                 to: authenticatedRole,
-//                 withCheck: sql`true`,
-//             }),
-//             pgPolicy('Enable updating for auth users only', {
-//                 for: 'update',
-//                 to: authenticatedRole,
-//                 using: sql`true`, // This allows all authenticated users to select all rows
-//                 withCheck: sql`true`,
-//             }),
-//             pgPolicy('Enable reading for auth users only', {
-//                 for: 'select',
-//                 to: authenticatedRole,
-//                 using: sql`true`, // This allows all authenticated users to select all rows
-//             }),
-//         ];
-//     }
-// );
 // EDIT: deleted for now, this should instead by store_levels and only for implementing min/max_qty and reorder_point. pars and pars_day tables were sued instead for normalization purposes and for direct implementation
 // TODO: may need a unique index/primary key on store_id, item_id (+ maybe day_of_week), or primary key on item_id and store_id
 // export const storeParLevelsTable = pgTable(
