@@ -608,6 +608,7 @@ export const storesTable = pgTable(
             precision: 10,
             scale: 2,
         }).default(sql`0.00`), // weekly budget for store
+        is_active: boolean('is_active').notNull().default(false),
         logo: varchar('logo'),
     },
     (table) => {

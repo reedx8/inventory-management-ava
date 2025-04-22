@@ -624,6 +624,20 @@
       "when": 1745005877118,
       "tag": "0088_wild_sleeper",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1745290068938,
+      "tag": "0089_living_puma",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1745290534550,
+      "tag": "0090_cynical_leader",
+      "breakpoints": true
     }
   ]
 }

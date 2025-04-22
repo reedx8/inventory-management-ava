@@ -1,0 +1,1 @@
+ALTER TABLE "stores" ADD COLUMN "is_active" boolean NOT NULL DEFAULT false;

@@ -43,6 +43,13 @@
       "when": 1745006471973,
       "tag": "0005_opposite_whirlwind",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1745290314010,
+      "tag": "0006_naive_felicia_hardy",
+      "breakpoints": true
     }
   ]
 }
