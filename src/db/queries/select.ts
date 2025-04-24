@@ -448,6 +448,7 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                         completed_at:
                             storeBakeryOrdersTable.bakery_completed_at,
                         order_qty: storeBakeryOrdersTable.order_qty,
+                        made_qty: storeBakeryOrdersTable.made_qty,
                         //         order_qty: sql<number>`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
                     })
                     .from(storeBakeryOrdersTable)

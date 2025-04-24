@@ -23,12 +23,13 @@ const TEST_DB = drizzle(TEST_CONNECTION_STRING!);
 
 async function main() {
     // seedItemsVendorsTables(); // Items and vendors table need to be seeded first
-    seedTodaysDailyBakery(); // then you can do storeBakeryOrders and bakeryOrders
+    seedTodaysDailyBakeryOrders(); // then you can do storeBakeryOrders and bakeryOrders
     // seedVendorsTable();
 }
 
 // Seed daily bakery orders tables with todays orders, replicate cron job
-async function seedTodaysDailyBakery() {
+// forBakery = true if orders are ready for bakery, false if orders are ready for stores
+async function seedTodaysDailyBakeryOrders(forBakery: boolean = false) {
     await clearTable(schema.storeBakeryOrdersTable);
     await clearTable(schema.bakeryOrdersTable);
 
@@ -52,7 +53,7 @@ async function seedTodaysDailyBakery() {
     storeDateMax.setMinutes(0);
     storeDateMax.setSeconds(0);
 
-    const numOfOrders = 15;
+    const numOfOrders = forBakery ? 2 : 15;
 
     // randomly seed bakery_orders table with drizzle-seed
     await seed(TEST_DB, {
@@ -87,6 +88,11 @@ async function seedTodaysDailyBakery() {
                 is_par_submit: false,
                 // created_at: sql`now()`,
                 created_at: today,
+                // order_qty: '1',
+                order_qty: forBakery
+                    ? String(Math.floor(Math.random() * 10))
+                    : undefined,
+                submitted_at: forBakery ? today : undefined,
             });
         }
     }

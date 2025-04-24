@@ -294,6 +294,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
     const [formData, setFormData] = useState<BakeryOrder[]>([]);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
     const { toast } = useToast();
 
     const [storeLocation, setStoreLocation] = React.useState<string>(
@@ -327,7 +328,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
             setIsLoading(false);
         }
         getStoresOrders();
-    }, [storeLocation, toast]);
+    }, [storeLocation, toast, refreshTrigger]);
 
     const handleInputChange = (orderId: number, newValue: number) => {
         setFormData((prevData) =>
@@ -356,6 +357,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
             // });
         } finally {
             setIsSubmitting(false);
+            setRefreshTrigger((prev) => prev + 1);
         }
     };
 
@@ -425,27 +427,25 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                         >
                                             {order.name}
                                         </div>
-
-                                        {/* {order.completed_at ?? <Badge className='ml-1 text-xs'>{order.units}</Badge>} */}
                                     </div>
                                     <input
                                         id={`completed-${order.id}`}
                                         type='number'
-                                        value={Number(order.order_qty)}
-                                        // defaultValue={order.order_qty}
-                                        step={0.5}
-                                        min={0}
-                                        // max={order.orderedQuantity}
-                                        // className='w-20 px-2 py-1 border rounded bg-red-300'
+                                        value={order.made_qty || order.order_qty || ''}
+                                        min='0'
+                                        step='0.5'
+                                        placeholder='0'
                                         className={`w-20 px-2 py-1 border rounded ${
                                             order.completed_at
                                                 ? 'bg-neutral-100 text-neutral-400'
                                                 : ''
                                         }`}
+                                        readOnly={order.completed_at ? true : false}
+                                        onWheel={(e) => e.currentTarget.blur()}
                                         onChange={(e) =>
                                             handleInputChange(
                                                 order.id,
-                                                Number(e.target.value)
+                                                e.target.value === '' ? 0 : Number(e.target.value)
                                             )
                                         }
                                     />
@@ -510,7 +510,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                     <Button
                         variant='myTheme'
                         type='submit'
-                        disabled={isSubmitting || formData?.length <= 0}
+                        disabled={isSubmitting || formData?.length <= 0 || formData.every(order => order.completed_at)}
                         className='w-full'
                     >
                         {isSubmitting ? 'Submitting...' : 'Submit'}

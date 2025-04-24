@@ -159,6 +159,7 @@ export default function OrderTable({
                 // onKeyDown=""
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
+                onWheel={(e) => e.currentTarget.blur()}
                 data-row-index={row.index}
                 data-column-id={column.id}
                 className='h-6 text-center'
