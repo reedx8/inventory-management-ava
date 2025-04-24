@@ -82,7 +82,7 @@ export default function Bakery() {
         }
 
         // refreshes view
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
 
         // Update local state, show success message, etc.
     };
@@ -122,7 +122,7 @@ export default function Bakery() {
         }
 
         // simply refreshes view (see useEffect dependency array)
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
     };
 
     useEffect(() => {
@@ -164,7 +164,9 @@ export default function Bakery() {
     return (
         <main>
             <HeaderBar pageName={'Bakery'} />
-            <div className='mb-6'><PagesNavBar /></div>
+            <div className='mb-6'>
+                <PagesNavBar />
+            </div>
             <section className='mb-6' />
             {isLoading && !data && (
                 <section className='flex flex-col gap-3'>
@@ -230,8 +232,7 @@ export default function Bakery() {
                                         stores were successfully completed.
                                     </AlertDialogDescription>
                                     <AlertDialogDescription>
-                                        Otherwise, Press Cancel and navigate to
-                                        Edit instead.
+                                        Otherwise, Press Cancel.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -459,6 +460,52 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                             </>
                         )}
                     </ScrollArea>
+                    {/* Removed reason: Need to find solution to manually close modal after hitting its submit btn*/}
+                    {/* <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant='myTheme5' className='w-full'>
+                                Submit
+                                <Send />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    {`Complete All ${storeLocation} Orders?`}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    {`Press Submit only if all orders from ${storeLocation} are ready to be completed.`}
+                                </AlertDialogDescription>
+                                <AlertDialogDescription>
+                                    Otherwise, Press Cancel.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    asChild
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        onSubmitWrapper();
+                                    }}
+                                >
+                                    <Button
+                                        type='submit'
+                                        variant='myTheme'
+                                        disabled={
+                                            isSubmitting ||
+                                            formData?.length <= 0
+                                        }
+                                    >
+                                        {isSubmitting
+                                            ? 'Submitting...'
+                                            : 'Submit'}
+                                        <Send className='ml-1 h-4 w-4' />
+                                    </Button>
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog> */}
 
                     <Button
                         variant='myTheme'

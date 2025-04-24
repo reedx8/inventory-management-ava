@@ -26,6 +26,17 @@ import {
     STORE_CATEGORIES,
 } from '@/app/(main)/store/types';
 import { useToast } from '@/hooks/use-toast';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 // object lookup for category messages
 // const categoryMessage: Record<StoreCategory, JSX.Element | string> = {
@@ -186,7 +197,7 @@ export default function OrderTable({
         },
         {
             accessorKey: 'pars_value',
-            header: 'Pars',
+            header: `${new Date(new Date().setDate(new Date().getDate() + 1)).toLocaleDateString('en-US', { weekday: 'long' })} Pars`,
         },
         {
             accessorKey: 'order',
@@ -249,10 +260,11 @@ export default function OrderTable({
         return <div></div>;
     }
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async () => {
+    // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         // TODO: clean data before submitting, refresh page, refactor to not use cron_categ, etc
 
-        e.preventDefault();
+        // e.preventDefault();
         if (!storeId) {
             // This is because storeId is needed for submission
             console.log('Admin view work in-progress');
@@ -342,7 +354,7 @@ export default function OrderTable({
             }
         }
         setIsSubmitting(false);
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
         // refreshPage();
     };
 
@@ -396,7 +408,8 @@ export default function OrderTable({
                                 )
                         )}
                     </div>
-                    <form onSubmit={handleSubmit}>
+                    <form>
+                    {/* <form onSubmit={handleSubmit}> */}
                         <Table>
                             <TableHeader>
                                 {table.getHeaderGroups().map((headerGroup) => (
@@ -451,13 +464,52 @@ export default function OrderTable({
                             {/* <Button variant='outline' className='border-myDarkbrown text-myDarkbrown hover:text-myDarkbrown'>Pars Fill <CopyPlus /></Button> */}
                             {activeCateg !== 'ALL' &&
                                 filteredData.length > 0 && (
-                                    <Button
-                                        type='submit'
-                                        variant='myTheme5'
-                                        disabled={isSubmitting}
-                                    >
-                                        Submit <Send />
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant='myTheme5'>
+                                                Submit
+                                                <Send/>
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>
+                                                    {`Complete All ${activeCateg[0] + activeCateg.slice(1).toLowerCase()} Orders?`}
+                                                </AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    {`Press Submit only if all ${activeCateg.toLowerCase()} orders
+                                                    are completed.`}
+                                                </AlertDialogDescription>
+                                                <AlertDialogDescription>
+                                                    Otherwise, Press Cancel.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>
+                                                    Cancel
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction asChild>
+                                                    <Button
+                                                        variant='myTheme'
+                                                        onClick={
+                                                            handleSubmit
+                                                        }
+                                                        disabled={isSubmitting}
+                                                    >
+                                                        {isSubmitting ? 'Submitting...' : 'Submit'}
+                                                        {/* Submit */}
+                                                    </Button>
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                    // <Button
+                                    //     type='submit'
+                                    //     variant='myTheme5'
+                                    //     disabled={isSubmitting}
+                                    // >
+                                    //     Submit <Send />
+                                    // </Button>
                                 )}
                         </div>
                     </form>
