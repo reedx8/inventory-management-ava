@@ -19,7 +19,7 @@ import {
     useReactTable,
     CellContext,
 } from '@tanstack/react-table';
-import { Dot, Send } from 'lucide-react';
+import { ClipboardCopy, Dot, Send } from 'lucide-react';
 import {
     OrderItem,
     StoreCategory,
@@ -37,6 +37,12 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // object lookup for category messages
 // const categoryMessage: Record<StoreCategory, JSX.Element | string> = {
@@ -75,6 +81,7 @@ export default function OrderTable({
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [filteredData, setFilteredData] = useState<OrderItem[]>(data);
     const { toast } = useToast();
+    const [toggleAutoFill, setToggleAutoFill] = useState<boolean>(false);
 
     // Accepts integers only
     const OrderCell = ({
@@ -198,7 +205,9 @@ export default function OrderTable({
         },
         {
             accessorKey: 'pars_value',
-            header: `${new Date(new Date().setDate(new Date().getDate() + 1)).toLocaleDateString('en-US', { weekday: 'long' })} Pars`,
+            header: `${new Date(
+                new Date().setDate(new Date().getDate() + 1)
+            ).toLocaleDateString('en-US', { weekday: 'long' })} Pars`,
         },
         {
             accessorKey: 'order',
@@ -262,7 +271,7 @@ export default function OrderTable({
     }
 
     const handleSubmit = async () => {
-    // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         // TODO: clean data before submitting, refresh page, refactor to not use cron_categ, etc
 
         // e.preventDefault();
@@ -409,8 +418,42 @@ export default function OrderTable({
                                 )
                         )}
                     </div>
+                    <div className='flex justify-end'>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant='myTheme2'
+                                        style={{
+                                            width: '130px',
+                                            height: '30px',
+                                            fontSize: 12,
+                                        }}
+                                        onClick={() =>
+                                            autoFillOrders(
+                                                filteredData,
+                                                setData,
+                                                toggleAutoFill,
+                                                setToggleAutoFill
+                                            )
+                                        }
+                                        disabled={
+                                            filteredData.length === 0 ||
+                                            isSubmitting ||
+                                            activeCateg === 'ALL'
+                                        }
+                                    >
+                                        Auto Fill Orders
+                                        <ClipboardCopy size={8} />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Fill orders with pars</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                     <form>
-                    {/* <form onSubmit={handleSubmit}> */}
                         <Table>
                             <TableHeader>
                                 {table.getHeaderGroups().map((headerGroup) => (
@@ -418,7 +461,11 @@ export default function OrderTable({
                                         {headerGroup.headers.map((header) => (
                                             <TableHead
                                                 key={header.id}
-                                                className='text-neutral-500/30 font-semibold'
+                                                className={`text-neutral-500/30 font-semibold ${
+                                                    header.id === 'order'
+                                                        ? 'text-center'
+                                                        : ''
+                                                }`}
                                                 style={{
                                                     width:
                                                         header.id === 'order'
@@ -469,13 +516,18 @@ export default function OrderTable({
                                         <AlertDialogTrigger asChild>
                                             <Button variant='myTheme5'>
                                                 Submit
-                                                <Send/>
+                                                <Send />
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>
-                                                    {`Complete All ${activeCateg[0] + activeCateg.slice(1).toLowerCase()} Orders?`}
+                                                    {`Complete All ${
+                                                        activeCateg[0] +
+                                                        activeCateg
+                                                            .slice(1)
+                                                            .toLowerCase()
+                                                    } Orders?`}
                                                 </AlertDialogTitle>
                                                 <AlertDialogDescription>
                                                     {`Press Submit only if all ${activeCateg.toLowerCase()} orders
@@ -492,12 +544,12 @@ export default function OrderTable({
                                                 <AlertDialogAction asChild>
                                                     <Button
                                                         variant='myTheme'
-                                                        onClick={
-                                                            handleSubmit
-                                                        }
+                                                        onClick={handleSubmit}
                                                         disabled={isSubmitting}
                                                     >
-                                                        {isSubmitting ? 'Submitting...' : 'Submit'}
+                                                        {isSubmitting
+                                                            ? 'Submitting...'
+                                                            : 'Submit'}
                                                         {/* Submit */}
                                                     </Button>
                                                 </AlertDialogAction>
@@ -540,4 +592,21 @@ export default function OrderTable({
             </div>
         </div>
     );
+}
+
+function autoFillOrders(
+    data: OrderItem[],
+    setData: React.Dispatch<React.SetStateAction<OrderItem[] | undefined>>,
+    toggleAutoFill: boolean,
+    setToggleAutoFill: React.Dispatch<React.SetStateAction<boolean>>
+) {
+    if (!data.length) return;
+
+    setData(
+        data.map((order) => {
+            order.order = toggleAutoFill ? null : order.pars_value;
+            return order;
+        })
+    );
+    setToggleAutoFill(!toggleAutoFill);
 }
