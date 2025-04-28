@@ -21,68 +21,13 @@ import Image from 'next/image';
 // import { Loader2, Milk } from 'lucide-react';
 import starPic from '/public/star.png';
 import { SheetTemplateProps } from '@/components/types';
-
-
-// const dummyData: MonThursStock[] = [
-//     {
-//         itemName: 'Touchstone Whole',
-//         units: 'Per Gallon',
-//         count: 0,
-//     },
-//     {
-//         itemName: 'Touchstone 2%',
-//         units: 'Per Gallon',
-//         count: 0,
-//     },
-//     {
-//         itemName: 'Touchstone Fat-Free',
-//         units: 'Per Gallon',
-//         count: 0,
-//     },
-//     {
-//         itemName: 'Smith Brothers Half & Half',
-//         units: 'Per Quart',
-//         count: 0,
-//     },
-//     {
-//         itemName: 'Smith Brothers Heavy Whip',
-//         units: 'Per 1/2 Gallon',
-//         count: 0,
-//     },
-//     {
-//         itemName: 'PACIFIC ORIGINAL ALMOND MILK ',
-//         units: '12/32 oz',
-//         count: 0,
-//     },
-//     {
-//         itemName: 'PACIFIC SOY MILK',
-//         units: '12/32 oz',
-//         count: 0,
-//     },
-//     {
-//         itemName: 'PACIFIC COCONUT MILK',
-//         units: '12/32 oz',
-//         count: 0,
-//     },
-//     {
-//         itemName: 'PACIFIC OAT MILK',
-//         units: '12/32 oz',
-//         count: 0,
-//     },
-//     {
-//         itemName: 'Egg Nog',
-//         units: 'Per 1/2 Gallon',
-//         count: 0,
-//     },
-// ];
-
-// type MilkBreadItems = {
-//     id: number;
-//     itemName: string;
-//     nameFromVendor: string;
-//     units: string;
-//     count: number;
-// };
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { ChevronsUpDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const SheetTemplate = ({
     children,
@@ -91,6 +36,7 @@ const SheetTemplate = ({
     description,
     className,
     contentClassName,
+    isCollapsible,
     side = 'right',
     onOpenChange,
 }: SheetTemplateProps) => {
@@ -103,7 +49,33 @@ const SheetTemplate = ({
                     <SheetHeader>
                         {title && <SheetTitle>{title}</SheetTitle>}
                         {description && (
+                            isCollapsible ? (
+                                <Collapsible className='border rounded-md p-1 bg-neutral-100'>
+                                <div className='flex justify-between items-center'>
+                                    <h2 className='text-sm text-neutral-500'>
+                                        Instructions
+                                    </h2>
+                                    <CollapsibleTrigger asChild>
+                                        <Button
+                                            variant='ghost'
+                                            size='sm'
+                                            className='w-7 p-0'
+                                        >
+                                            <ChevronsUpDown className='h-4 w-4' />
+                                            <span className='sr-only'>Toggle</span>
+                                        </Button>
+                                    </CollapsibleTrigger>
+                                </div>
+                                <CollapsibleContent className=' text-neutral-500'>
+                                    <div className='text-xs'>
+                                        {description}
+                                    </div>
+                                </CollapsibleContent>
+                            </Collapsible>
+
+                            ) : (
                             <SheetDescription>{description}</SheetDescription>
+                            )
                         )}
                     </SheetHeader>
                 )}

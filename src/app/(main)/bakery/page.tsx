@@ -49,6 +49,7 @@ export default function Bakery() {
     const handleSheetSubmission = async (formData: BakeryOrder[]) => {
         // console.log('handle auto submit pressed');
         // console.log('formData (handleSheetSubmission): ', formData);
+
         try {
             const response = await fetch(
                 '/api/v1/bakerys-orders?submitType=edit',
@@ -201,13 +202,12 @@ export default function Bakery() {
                                     // variant='outline'
                                     // className='border-myDarkbrown text-myDarkbrown'
                                 >
-                                    <Pencil className='' />
+                                    <Pencil />
                                     Edit
                                 </Button>
                             }
-                            description={
-                                'Update the number of completed orders for each store today and press Submit when finished.'
-                            }
+                            isCollapsible={true}
+                            description={`Enter in the number of actual orders completed for each item. Pressing Submit will only send those items edited. Use batch complete to send the remaining orders.`}
                             // noItemsText={'No Pastry Orders Yet!'}
                         >
                             <BakeryOrdersForm
@@ -229,7 +229,7 @@ export default function Bakery() {
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
                                         Press Submit only if orders for all
-                                        stores were successfully completed.
+                                        stores were successfully completed by bakery.
                                     </AlertDialogDescription>
                                     <AlertDialogDescription>
                                         Otherwise, Press Cancel.
@@ -295,6 +295,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+    const [sheetFeedback, setSheetFeedback] = useState<string | null>('');
     const { toast } = useToast();
 
     const [storeLocation, setStoreLocation] = React.useState<string>(
@@ -328,13 +329,18 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
             setIsLoading(false);
         }
         getStoresOrders();
+        setSheetFeedback(null);
     }, [storeLocation, toast, refreshTrigger]);
 
     const handleInputChange = (orderId: number, newValue: number) => {
         setFormData((prevData) =>
             prevData?.map((order) =>
                 order.id === orderId
-                    ? { ...order, order_qty: Number(newValue) }
+                    ? {
+                          ...order,
+                          order_qty: Number(newValue),
+                          was_edited: true,
+                      }
                     : order
             )
         );
@@ -343,8 +349,18 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
     const handleSubmit = async (updatedData: BakeryOrder[]) => {
         // const handleSubmit = async (formData: { orders: BakeryOrder[] }) => {
         try {
+            const editedOrders = updatedData.filter(
+                (order) => order.was_edited
+            );
+            if (editedOrders.length === 0) {
+                setSheetFeedback(
+                    'No orders were edited. Please edit at least one order before submitting.'
+                );
+                return;
+            }
             setIsSubmitting(true);
-            await onSubmit?.(updatedData);
+            await onSubmit?.(editedOrders);
+            // await onSubmit?.(updatedData);
             // You might want to close the sheet or show a success message here
             // console.log('Form data submitted:', formData);
         } catch (error) {
@@ -355,10 +371,9 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
             //     description: 'Failed to update orders',
             //     variant: 'destructive',
             // });
-        } finally {
-            setIsSubmitting(false);
-            setRefreshTrigger((prev) => prev + 1);
         }
+        setIsSubmitting(false);
+        setRefreshTrigger((prev) => prev + 1);
     };
 
     const onSubmitWrapper = (e: React.FormEvent<HTMLFormElement>) => {
@@ -431,7 +446,11 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                     <input
                                         id={`completed-${order.id}`}
                                         type='number'
-                                        value={order.made_qty || order.order_qty || ''}
+                                        value={
+                                            order.made_qty ||
+                                            order.order_qty ||
+                                            ''
+                                        }
                                         min='0'
                                         step='0.5'
                                         placeholder='0'
@@ -440,12 +459,16 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                                 ? 'bg-neutral-100 text-neutral-400'
                                                 : ''
                                         }`}
-                                        readOnly={order.completed_at ? true : false}
+                                        readOnly={
+                                            order.completed_at ? true : false
+                                        }
                                         onWheel={(e) => e.currentTarget.blur()}
                                         onChange={(e) =>
                                             handleInputChange(
                                                 order.id,
-                                                e.target.value === '' ? 0 : Number(e.target.value)
+                                                e.target.value === ''
+                                                    ? 0
+                                                    : Number(e.target.value)
                                             )
                                         }
                                     />
@@ -510,12 +533,21 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                     <Button
                         variant='myTheme'
                         type='submit'
-                        disabled={isSubmitting || formData?.length <= 0 || formData.every(order => order.completed_at)}
+                        disabled={
+                            isSubmitting ||
+                            formData?.length <= 0 ||
+                            formData.every((order) => order.completed_at)
+                        }
                         className='w-full'
                     >
                         {isSubmitting ? 'Submitting...' : 'Submit'}
                         <Send className='ml-1 h-4 w-4' />
                     </Button>
+                    {sheetFeedback && (
+                        <p className='text-red-500 text-center text-sm my-2'>
+                            {sheetFeedback}
+                        </p>
+                    )}
                 </form>
             )}
         </div>

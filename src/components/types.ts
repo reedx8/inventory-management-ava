@@ -26,6 +26,7 @@ export type SheetTemplateProps = {
     className?: string;
     contentClassName?: string;
     side?: 'top' | 'right' | 'bottom' | 'left';
+    isCollapsible?: boolean; // is description collapsible
 
     // Optional callbacks
     onOpenChange?: (open: boolean) => void;

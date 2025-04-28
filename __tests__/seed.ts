@@ -23,12 +23,12 @@ const TEST_DB = drizzle(TEST_CONNECTION_STRING!);
 
 async function main() {
     // seedItemsVendorsTables(); // Items and vendors table need to be seeded first
-    seedTodaysDailyBakeryOrders(); // then you can do storeBakeryOrders and bakeryOrders
+    seedTodaysDailyBakeryOrders(true); // then you can do storeBakeryOrders and bakeryOrders
     // seedVendorsTable();
 }
 
 // Seed daily bakery orders tables with todays orders, replicate cron job
-// forBakery = true if orders are ready for bakery, false if orders are ready for stores
+// forBakery = true if want orders ready for bakery, false if orders ready for stores
 async function seedTodaysDailyBakeryOrders(forBakery: boolean = false) {
     await clearTable(schema.storeBakeryOrdersTable);
     await clearTable(schema.bakeryOrdersTable);
