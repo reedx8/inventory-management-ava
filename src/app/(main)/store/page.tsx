@@ -7,6 +7,13 @@ import { useAuth } from '@/contexts/auth-context';
 import OrderTable from './components/order-table';
 import { OrderItem } from '@/app/(main)/store/types';
 import { NoStoreOrdersDue } from '@/components/placeholders';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Stores() {
     const { userRole, userStoreId } = useAuth();
@@ -14,17 +21,16 @@ export default function Stores() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
-
     useEffect(() => {
         const fetchStoreOrders = async () => {
             try {
                 let regResponse;
                 let bakeryResponse;
-    
+
                 const tomorrow = new Date();
                 tomorrow.setDate(tomorrow.getDate() + 1);
                 const tom_dow_num = tomorrow.getDay();
-    
+
                 if (userRole === 'admin') {
                     [regResponse, bakeryResponse] = await Promise.all([
                         fetch(`/api/v1/store-orders?dow=${tom_dow_num}`),
@@ -43,7 +49,7 @@ export default function Stores() {
                     // dont fetch orders for other roles
                     return;
                 }
-    
+
                 const [regData, bakeryData] = await Promise.all([
                     regResponse.json(),
                     bakeryResponse.json(),
@@ -76,8 +82,19 @@ export default function Stores() {
     return (
         <main>
             <HeaderBar pageName={'Store'} />
-            <section>
+            <section className='flex justify-between items-center'>
                 <PagesNavBar />
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant='outline'>
+                            <Info /> <p className='text-xs'>Instructions</p>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className='mr-2'>
+                        <p className='text-sm'>{`Your store's due orders are filtered by store categories (stockroom, front counter, etc) and are due either on a daily or weekly basis. You can autofill orders with the item's PAR level
+                        using the 'Autofill Orders' button. Clicking submit will submit all orders for that store category only.`}</p>
+                    </PopoverContent>
+                </Popover>
             </section>
             {isLoading && !mergedData && (
                 <section className='flex flex-col gap-3'>

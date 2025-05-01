@@ -118,7 +118,7 @@ export default function PagesNavBar() {
     // console.log(currentPage);
 
     return (
-        <NavigationMenu className='my-2 border rounded-sm p-2 mb-4'>
+        <NavigationMenu className='my-2 border rounded-sm p-2'>
             <NavigationMenuList>
                 {navItems.map((item) => (
                     <NavigationMenuItem key={item.title}>

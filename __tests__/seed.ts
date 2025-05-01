@@ -53,7 +53,7 @@ async function seedTodaysDailyBakeryOrders(forBakery: boolean = false) {
     storeDateMax.setMinutes(0);
     storeDateMax.setSeconds(0);
 
-    const numOfOrders = forBakery ? 2 : 15;
+    const numOfOrders = forBakery ? 30 : 15;
 
     // randomly seed bakery_orders table with drizzle-seed
     await seed(TEST_DB, {

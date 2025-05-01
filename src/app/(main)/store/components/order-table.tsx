@@ -207,7 +207,7 @@ export default function OrderTable({
             accessorKey: 'pars_value',
             header: `${new Date(
                 new Date().setDate(new Date().getDate() + 1)
-            ).toLocaleDateString('en-US', { weekday: 'long' })} Pars`,
+            ).toLocaleDateString('en-US', { weekday: 'long' })} PAR`,
         },
         {
             accessorKey: 'order',
@@ -443,12 +443,12 @@ export default function OrderTable({
                                             activeCateg === 'ALL'
                                         }
                                     >
-                                        Auto Fill Orders
+                                        Autofill Orders
                                         <ClipboardCopy size={8} />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Fill orders with pars</p>
+                                    <p>Fill orders with PAR levels</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -534,7 +534,7 @@ export default function OrderTable({
                                                     are completed.`}
                                                 </AlertDialogDescription>
                                                 <AlertDialogDescription>
-                                                    Otherwise, Press Cancel.
+                                                    Otherwise press Cancel.
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>

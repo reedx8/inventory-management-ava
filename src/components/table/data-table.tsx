@@ -8,6 +8,7 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     SortingState,
+    PaginationState,
 } from '@tanstack/react-table';
 
 import {
@@ -19,6 +20,13 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -32,6 +40,20 @@ export function DataTable<TData, TValue>({
     tableHeader,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
+    const [{ pageIndex, pageSize }, setPagination] =
+        React.useState<PaginationState>({
+            pageIndex: 0,
+            pageSize: 10,
+        });
+
+    const pagination = React.useMemo(
+        () => ({
+            pageIndex,
+            pageSize,
+        }),
+        [pageIndex, pageSize]
+    );
+
     const table = useReactTable({
         data,
         columns,
@@ -39,8 +61,10 @@ export function DataTable<TData, TValue>({
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
+        onPaginationChange: setPagination,
         state: {
             sorting,
+            pagination,
         },
     });
 
@@ -83,7 +107,7 @@ export function DataTable<TData, TValue>({
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
                                             key={cell.id}
-                                            className='text-black'
+                                            className='text-black py-2'
                                         >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
@@ -106,23 +130,52 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            <div className='flex items-center justify-end space-x-2 py-1'>
-                <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    Previous
-                </Button>
-                <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                >
-                    Next
-                </Button>
+            <div className='flex items-center justify-between py-4'>
+                <div className='flex items-center space-x-2'>
+                    <p className='text-sm text-muted-foreground'>
+                        Rows per page
+                    </p>
+                    <Select
+                        value={`${pageSize}`}
+                        onValueChange={(value) => {
+                            table.setPageSize(Number(value));
+                        }}
+                    >
+                        <SelectTrigger className='h-8 w-[70px]'>
+                            <SelectValue placeholder={pageSize} />
+                        </SelectTrigger>
+                        <SelectContent side='top'>
+                            {[5, 10, 20, 100].map((size) => (
+                                <SelectItem key={size} value={`${size}`}>
+                                    {size === 100 ? 'All' : size}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className='flex gap-2 items-center text-sm text-neutral-500'>
+                    <p>
+                        Page {pageIndex + 1} / {table.getPageCount()}
+                    </p>
+                    <div className='flex items-center space-x-2'>
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => table.previousPage()}
+                            disabled={!table.getCanPreviousPage()}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => table.nextPage()}
+                            disabled={!table.getCanNextPage()}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
             </div>
         </div>
     );

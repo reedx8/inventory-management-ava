@@ -26,7 +26,7 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronsUpDown } from 'lucide-react';
+import { ChevronsUpDown, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const SheetTemplate = ({
@@ -52,8 +52,8 @@ const SheetTemplate = ({
                             isCollapsible ? (
                                 <Collapsible className='border rounded-md p-1 bg-neutral-100'>
                                 <div className='flex justify-between items-center'>
-                                    <h2 className='text-sm text-neutral-500'>
-                                        Instructions
+                                    <h2 className='text-sm text-neutral-500 flex items-center gap-1'>
+                                        <Info size={16} />Instructions
                                     </h2>
                                     <CollapsibleTrigger asChild>
                                         <Button

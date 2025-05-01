@@ -1,5 +1,4 @@
-// import { getCakeOrders } from '@/db/queries/select';
-// import { NextResponse } from 'next/server';
+/* No longer used */
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
 
@@ -15,7 +14,7 @@ const coffeeBeanProductIds = [
     '62ba0c6129e1736db10c3c4a', // ava decaf
 ];
 
-// Fetches orders from squarespace site
+// NOT USED CURRENTLY: Fetches orders from squarespace site
 // Concentrates cake order logic here, downside to that is not adhering to MVC pattern
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;

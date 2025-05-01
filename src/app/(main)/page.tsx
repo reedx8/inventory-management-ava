@@ -19,11 +19,11 @@ import {
     Cake,
     ChevronDown,
     Store,
-    ChevronRight,
+    // ChevronRight,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HeaderBar, todaysDay } from '@/components/header-bar';
-import Link from 'next/link';
+// import Link from 'next/link';
 
 const orderSchedule = [
     {
@@ -145,18 +145,18 @@ export default function Home() {
                 </div>
             </section>
             <section className='flex flex-col gap-2 mt-4'>
-                <div>
+                {/* <div>
                     <OpenCakeOrders />
-                </div>
+                </div> */}
                 <h2 className='text-2xl flex'>Due Today {scheduleBtn()}</h2>
                 <div className='flex flex-wrap gap-3 sm:grid sm:grid-cols-[auto_1fr] sm:gap-3'>
                     <Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
                         <CardHeader className='text-center'>
                             <CardTitle className='font-normal'>
-                                Orders
+                                Orders Due
                             </CardTitle>
                             <CardDescription className='text-neutral-400 text-balance'>
-                                Item Orders Due Today
+                                Store orders due today
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -166,10 +166,10 @@ export default function Home() {
                     <Card className='h-full shadow-md flex flex-col items-center'>
                         <CardHeader className='text-center'>
                             <CardTitle className='font-normal'>
-                                Stock Counts
+                                Stock Due
                             </CardTitle>
                             <CardDescription className='text-neutral-400 text-balance'>
-                                Stock Counts Due Today
+                                Stock counts due today
                             </CardDescription>
                         </CardHeader>
                         <CardContent>{miniStockCards()}</CardContent>
@@ -260,7 +260,7 @@ function scheduleBtn() {
 function miniOrderCards(bakeryDueTodayCount: number | null) {
     const invTypes = [
         {
-            name: 'Bakery',
+            name: 'Pastries',
             count: bakeryDueTodayCount,
             icon: <Cake width={18} className='text-myBrown' />,
         },
@@ -305,56 +305,56 @@ function miniStockCards() {
     );
 }
 
-// Open/Pending cake orders from squarespace card
-function OpenCakeOrders() {
-    const [openCakeOrders, setOpenCakeOrders] = useState<number | undefined>();
+// Open/Pending cake orders for squarespace card
+// function OpenCakeOrders() {
+//     const [openCakeOrders, setOpenCakeOrders] = useState<number | undefined>();
 
-    useEffect(() => {
-        const getOpenSquarespaceCakeOrderCount = async () => {
-            try {
-                const response = await fetch(
-                    'api/v1/squarespace-orders?fetch=cakes'
-                );
-                const result = await response.json();
-                if (!response.ok) {
-                    throw new Error(result.error);
-                }
-                // console.log('openCakeOrders: ' + result.length);
-                setOpenCakeOrders(result.length);
-            } catch (error) {
-                const err = error as Error;
-                console.log(err.message);
-                setOpenCakeOrders(0);
-            }
-        };
-        getOpenSquarespaceCakeOrderCount();
-    }, []);
+//     useEffect(() => {
+//         const getOpenSquarespaceCakeOrderCount = async () => {
+//             try {
+//                 const response = await fetch(
+//                     'api/v1/squarespace-orders?fetch=cakes'
+//                 );
+//                 const result = await response.json();
+//                 if (!response.ok) {
+//                     throw new Error(result.error);
+//                 }
+//                 // console.log('openCakeOrders: ' + result.length);
+//                 setOpenCakeOrders(result.length);
+//             } catch (error) {
+//                 const err = error as Error;
+//                 console.log(err.message);
+//                 setOpenCakeOrders(0);
+//             }
+//         };
+//         getOpenSquarespaceCakeOrderCount();
+//     }, []);
 
-    return (
-        <Card className='h-full shadow-md flex flex-col items-center relative'>
-            <CardHeader className='text-center'>
-                <CardTitle className='font-normal'>Open Cake Orders</CardTitle>
-                <CardDescription className='text-neutral-400 text-balance'>
-                    {`New cake orders made on AVA's website`}
-                </CardDescription>
-            </CardHeader>
-            <CardContent className='flex'>
-                <p className='text-5xl text-myBrown drop-shadow-sm'>
-                    {openCakeOrders ?? '--'}
-                </p>
-            </CardContent>
-            <Link
-                href='/bakery/cake-orders'
-                className='absolute right-2 bottom-2'
-            >
-                {/* <Link href='/bakery/cake-orders' className='self-end'> */}
-                <Button variant='ghost'>
-                    <ChevronRight className='h-2 w-2' />
-                </Button>
-            </Link>
-        </Card>
-    );
-}
+//     return (
+//         <Card className='h-full shadow-md flex flex-col items-center relative'>
+//             <CardHeader className='text-center'>
+//                 <CardTitle className='font-normal'>Open Cake Orders</CardTitle>
+//                 <CardDescription className='text-neutral-400 text-balance'>
+//                     {`New cake orders made on AVA's website`}
+//                 </CardDescription>
+//             </CardHeader>
+//             <CardContent className='flex'>
+//                 <p className='text-5xl text-myBrown drop-shadow-sm'>
+//                     {openCakeOrders ?? '--'}
+//                 </p>
+//             </CardContent>
+//             <Link
+//                 href='/bakery/cake-orders'
+//                 className='absolute right-2 bottom-2'
+//             >
+//                 {/* <Link href='/bakery/cake-orders' className='self-end'> */}
+//                 <Button variant='ghost'>
+//                     <ChevronRight className='h-2 w-2' />
+//                 </Button>
+//             </Link>
+//         </Card>
+//     );
+// }
 
 // function CarouselComponent() {
 //     const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));

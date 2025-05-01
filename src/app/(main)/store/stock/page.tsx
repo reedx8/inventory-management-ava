@@ -1,26 +1,26 @@
 'use client';
 // import StoreNavsBar from '@/components/pages-navbar';
 import React, { useState, useEffect } from 'react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    useReactTable,
-} from '@tanstack/react-table';
+// import {
+//     Table,
+//     TableBody,
+//     TableCell,
+//     TableHead,
+//     TableHeader,
+//     TableRow,
+// } from '@/components/ui/table';
+// import { Input } from '@/components/ui/input';
+// import { Button } from '@/components/ui/button';
+// import {
+//     flexRender,
+//     getCoreRowModel,
+//     getFilteredRowModel,
+//     getPaginationRowModel,
+//     useReactTable,
+// } from '@tanstack/react-table';
 // import { Dot } from 'lucide-react';
 // import noStockPic from '/public/illustrations/empty.svg';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
 import { useAuth } from '@/contexts/auth-context';
 import PagesNavBar from '@/components/pages-navbar';
@@ -41,72 +41,6 @@ interface StockItem {
     store_name: string;
 }
 
-const dummyData: StockItem[] = [
-    {
-        id: 1,
-        name: 'TOUCHSTONE WHOLE',
-        due_date: '2025-06-15',
-        units: '1 Pc',
-        count: 0,
-        store_categ: 'FRIDGE',
-        store_name: 'Progress',
-    },
-    {
-        id: 2,
-        name: 'TOUCHSTONE 2%',
-        due_date: '2025-06-15',
-        units: '22 lb',
-        count: 0,
-        store_categ: 'FRIDGE',
-        store_name: 'Orenco',
-    },
-    {
-        id: 3,
-        name: 'TOUCHSTONE FAT-FREE',
-        due_date: '2025-06-15',
-        units: 'Bucket (16 lb)',
-        count: 0,
-        store_categ: 'FRIDGE',
-        store_name: 'Progress',
-    },
-    {
-        id: 4,
-        name: 'Ciabbatte Rolls',
-        due_date: '2025-06-15',
-        units: '12/pack',
-        count: 0,
-        store_categ: 'FRIDGE',
-        store_name: 'Progress',
-    },
-    {
-        id: 5,
-        name: 'Olive Oil',
-        due_date: '2025-06-15',
-        units: '1 bottle',
-        count: 0,
-        store_categ: 'GENERAL',
-        store_name: 'Orenco',
-    },
-    {
-        id: 6,
-        name: 'Potato Chips',
-        due_date: '2025-06-15',
-        units: '1.5 oz',
-        count: 0,
-        store_categ: 'STOCKROOM',
-        store_name: 'Orenco',
-    },
-    {
-        id: 7,
-        name: 'Sumatra',
-        due_date: '2025-06-15',
-        units: '1 lb',
-        count: 0,
-        store_categ: 'BEANS&TEA',
-        store_name: 'Progress',
-    },
-];
-
 export default function Stock() {
     const [data, setData] = useState<StockItem[] | undefined>();
     const { userRole, userStoreId } = useAuth();
@@ -114,6 +48,7 @@ export default function Stock() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const fetchWeeklyStock = async () => {
             try {
                 let response;

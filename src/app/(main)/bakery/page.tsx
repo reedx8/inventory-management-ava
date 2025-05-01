@@ -38,6 +38,12 @@ import {
 import { STORE_LOCATIONS } from '@/components/types';
 import { NoPastriesDue } from '@/components/placeholders';
 import PagesNavBar from '@/components/pages-navbar';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { Info } from 'lucide-react';
 
 export default function Bakery() {
     const [data, setData] = useState<BakeryOrder[] | undefined>();
@@ -165,10 +171,22 @@ export default function Bakery() {
     return (
         <main>
             <HeaderBar pageName={'Bakery'} />
-            <div className='mb-6'>
+            <div className='flex justify-between items-center'>
                 <PagesNavBar />
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant='outline'>
+                            <Info /> <p className='text-xs'>Instructions</p>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className='mr-2'>
+                        <p className='text-sm'>{`Daily pasty orders from each store will show on this page every morning by 9 AM.
+                        You can fulfill individual items in the edit button, and/or batch complete the
+                        entire day's orders. Batch complete will mark all remaining items for the day as fulfilled.`}</p>
+                    </PopoverContent>
+                </Popover>
             </div>
-            <section className='mb-6' />
+            {/* <section className='mb-1' /> */}
             {isLoading && !data && (
                 <section className='flex flex-col gap-3'>
                     <Skeleton className='h-4 w-[14%]' />
@@ -225,11 +243,11 @@ export default function Bakery() {
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>
-                                        Complete All Orders?
+                                        Fulfill All Orders?
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Press Submit only if orders for all
-                                        stores were successfully completed by bakery.
+                                        Press Submit only if all store orders
+                                        were successfully fulfilled.
                                     </AlertDialogDescription>
                                     <AlertDialogDescription>
                                         Otherwise, Press Cancel.
@@ -262,7 +280,7 @@ export default function Bakery() {
                                 <h1 className='text-lg font-semibold text-black/80'>
                                     {`Today's Bakery Orders`}
                                 </h1>
-                                <p className='text-neutral-500/70 text-xs'>
+                                <p className='text-neutral-500/70 text-sm'>
                                     Total items due: {data.length}
                                 </p>
                                 <p className='text-neutral-500/70 text-xs'>
@@ -396,9 +414,9 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
             {!isLoading && (
                 <form
                     onSubmit={onSubmitWrapper}
-                    className='flex flex-col gap-2 mx-1'
+                    className='flex flex-col mx-1'
                 >
-                    <div className='self-end mt-2'>
+                    <div className='self-end mt-2 mb-1'>
                         <Select
                             onValueChange={(value) => setStoreLocation(value)}
                         >
@@ -414,7 +432,8 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                             </SelectContent>
                         </Select>
                     </div>
-                    <ScrollArea className='max-h-[50vh] sm:max-h-[65vh] overflow-y-auto'>
+                    <ScrollArea className='max-h-[50vh] sm:max-h-[60vh] overflow-y-auto'>
+                    {/* <ScrollArea className='max-h-[50vh] sm:max-h-[65vh] overflow-y-auto'> */}
                         {formData?.length > 0 &&
                             formData.map((order) => (
                                 <div
@@ -538,13 +557,13 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                             formData?.length <= 0 ||
                             formData.every((order) => order.completed_at)
                         }
-                        className='w-full'
+                        className='w-full mt-1'
                     >
                         {isSubmitting ? 'Submitting...' : 'Submit'}
                         <Send className='ml-1 h-4 w-4' />
                     </Button>
                     {sheetFeedback && (
-                        <p className='text-red-500 text-center text-sm my-2'>
+                        <p className='text-red-500 text-center text-sm mb-2'>
                             {sheetFeedback}
                         </p>
                     )}
