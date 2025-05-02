@@ -179,10 +179,14 @@ export default function Bakery() {
                             <Info /> <p className='text-xs'>Instructions</p>
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className='mr-2'>
-                        <p className='text-sm'>{`Daily pasty orders from each store will show on this page every morning by 9 AM.
-                        You can fulfill individual items in the edit button, and/or batch complete the
-                        entire day's orders. Batch complete will mark all remaining items for the day as fulfilled.`}</p>
+                    <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
+                        <p>Daily pasty orders from each store will show on this page every morning by 9 AM.</p>
+                        <p>{`You can fulfill individual items in the edit button, and/or batch complete the
+                        entire day's orders.`}</p>
+                        <p>
+                            Batch complete will mark all remaining items for the
+                            day as fulfilled.
+                        </p>
                     </PopoverContent>
                 </Popover>
             </div>
@@ -250,7 +254,7 @@ export default function Bakery() {
                                         were successfully fulfilled.
                                     </AlertDialogDescription>
                                     <AlertDialogDescription>
-                                        Otherwise, Press Cancel.
+                                        Otherwise press Cancel.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -412,10 +416,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                 </div>
             )}
             {!isLoading && (
-                <form
-                    onSubmit={onSubmitWrapper}
-                    className='flex flex-col mx-1'
-                >
+                <form onSubmit={onSubmitWrapper} className='flex flex-col mx-1'>
                     <div className='self-end mt-2 mb-1'>
                         <Select
                             onValueChange={(value) => setStoreLocation(value)}
@@ -433,7 +434,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                         </Select>
                     </div>
                     <ScrollArea className='max-h-[50vh] sm:max-h-[60vh] overflow-y-auto'>
-                    {/* <ScrollArea className='max-h-[50vh] sm:max-h-[65vh] overflow-y-auto'> */}
+                        {/* <ScrollArea className='max-h-[50vh] sm:max-h-[65vh] overflow-y-auto'> */}
                         {formData?.length > 0 &&
                             formData.map((order) => (
                                 <div
@@ -481,6 +482,16 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                         readOnly={
                                             order.completed_at ? true : false
                                         }
+                                        // onFocus and onClick allows consistent selection of all input text
+                                        onFocus={(e) => {
+                                            // e.target.select();
+                                            setTimeout(() => {
+                                                e.target.select();
+                                                // setTimeout(() => e.target.select(), 100);
+                                            }, 0);
+                                        }}
+                                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                                        // onTouchStart={(e) => (e.target as HTMLInputElement).select()}
                                         onWheel={(e) => e.currentTarget.blur()}
                                         onChange={(e) =>
                                             handleInputChange(
@@ -557,10 +568,10 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                             formData?.length <= 0 ||
                             formData.every((order) => order.completed_at)
                         }
-                        className='w-full mt-1'
+                        className='w-full mt-1 h-12 text-md'
                     >
                         {isSubmitting ? 'Submitting...' : 'Submit'}
-                        <Send className='ml-1 h-4 w-4' />
+                        <Send className='ml-1 h-6 w-6' />
                     </Button>
                     {sheetFeedback && (
                         <p className='text-red-500 text-center text-sm mb-2'>

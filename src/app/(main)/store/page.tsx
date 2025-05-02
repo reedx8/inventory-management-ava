@@ -90,9 +90,14 @@ export default function Stores() {
                             <Info /> <p className='text-xs'>Instructions</p>
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className='mr-2'>
-                        <p className='text-sm'>{`Your store's due orders are filtered by store categories (stockroom, front counter, etc) and are due either on a daily or weekly basis. You can autofill orders with the item's PAR level
-                        using the 'Autofill Orders' button. Clicking submit will submit all orders for that store category only.`}</p>
+                    <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
+                        <p>{`Your store's due orders are filtered by store categories (stockroom, front counter, etc) and are due either on a daily or weekly basis.`}</p>
+                        <p>{`You can autofill orders with the item's PAR level
+                        using the 'Autofill Orders' button.`}</p>
+                        <p>
+                            Clicking submit will submit all orders for that
+                            store category only.
+                        </p>
                     </PopoverContent>
                 </Popover>
             </section>

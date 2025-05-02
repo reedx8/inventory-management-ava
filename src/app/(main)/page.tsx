@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HeaderBar, todaysDay } from '@/components/header-bar';
+import { Separator } from "@/components/ui/separator"
 // import Link from 'next/link';
 
 const orderSchedule = [
@@ -32,11 +33,23 @@ const orderSchedule = [
     },
     {
         day: 'Tuesday',
-        itemsDue: 'Pastries, Reguler Weekly Orders',
+        itemsDue: (
+            <ul className='list-decimal list-inside'>
+                <li>- Pastries</li>
+                <li>- CCP/Sysco Weekly Orders</li>
+            </ul>
+        ),
+        // itemsDue: 'Pastries, CCP/Sysco Weekly Orders',
     },
     {
         day: 'Wednesday',
-        itemsDue: 'Pastries, CTC Weekly Orders',
+        itemsDue: (
+            <ul className='list-decimal list-inside'>
+                <li>- Pastries</li>
+                <li>- CTC Weekly Orders</li>
+            </ul>
+        ),
+        // itemsDue: 'Pastries, CTC Weekly Orders',
     },
     {
         day: 'Thursday',
@@ -72,6 +85,18 @@ const invSchedule = [
     {
         day: 'Thursday',
         itemsDue: 'Milk',
+    },
+    {
+        day: 'Friday',
+        itemsDue: '-',
+    },
+    {
+        day: 'Saturday',
+        itemsDue: '-',
+    },
+    {
+        day: 'Sunday',
+        itemsDue: '-',
     },
 ];
 
@@ -193,7 +218,7 @@ function scheduleBtn() {
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent>
-                    <Tabs className='text-xs'>
+                    <Tabs className='text-sm'>
                         <TabsList>
                             <TabsTrigger value='orders'>Orders</TabsTrigger>
                             <TabsTrigger value='stock'>Stock</TabsTrigger>
@@ -202,6 +227,9 @@ function scheduleBtn() {
                             value='orders'
                             className='flex flex-col gap-2'
                         >
+                            <p className='text-sm text-neutral-500'>
+                                The following are due dates:
+                            </p>
                             {orderSchedule.map((item) =>
                                 todaysDay() === item.day ? (
                                     <div
@@ -209,9 +237,9 @@ function scheduleBtn() {
                                         className='grid grid-cols-2'
                                     >
                                         <p className='font-bold'>{item.day}</p>
-                                        <p className='font-bold'>
+                                        <div className='font-bold'>
                                             {item.itemsDue}
-                                        </p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div
@@ -219,15 +247,27 @@ function scheduleBtn() {
                                         className='grid grid-cols-2'
                                     >
                                         <p>{item.day}</p>
-                                        <p>{item.itemsDue}</p>
+                                        <div>{item.itemsDue}</div>
                                     </div>
                                 )
                             )}
+                            <Separator className='my-1' />
+                            <div className='flex flex-col gap-0'>
+                                <p className='text-xs text-neutral-500'>
+                                    CTC = Coffee, Tea, and Chocolate items
+                                </p>
+                                <p className='text-xs text-neutral-500'>
+                                    CCP = Cost Control Products
+                                </p>
+                            </div>
                         </TabsContent>
                         <TabsContent
                             value='stock'
                             className='flex flex-col gap-2'
                         >
+                            <p className='text-sm text-neutral-500'>
+                                The following are due dates:
+                            </p>
                             {invSchedule.map((item) =>
                                 todaysDay() === item.day ? (
                                     <div
@@ -249,6 +289,15 @@ function scheduleBtn() {
                                     </div>
                                 )
                             )}
+                            <Separator className='my-1' />
+                            <div className='flex flex-col gap-0'>
+                                <p className='text-xs text-neutral-500'>
+                                    CTC = Coffee, Tea, and Chocolate items
+                                </p>
+                                <p className='text-xs text-neutral-500'>
+                                    CCP = Cost Control Products
+                                </p>
+                            </div>
                         </TabsContent>
                     </Tabs>
                 </PopoverContent>
