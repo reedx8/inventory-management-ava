@@ -18,6 +18,7 @@ import {
     getPaginationRowModel,
     useReactTable,
     CellContext,
+    PaginationState,
 } from '@tanstack/react-table';
 import { ClipboardCopy, Dot, Send } from 'lucide-react';
 import {
@@ -43,6 +44,13 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 // object lookup for category messages
 // const categoryMessage: Record<StoreCategory, JSX.Element | string> = {
@@ -82,6 +90,19 @@ export default function OrderTable({
     const [filteredData, setFilteredData] = useState<OrderItem[]>(data);
     const { toast } = useToast();
     const [toggleAutoFill, setToggleAutoFill] = useState<boolean>(false);
+    const [{ pageIndex, pageSize }, setPagination] =
+        React.useState<PaginationState>({
+            pageIndex: 0,
+            pageSize: 10,
+        });
+
+    const pagination = React.useMemo(
+        () => ({
+            pageIndex,
+            pageSize,
+        }),
+        [pageIndex, pageSize]
+    );
 
     // Accepts integers only
     const OrderCell = ({
@@ -163,7 +184,13 @@ export default function OrderTable({
                 //         : setValue(e.target.value)
                 // }
                 onChange={(e) => setValue(e.target.value)}
-                // onKeyDown=""
+                // onFocus and onClick allows consistent selection of all text in input field
+                onFocus={(e) => {
+                    setTimeout(() => {
+                        e.target.select();
+                    }, 0);
+                }}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
                 onWheel={(e) => e.currentTarget.blur()}
@@ -225,7 +252,9 @@ export default function OrderTable({
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
+        onPaginationChange: setPagination,
         state: {
+            pagination,
             globalFilter: activeCateg === 'ALL' ? undefined : activeCateg,
         },
         globalFilterFn: (row, columnId, filterValue) => {
@@ -496,6 +525,7 @@ export default function OrderTable({
                                                             ? '130px'
                                                             : 'auto',
                                                 }}
+                                                className='py-2'
                                             >
                                                 {flexRender(
                                                     cell.column.columnDef.cell,
@@ -514,7 +544,7 @@ export default function OrderTable({
                                 filteredData.length > 0 && (
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                            <Button variant='myTheme5'>
+                                            <Button variant='myTheme5' disabled={isSubmitting}>
                                                 Submit
                                                 <Send />
                                             </Button>
@@ -531,11 +561,11 @@ export default function OrderTable({
                                                 </AlertDialogTitle>
                                                 <AlertDialogDescription>
                                                     {`Press Submit only if all ${activeCateg.toLowerCase()} orders
-                                                    are completed.`}
+                                                    are completed. Otherwise press Cancel.`}
                                                 </AlertDialogDescription>
-                                                <AlertDialogDescription>
-                                                    Otherwise press Cancel.
-                                                </AlertDialogDescription>
+                                                {!storeId && <AlertDialogDescription className='text-red-500 text-xs'>
+                                                    Note: Only Store Managers can submit orders at this time.
+                                                </AlertDialogDescription>}
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>
@@ -545,12 +575,11 @@ export default function OrderTable({
                                                     <Button
                                                         variant='myTheme'
                                                         onClick={handleSubmit}
-                                                        disabled={isSubmitting}
+                                                        disabled={isSubmitting || !storeId}
                                                     >
                                                         {isSubmitting
                                                             ? 'Submitting...'
                                                             : 'Submit'}
-                                                        {/* Submit */}
                                                     </Button>
                                                 </AlertDialogAction>
                                             </AlertDialogFooter>
@@ -567,26 +596,56 @@ export default function OrderTable({
                         </div>
                     </form>
                 </div>
-                <div>
-                    {' '}
+                <div className='flex justify-between'>
+                    <div className='flex items-center space-x-2'>
+                        <p className='text-sm text-muted-foreground'>
+                            Rows per page
+                        </p>
+                        <Select
+                            value={`${pageSize}`}
+                            onValueChange={(value) => {
+                                table.setPageSize(Number(value));
+                            }}
+                        >
+                            <SelectTrigger className='h-8 w-[70px]'>
+                                <SelectValue placeholder={pageSize} />
+                            </SelectTrigger>
+                            { table.getPageCount() > 0 ? <SelectContent side='top'>
+                                {[5, 10, 20, 200].map((size) => (
+                                    <SelectItem key={size} value={`${size}`}>
+                                        {size === 200 ? 'All' : size}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent> : <SelectContent side='top'>
+                                <SelectItem value={'0'} disabled/>
+                            </SelectContent>}
+                        </Select>
+                    </div>
                     {/* Pagination: 10 items per page */}
-                    <div className='flex items-center justify-end space-x-2 py-4'>
-                        <Button
-                            variant='outline'
-                            size='sm'
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
-                        >
-                            Previous
-                        </Button>
-                        <Button
-                            variant='outline'
-                            size='sm'
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
-                        >
-                            Next
-                        </Button>
+                    <div className='flex items-center space-x-2'>
+                        {table.getPageCount() > 0 && (
+                            <p className='text-sm text-neutral-500 mr-2'>
+                                Page {pageIndex + 1} / {table.getPageCount()}
+                            </p>
+                        )}
+                        <div className='flex items-center space-x-2 py-4'>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => table.previousPage()}
+                                disabled={!table.getCanPreviousPage()}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => table.nextPage()}
+                                disabled={!table.getCanNextPage()}
+                            >
+                                Next
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

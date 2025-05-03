@@ -145,9 +145,9 @@ export function DataTable<TData, TValue>({
                             <SelectValue placeholder={pageSize} />
                         </SelectTrigger>
                         <SelectContent side='top'>
-                            {[5, 10, 20, 100].map((size) => (
+                            {[5, 10, 20, 200].map((size) => (
                                 <SelectItem key={size} value={`${size}`}>
-                                    {size === 100 ? 'All' : size}
+                                    {size === 200 ? 'All' : size}
                                 </SelectItem>
                             ))}
                         </SelectContent>

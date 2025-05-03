@@ -616,7 +616,7 @@ export async function getVendorContacts() {
     }
 }
 
-export async function getBakeryDueTodayCount() {
+export async function getBakeryDueTodayCount(storeId: number) {
     try {
         const result = await queryWithAuthRole(async (tx) => {
             return await tx
@@ -631,7 +631,10 @@ export async function getBakeryDueTodayCount() {
                         // sql`(EXTRACT(DAY FROM DATE(created_at AT TIME ZONE 'PST')) = EXTRACT(DAY FROM CURRENT_DATE AT TIME ZONE 'PST'))`,
                         // sql`(EXTRACT(MONTH FROM DATE(created_at AT TIME ZONE 'PST')) = EXTRACT(MONTH FROM CURRENT_DATE AT TIME ZONE 'PST'))`,
                         // sql`(EXTRACT(YEAR FROM DATE(created_at AT TIME ZONE 'PST')) = EXTRACT(YEAR FROM CURRENT_DATE AT TIME ZONE 'PST'))`,
-                        isNull(storeBakeryOrdersTable.submitted_at)
+                        isNull(storeBakeryOrdersTable.submitted_at),
+                        storeId === 0
+                            ? undefined
+                            : eq(storeBakeryOrdersTable.store_id, storeId)
                         // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                     )
                 );

@@ -23,7 +23,8 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HeaderBar, todaysDay } from '@/components/header-bar';
-import { Separator } from "@/components/ui/separator"
+import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/contexts/auth-context';
 // import Link from 'next/link';
 
 const orderSchedule = [
@@ -106,16 +107,22 @@ export default function Home() {
     >(null);
     const [itemCount, setItemCount] = useState<number | undefined>();
     const [storeCount, setStoreCount] = useState<number | undefined>();
+    const { userRole, userStoreId } = useAuth();
     // const [openCakeOrders, setOpenCakeOrders] = useState<number | undefined>();
     // const [isLoading, setIsLoading] = useState<boolean>(true);
     // const todaysDate : string = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
-        const getDashboardData = async () => {
+        const getDashboardData = async (storeId: number) => {
             try {
+                // const storeId = userStoreId ?? 0;
+                console.log('storeId: ' + storeId);
                 const [bakeryResponse, itemResponse, storeResponse] =
                     await Promise.all([
-                        fetch('api/v1/dashboard?fetch=bakeryDueToday'),
+                        fetch(
+                            'api/v1/dashboard?fetch=bakeryDueToday&storeId=' +
+                                storeId
+                        ),
                         fetch('api/v1/dashboard?fetch=itemCount'),
                         fetch('api/v1/dashboard?fetch=storeCount'),
                     ]);
@@ -139,8 +146,13 @@ export default function Home() {
                 setStoreCount(0);
             }
         };
-        getDashboardData();
-    }, []);
+        // const storeId = userStoreId ?? 0;
+        if (userRole && userRole !== 'store_manager') {
+            getDashboardData(0);
+        } else if (userStoreId) {
+            getDashboardData(userStoreId);
+        }
+    }, [userStoreId, userRole]);
 
     return (
         <main>
@@ -219,17 +231,16 @@ function scheduleBtn() {
                 </PopoverTrigger>
                 <PopoverContent>
                     <Tabs className='text-sm'>
-                        <TabsList>
+                        {/* <div className='flex justify-center'> */}
+                        <TabsList className='grid grid-cols-2 w-full'>
                             <TabsTrigger value='orders'>Orders</TabsTrigger>
                             <TabsTrigger value='stock'>Stock</TabsTrigger>
                         </TabsList>
+                        {/* </div> */}
                         <TabsContent
                             value='orders'
                             className='flex flex-col gap-2'
                         >
-                            <p className='text-sm text-neutral-500'>
-                                The following are due dates:
-                            </p>
                             {orderSchedule.map((item) =>
                                 todaysDay() === item.day ? (
                                     <div
@@ -252,11 +263,14 @@ function scheduleBtn() {
                                 )
                             )}
                             <Separator className='my-1' />
-                            <div className='flex flex-col gap-0'>
-                                <p className='text-xs text-neutral-500'>
+                            <div className='flex flex-col gap-0 text-xs text-neutral-500'>
+                                <p className='text-xs text-neutral-500 mb-1'>
+                                    Note: These are due dates for all stores
+                                </p>
+                                <p className='italic'>
                                     CTC = Coffee, Tea, and Chocolate items
                                 </p>
-                                <p className='text-xs text-neutral-500'>
+                                <p className='italic'>
                                     CCP = Cost Control Products
                                 </p>
                             </div>
@@ -265,9 +279,6 @@ function scheduleBtn() {
                             value='stock'
                             className='flex flex-col gap-2'
                         >
-                            <p className='text-sm text-neutral-500'>
-                                The following are due dates:
-                            </p>
                             {invSchedule.map((item) =>
                                 todaysDay() === item.day ? (
                                     <div
@@ -290,11 +301,14 @@ function scheduleBtn() {
                                 )
                             )}
                             <Separator className='my-1' />
-                            <div className='flex flex-col gap-0'>
-                                <p className='text-xs text-neutral-500'>
+                            <div className='flex flex-col gap-0 text-xs text-neutral-500'>
+                                <p className='text-xs text-neutral-500 mb-1'>
+                                    Note: These are due dates for all stores
+                                </p>
+                                <p className='italic'>
                                     CTC = Coffee, Tea, and Chocolate items
                                 </p>
-                                <p className='text-xs text-neutral-500'>
+                                <p className='italic'>
                                     CCP = Cost Control Products
                                 </p>
                             </div>

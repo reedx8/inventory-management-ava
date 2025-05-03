@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic'; // no caching
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const fetchType: string | null = searchParams.get('fetch');
+    const storeId: string | null = searchParams.get('storeId');
     // const todaysDate: string | null = searchParams.get('todaysDate');
 
     const supabase = await createClient();
@@ -24,7 +25,8 @@ export async function GET(request: NextRequest) {
     try {
         let response;
         if (fetchType === 'bakeryDueToday') {
-            response = await getBakeryDueTodayCount();
+            const storeIdInt = storeId === null ? 0 : parseInt(storeId);
+            response = await getBakeryDueTodayCount(storeIdInt);
         } else if (fetchType === 'itemCount') {
             response = await getItemCount();
         } else if (fetchType === 'storeCount') {

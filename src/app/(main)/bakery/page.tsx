@@ -50,6 +50,7 @@ export default function Bakery() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { toast } = useToast();
     const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+    const [isSubmittingBatch, setIsSubmittingBatch] = useState<boolean>(false);
 
     // handes edit button click on page basically
     const handleSheetSubmission = async (formData: BakeryOrder[]) => {
@@ -95,6 +96,7 @@ export default function Bakery() {
     };
     const handleBatchCompleteBtn = async () => {
         // console.log('handle auto submit pressed');
+        setIsSubmittingBatch(true);
         try {
             const response = await fetch(
                 '/api/v1/bakerys-orders?submitType=batch',
@@ -128,6 +130,7 @@ export default function Bakery() {
             });
         }
 
+        setIsSubmittingBatch(false);
         // simply refreshes view (see useEffect dependency array)
         setRefreshTrigger((prev) => prev + 1);
     };
@@ -175,8 +178,8 @@ export default function Bakery() {
                 <PagesNavBar />
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant='outline'>
-                            <Info /> <p className='text-xs'>Instructions</p>
+                        <Button variant='myTheme3'>
+                            <Info /> <p className='text-xs'>Info</p>
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
@@ -221,6 +224,7 @@ export default function Bakery() {
                             trigger={
                                 <Button
                                     variant='myTheme4'
+                                    disabled={isSubmittingBatch}
                                     // variant='outline'
                                     // className='border-myDarkbrown text-myDarkbrown'
                                 >
@@ -239,7 +243,7 @@ export default function Bakery() {
                         </SheetTemplate>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant='myTheme5'>
+                                <Button variant='myTheme5' disabled={isSubmittingBatch}>
                                     <ListCheck />
                                     Batch Complete
                                 </Button>
@@ -251,10 +255,7 @@ export default function Bakery() {
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
                                         Press Submit only if all store orders
-                                        were successfully fulfilled.
-                                    </AlertDialogDescription>
-                                    <AlertDialogDescription>
-                                        Otherwise press Cancel.
+                                        were successfully fulfilled. Otherwise press Cancel.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -265,6 +266,7 @@ export default function Bakery() {
                                         <Button
                                             variant='myTheme'
                                             onClick={handleBatchCompleteBtn}
+                                            disabled={isSubmittingBatch}
                                         >
                                             Submit
                                         </Button>
@@ -482,7 +484,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                         readOnly={
                                             order.completed_at ? true : false
                                         }
-                                        // onFocus and onClick allows consistent selection of all input text
+                                        // onFocus and onClick allows consistent selection of all text in input field
                                         onFocus={(e) => {
                                             // e.target.select();
                                             setTimeout(() => {

@@ -86,8 +86,8 @@ export default function Stores() {
                 <PagesNavBar />
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant='outline'>
-                            <Info /> <p className='text-xs'>Instructions</p>
+                        <Button variant='myTheme3'>
+                            <Info /> <p className='text-xs'>Info</p>
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
