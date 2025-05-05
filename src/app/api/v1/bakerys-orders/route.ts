@@ -5,6 +5,7 @@ import {
     putBakeryBatchCompleteOrders,
     putBakeryEditOrders,
 } from '@/db/queries/update';
+export const dynamic = 'force-dynamic'; // no caching
 
 // Bakery Staff: Get store's bakery orders, or total bakery orders per item, from the database
 export async function GET(request: NextRequest) {
@@ -58,7 +59,19 @@ export async function GET(request: NextRequest) {
         if (!response.success) {
             return NextResponse.json(response, { status: 400 });
         }
-        return NextResponse.json(response.data, { status: 200 });
+
+        // should prevent netlify from caching this response
+        return new NextResponse(JSON.stringify(response.data), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store, no-cache, must-revalidate',
+                Pragma: 'no-cache',
+                Expires: '0',
+            },
+        });
+
+        // return NextResponse.json(response.data, { status: 200 });
     } catch (error) {
         const err = error as Error;
         // console.error('Error fetching bakerys orders: ', error);

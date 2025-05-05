@@ -4,6 +4,7 @@ import { putStoreBakeryOrders, putStoreOrders } from '@/db/queries/update';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
 import { OrderItem } from '@/app/(main)/store/types';
+export const dynamic = 'force-dynamic'; // no caching
 
 // store -> orders due page
 export async function GET(request: NextRequest) {
@@ -37,7 +38,17 @@ export async function GET(request: NextRequest) {
         if (!response.success) {
             return NextResponse.json(response.error, { status: 400 });
         }
-        return Response.json(response.data, { status: 200 });
+        // should prevent netlify from caching this response
+        return new NextResponse(JSON.stringify(response.data), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store, no-cache, must-revalidate',
+                Pragma: 'no-cache',
+                Expires: '0',
+            },
+        });
+        // return Response.json(response.data, { status: 200 });
     } catch (error) {
         // console.error('Error fetching store orders:', error);
         const err = error as Error;

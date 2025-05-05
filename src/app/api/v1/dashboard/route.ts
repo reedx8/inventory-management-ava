@@ -47,10 +47,12 @@ export async function GET(request: NextRequest) {
 
         // should prevent netlify from caching this response
         return new NextResponse(JSON.stringify(response), {
+            status: 200,
             headers: {
                 'Content-Type': 'application/json',
                 'Cache-Control': 'no-store, no-cache, must-revalidate',
                 Pragma: 'no-cache',
+                Expires: '0',
             },
         });
     } catch (error) {
