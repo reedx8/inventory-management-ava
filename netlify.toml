@@ -1,0 +1,7 @@
+# No cache rule for all API versions and endpoints (deployed site was aggressively caching)
+[[headers]]
+  for = "/api/*/*"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
