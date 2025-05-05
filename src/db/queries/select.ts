@@ -476,7 +476,8 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                                 0
                             )
                         )
-                    );
+                    )
+                    .orderBy(asc(bakeryOrdersTable.item_id));
             });
             // .groupBy(storeBakeryOrdersTable.id, itemsTable.name);
         } catch (error) {
@@ -530,7 +531,8 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                     .groupBy(
                         storeBakeryOrdersTable.order_id,
                         itemsTable.name,
-                        bakeryOrdersTable.units
+                        bakeryOrdersTable.units,
+                        itemsTable.id // only need this IOT order by itemsTable.id below
                         // storeBakeryOrdersTable.id,
                         // storeBakeryOrdersTable.completed_at
                     )
@@ -539,7 +541,8 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                             sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
                             0
                         )
-                    );
+                    )
+                    .orderBy(asc(itemsTable.id));
             });
         } catch (error) {
             const err = error as Error;
