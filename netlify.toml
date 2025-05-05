@@ -2,6 +2,9 @@
 [[headers]]
   for = "/api/*/*"
   [headers.values]
-    Cache-Control = "no-store, no-cache, must-revalidate"
-    Pragma = "no-cache"
-    Expires = "0"
+    cache-control = '''
+    no-store,
+    no-cache,
+    must-revalidate'''
+    pragma = "no-cache"
+    expires = "0"
