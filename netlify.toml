@@ -1,6 +1,6 @@
 # No cache rule for all API versions and endpoints (deployed site was aggressively caching)
 [[headers]]
-  for = "/api/*/*"
+  for = "/api/**"
   [headers.values]
     cache-control = '''
     no-store,
