@@ -23,7 +23,7 @@ const TEST_DB = drizzle(TEST_CONNECTION_STRING!);
 
 async function main() {
     // seedItemsVendorsTables(); // Items and vendors table need to be seeded first
-    seedTodaysDailyBakeryOrders(true); // then you can do storeBakeryOrders and bakeryOrders
+    seedTodaysDailyBakeryOrders(); // then you can do storeBakeryOrders and bakeryOrders
     // seedVendorsTable();
 }
 

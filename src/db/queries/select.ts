@@ -752,6 +752,50 @@ export async function getStoreCount() {
     }
 }
 
+// Returns daily PAR levels for a store (eg pastry par levels only)
+export async function getDailyParLevels(
+    storeId: number,
+    dow: string,
+    categ: string
+) {
+    try {
+        const result = await queryWithAuthRole(async (tx) => {
+            return await tx
+                .select({
+                    id: itemsTable.id,
+                    name: itemsTable.name,
+                    qty: parsTable[dow as keyof typeof parsTable],
+                    store_id: parsTable.store_id,
+                    store_name: storesTable.name,
+                })
+                .from(parsTable)
+                .innerJoin(itemsTable, eq(parsTable.item_id, itemsTable.id))
+                .innerJoin(storesTable, eq(storesTable.id, parsTable.store_id))
+                .where(
+                    and(
+                        eq(parsTable.store_id, storeId),
+                        eq(itemsTable.cron_categ, categ),
+                        eq(itemsTable.is_active, true)
+                    )
+                )
+                .orderBy(asc(itemsTable.id));
+        });
+
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
+        };
+    }
+}
+
 // Helper functions
 
 // custom lower function

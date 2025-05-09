@@ -12,8 +12,11 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { Info } from 'lucide-react';
+import { Edit, Edit2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import SheetTemplate from '@/components/sheet/sheet-template';
+import SheetData from '@/components/sheet/sheet-data';
+import { Badge } from '@/components/ui/badge';
 
 export default function Stores() {
     const { userRole, userStoreId } = useAuth();
@@ -84,22 +87,41 @@ export default function Stores() {
             <HeaderBar pageName={'Store'} />
             <section className='flex justify-between items-center'>
                 <PagesNavBar />
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant='myTheme3'>
-                            <Info /> <p className='text-xs'>Info</p>
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
-                        <p>{`Your store's due orders are filtered by store categories (stockroom, front counter, etc) and are due either on a daily or weekly basis.`}</p>
-                        <p>{`You can autofill orders with the item's PAR level
-                        using the 'Autofill Orders' button.`}</p>
-                        <p>
-                            Clicking submit will submit all orders for that
-                            store category only.
-                        </p>
-                    </PopoverContent>
-                </Popover>
+                <div className='flex gap-2'>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant='ghost' className='flex gap-2 text-myDarkbrown hover:bg-transparent hover:text-myDarkbrown/60'>
+                                <Info /> <p className='text-xs'>Info</p>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
+                            <p>{`Your store's due orders are filtered by store categories (stockroom, front counter, etc) and are due either on a daily or weekly basis.`}</p>
+                            <p>{`You can autofill orders with the item's PAR level
+                        using the 'Autofill Orders' button, and edit their levels using the 'Edit PARS' button.`}</p>
+                            <p>
+                                Clicking submit will submit all orders for that
+                                store category only.
+                            </p>
+                        </PopoverContent>
+                    </Popover>
+                    <SheetTemplate
+                        trigger={
+                            <Button variant='myTheme3'>
+                                <Edit2 /> <p className='text-xs'>Edit PARS</p>
+                            </Button>
+                        }
+                        // title='Edit PAR Levels'
+                        title='Edit PAR Levels'
+                        description={`Edit your store's PAR levels here. PAR levels are the minimum amount of stock you should have on hand for that specified day or week, and are used to autofill orders.`}
+                        isCollapsible={true}
+                    >
+                        {userRole === 'store_manager' ? (
+                            <SheetData storeId={userStoreId} contentType='store:par' />
+                        ) : (
+                            <p className='text-neutral-500 text-sm text-center mt-4'>Admin view work in progress</p>
+                        )}
+                    </SheetTemplate>
+                </div>
             </section>
             {isLoading && !mergedData && (
                 <section className='flex flex-col gap-3'>

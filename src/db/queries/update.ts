@@ -8,8 +8,10 @@ import {
     // vendorItemsTable,
     storeBakeryOrdersTable,
     storeOrdersTable,
+    parsTable,
 } from '../schema';
 import { OrderItem } from '@/app/(main)/store/types';
+import { SheetDataType } from '@/components/types';
 // import { parse } from 'path';
 import { config } from 'dotenv';
 config({ path: '.env' });
@@ -481,6 +483,108 @@ export async function putBakeryBatchCompleteOrders() {
             message: 'All updates successful',
             updates,
         };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            message: 'Transaction failed',
+            error: err.message,
+        };
+    }
+}
+
+// Updates daily PAR levels for a store (eg pastry par levels only)
+export async function updateDailyParLevels({
+    data,
+    dow,
+}: {
+    data: SheetDataType[];
+    dow: string;
+}) {
+    try {
+        const updates = await executeWithAuthRole(async (trx) => {
+            const results = await Promise.all(
+                data.map(async (item) => {
+                    const updated = await trx
+                        .update(parsTable)
+                        .set({ [dow as keyof typeof parsTable]: item.qty })
+                        .where(
+                            and(
+                                eq(parsTable.item_id, item.id),
+                                eq(parsTable.store_id, item.store_id)
+                            )
+                        )
+                        .returning();
+                    // Format: UPDATE "pars" SET "column_name" = value WHERE ...
+                    // const query = sql`
+                    //     UPDATE ${parsTable}
+                    //     SET ${sql.identifier(dow)} = ${item.qty}
+                    //     WHERE "item_id" = ${item.id}
+                    //     AND "store_id" = ${item.store_id}
+                    //     RETURNING *
+                    // `;
+
+                    // const updated = await trx.execute(query);
+
+                    return {
+                        id: item.id,
+                        updated: updated.length > 0,
+                    };
+                })
+            );
+            return results;
+        });
+
+        const failures = updates.filter((update) => update.updated === false);
+        if (failures.length > 0) {
+            return {
+                success: false,
+                message: 'Some or all updates failed',
+                updates,
+            };
+        }
+
+        return {
+            success: true,
+            message: 'All updates successful',
+            updates,
+        };
+
+        // const results = await executeWithAuthRole(async (trx) => {
+        //     // Create an array of promises for each update operation
+        //     const updatePromises = data.map(async (item) => {
+        //         return await trx
+        //             .update(parsTable)
+        //             .set({ [dow as keyof typeof parsTable]: item.qty })
+        //             .where(
+        //                 and(
+        //                     eq(parsTable.item_id, item.id),
+        //                     eq(parsTable.store_id, item.store_id)
+        //                 )
+        //             );
+        //     });
+
+        //     // Wait for all update operations to complete
+        //     return await Promise.all(updatePromises);
+        // });
+
+        // const results = await executeWithAuthRole(async (trx) => {
+        //     data.map(async (item) => {
+        //         const updated = await trx
+        //             .update(parsTable)
+        //             .set({ [dow as keyof typeof parsTable]: item.qty })
+        //             .where(
+        //                 and(
+        //                     eq(parsTable.item_id, item.id),
+        //                     eq(parsTable.store_id, item.store_id)
+        //                 )
+        //             );
+        //     });
+        // });
+        // return {
+        //     success: true,
+        //     message: 'All updates successful',
+        // };
     } catch (error) {
         const err = error as Error;
         return {

@@ -178,12 +178,18 @@ export default function Bakery() {
                 <PagesNavBar />
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant='myTheme3'>
+                        <Button
+                            variant='ghost'
+                            className='flex gap-2 text-myDarkbrown hover:bg-transparent hover:text-myDarkbrown/60'
+                        >
                             <Info /> <p className='text-xs'>Info</p>
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
-                        <p>Daily pasty orders from each store will show on this page every morning by 9 AM.</p>
+                        <p>
+                            Daily pasty orders from each store will show on this
+                            page every morning by 9 AM.
+                        </p>
                         <p>{`You can fulfill individual items in the edit button, and/or batch complete the
                         entire day's orders.`}</p>
                         <p>
@@ -243,7 +249,10 @@ export default function Bakery() {
                         </SheetTemplate>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant='myTheme5' disabled={isSubmittingBatch}>
+                                <Button
+                                    variant='myTheme5'
+                                    disabled={isSubmittingBatch}
+                                >
                                     <ListCheck />
                                     Batch Complete
                                 </Button>
@@ -255,7 +264,8 @@ export default function Bakery() {
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
                                         Press Submit only if all store orders
-                                        were successfully fulfilled. Otherwise press Cancel.
+                                        were successfully fulfilled. Otherwise
+                                        press Cancel.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -492,7 +502,11 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                                 // setTimeout(() => e.target.select(), 100);
                                             }, 0);
                                         }}
-                                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                                        onClick={(e) =>
+                                            (
+                                                e.target as HTMLInputElement
+                                            ).select()
+                                        }
                                         // onTouchStart={(e) => (e.target as HTMLInputElement).select()}
                                         onWheel={(e) => e.currentTarget.blur()}
                                         onChange={(e) =>

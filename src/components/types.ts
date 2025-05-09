@@ -32,6 +32,15 @@ export type SheetTemplateProps = {
     onOpenChange?: (open: boolean) => void;
 };
 
+export type SheetDataType = {
+    id: number;
+    name: string;
+    qty: number;
+    store_name: string;
+    store_id: number;
+    was_updated: boolean;
+};
+
 // Active store locations only. Names matter -- must match as app table's use the name (and not id, better for testing since id's can seed randomly causing confusion in testing)
 export const STORE_LOCATIONS = ['Hall', 'Progress', 'Kruse', 'Orenco'] as const;
 
