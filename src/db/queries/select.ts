@@ -313,7 +313,7 @@ export async function getWeeklyStock(store_location_id: string | null) {
                     count: sql`0::integer`,
                     store_categ: itemsTable.store_categ,
                     // due_date: sql`${dummyDate}`, // dummy data for now
-                    due_date: stockTable.due_date,
+                    // due_date: stockTable.due_date,
                     store_name: storesTable.name,
                 })
                 .from(stockTable)
@@ -340,7 +340,7 @@ export async function getWeeklyStock(store_location_id: string | null) {
                     count: sql`0::integer`,
                     store_categ: itemsTable.store_categ,
                     // due_date: sql`${dummyDate}`, // dummy data for now
-                    due_date: stockTable.due_date,
+                    // due_date: stockTable.due_date,
                     store_name: storesTable.name,
                 })
                 .from(stockTable)
@@ -371,7 +371,7 @@ export async function getMilkBreadStock(store_location_id: string) {
             .select({
                 id: stockTable.id,
                 itemName: itemsTable.name,
-                nameFromVendor: vendorItemsTable.item_name,
+                // nameFromVendor: vendorItemsTable.item_name,
                 units: vendorItemsTable.units,
                 count: sql`0::integer`,
                 // store_name: storesTable.name,
@@ -389,7 +389,7 @@ export async function getMilkBreadStock(store_location_id: string) {
                     eq(itemsTable.is_active, true),
                     eq(vendorItemsTable.is_active, true),
                     isNull(stockTable.submitted_at),
-                    gt(stockTable.created_at, sql`now() - interval '2 day'`),
+                    // gt(stockTable.created_at, sql`now() - interval '2 day'`),
                     or(
                         eq(itemsTable.cron_categ, 'MILK'),
                         eq(itemsTable.cron_categ, 'BREAD')
@@ -421,8 +421,8 @@ export async function getWasteStock(store_location_id: string) {
                 and(
                     eq(stockTable.store_id, storeId),
                     eq(itemsTable.is_active, true),
-                    eq(itemsTable.is_waste_tracked, true),
-                    gt(stockTable.created_at, sql`now() - interval '1 day'`)
+                    eq(itemsTable.is_waste_tracked, true)
+                    // gt(stockTable.created_at, sql`now() - interval '1 day'`)
                 )
             );
     });
