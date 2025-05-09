@@ -1,4 +1,4 @@
-// Schema for Ava Roasteria's Inventory Management System
+// Schema for Ava Roasteria's Inventory Management System (IMS)
 import {
     integer,
     decimal,
@@ -16,7 +16,8 @@ import {
 import { sql } from 'drizzle-orm';
 import { authenticatedRole } from 'drizzle-orm/supabase';
 
-// General items of Ava Roasteria for every store
+// General items of Ava Roasteria for every store.
+// Ok to rename items (eg alpenrose whole to touchstone whole) but generally not recommended (to preserve history details of orders). Should use vendor_items table instead
 export const itemsTable = pgTable(
     'items',
     {
@@ -29,22 +30,15 @@ export const itemsTable = pgTable(
         // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
         list_price: decimal('list_price', { precision: 10, scale: 2 })
             .notNull()
-            .default(sql`0.00`), // Vendor's current list price for item
+            .default(sql`0.00`), // Default, most recent list price for item, unless specified in vendor_items table
         store_categ: varchar('store_categ').notNull(), // categories for store managers
         invoice_categ: varchar('invoice_categ').notNull().default('NONE'), // accounting category for invoicing
         main_categ: varchar('main_categ'), // main food category (US food groups + custom groups)
         sub_categ: varchar('sub_categ'), // food sub category
         cron_categ: varchar('cron_categ').default('NONE'), // convenient categories exclusively for inventory schedule and cron jobs
         is_waste_tracked: boolean('is_waste_tracked').default(false),
-        // is_weekly_stock: boolean('is_weekly_stock').notNull().default(false), // whether item is part of weekly stock count routine or not
-        // is_sunday_stock: boolean('is_sunday_stock').notNull().default(false), // whether item is part of sunday stock count routine or not
-        // requires_inventory: boolean('requires_inventory'), // whether item requires inventory
-        // requires_order: boolean('requires_order'), // whether item requires order
         item_description: text('item_description'), // internal description of item
-        vendor_description: text('vendor_description'), // primary vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
         is_active: boolean('is_active').notNull().default(true), // whether item is active or not for all stores
-        // is_active_for_store: jsonb('is_active_for_store'), // Store JSON mapping of store IDs to active status, to activate/deactivate items per store (future feature)
-        // store_categories: jsonb('store_categories'), // Store JSON mapping of store IDs to store_categ, to categorize items per store (future feature)
         picture: text('picture'),
         created_at: timestamp('created_at', {
             precision: 3,
@@ -52,6 +46,13 @@ export const itemsTable = pgTable(
         })
             .notNull()
             .defaultNow(),
+        // vendor_description: text('vendor_description'), // primary vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
+        // is_weekly_stock: boolean('is_weekly_stock').notNull().default(false), // whether item is part of weekly stock count routine or not
+        // is_sunday_stock: boolean('is_sunday_stock').notNull().default(false), // whether item is part of sunday stock count routine or not
+        // requires_inventory: boolean('requires_inventory'), // whether item requires inventory
+        // requires_order: boolean('requires_order'), // whether item requires order
+        // is_active_for_store: jsonb('is_active_for_store'), // Store JSON mapping of store IDs to active status, to activate/deactivate items per store (future feature)
+        // store_categories: jsonb('store_categories'), // Store JSON mapping of store IDs to store_categ, to categorize items per store (future feature)
     },
     (table) => {
         return [
@@ -88,7 +89,76 @@ export const itemsTable = pgTable(
     }
 );
 
-// Record of stock counts from every store. Stock used to order Milk And Bread items, as well as track waste
+// Vendor item's metadata, ie additional item details when neccessary/needed. Eg where vendors have different names or details for the same general/internal item we use
+// Primary Use: For automating the generating/emailing of excel files for/to vendors that need exact details or additional metadata details in which other records in items table do not need
+// Eg Petes milk needs "PACIFIC ORIGINAL ALMOND MILK - BARISTA" exactly in its excel file, while we (store managers) only care about "Almond milk" at time of ordering
+export const vendorItemsTable = pgTable(
+    'vendor_items',
+    {
+        id: serial('id').primaryKey(),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id),
+        vendor_id: integer('vendor_id')
+            .notNull()
+            .references(() => vendorsTable.id),
+        alt_name: varchar('alt_name'), // Alternative name: exact name of item vendor needs/uses, if needed
+        list_price: decimal('list_price', { precision: 10, scale: 2 }), // if needed, vendor items most revent list price
+        barcode: varchar('barcode'), // vendor specific barcode for item as shown on receipt/invoice, if needed
+        item_code: varchar('item_code'), // Aka product code. Vendor specific item code/number (SUPC for Sysco, Petes Milk, Grand Central, etc)
+        brand_code: varchar('item_brand'), // brand acronym/code of item from vendor (eg AREZIMP or WHLFCLS from Sysco vendor, etc)
+        units: varchar('units'), // if different from item.units
+        is_active: boolean('is_active').notNull().default(true),
+        is_primary: boolean('is_primary').notNull().default(false), // (may delete) whether this is the primary item for this vendor
+        item_description: text('item_description'), // vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
+        created_at: timestamp('created_at', {
+            precision: 3,
+            withTimezone: true,
+        })
+            .notNull()
+            .defaultNow(),
+    },
+    (table) => {
+        return [
+            check('positive_list_price', sql`${table.list_price} >= 0`),
+            // can have multiple records with the same vendor and aka name but different brands/names
+            // Remove item_name if you want 1 item_name per vendor/general item (but using is_primary will alleviate any problems?)
+            uniqueIndex('vendor_item_unique_idx').on(
+                table.vendor_id,
+                table.item_id,
+                table.alt_name
+            ),
+            uniqueIndex('single_primary_vendor_item').on(
+                table.vendor_id,
+                table.item_id,
+                table.is_primary
+            ),
+            pgPolicy('Enable inserting for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+        ];
+    }
+);
+
+// Record of stock counts from every store. Stock counts used for CCP/CTC items, and order Milk And Bread items
 export const stockTable = pgTable(
     'stock',
     {
@@ -99,61 +169,16 @@ export const stockTable = pgTable(
         store_id: integer('store_id')
             .notNull()
             .references(() => storesTable.id),
-        qty_on_hand: decimal('qty_on_hand', { precision: 10, scale: 2 }),
-        qty_received: decimal('qty_received', { precision: 10, scale: 2 }),
+        count: decimal('count', { precision: 10, scale: 2 }).notNull(),
         units: varchar('units'),
-        is_waste_track: boolean('is_waste_track').notNull().default(false), // For sunday close stock counts (waste)
-        closed_count: decimal('closed_count', {
-            precision: 10,
-            scale: 2,
-        }), // to track waste
-        sealed_count: decimal('sealed_count', {
-            precision: 10,
-            scale: 2,
-        }), // to track waste
-        open_items_weight: decimal('open_items_weight', {
-            precision: 10,
-            scale: 2,
-        }), // To track waste. oz
-        expired_count: decimal('expired_count', {
-            precision: 10,
-            scale: 2,
-        }), // To track waste
-        reused_count: decimal('reused_count', {
-            precision: 10,
-            scale: 2,
-        }), // To track waste
-        due_date: timestamp('due_date', {
-            precision: 3,
-            withTimezone: true,
-        }),
         submitted_at: timestamp('submitted_at', {
             precision: 3,
             withTimezone: true,
-        }), // When item's stock count was submitted by store managers
-        completed_at: timestamp('completed_at', {
-            precision: 3,
-            withTimezone: true,
-        }), // (Optional, May Delete) When order managers either submitted order to vendors or finalized order, given stock count received
-        created_at: timestamp('created_at', {
-            precision: 3,
-            withTimezone: true,
-        })
-            .notNull()
-            .defaultNow(), // when empty stock entry was originally created (cron job)
+        }),
     },
     (table) => {
         return [
-            check('positive_qty_on_hand', sql`${table.qty_on_hand} >= 0`),
-            check('positive_qty_received', sql`${table.qty_received} >= 0`),
-            check('positive_closed_count', sql`${table.closed_count} >= 0`),
-            check('positive_sealed_count', sql`${table.sealed_count} >= 0`),
-            check(
-                'open_items_weight_check',
-                sql`${table.open_items_weight} >= 0`
-            ),
-            check('expired_count_check', sql`${table.expired_count} >= 0`),
-            check('reused_count_check', sql`${table.reused_count} >= 0`),
+            check('positive_count', sql`${table.count} >= 0`),
             pgPolicy('Enable inserting stock for auth users only', {
                 for: 'insert',
                 to: authenticatedRole,
@@ -171,6 +196,86 @@ export const stockTable = pgTable(
                 using: sql`true`, // This allows all authenticated users to select all rows
             }),
             pgPolicy('Enable deleting stock for auth users only', {
+                for: 'delete',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+        ];
+    }
+);
+
+export const weekCloseTable = pgTable(
+    'week_close',
+    {
+        id: serial('id').primaryKey(),
+        item_id: integer('item_id')
+            .notNull()
+            .references(() => itemsTable.id),
+        store_id: integer('store_id')
+            .notNull()
+            .references(() => storesTable.id),
+        count: decimal('count', {
+            precision: 10,
+            scale: 2,
+        }),
+        closed_count: decimal('closed_count', {
+            precision: 10,
+            scale: 2,
+        }), // to track waste
+        sealed_count: decimal('sealed_count', {
+            precision: 10,
+            scale: 2,
+        }), // to track waste
+        open_items_weight: decimal('open_items_weight', {
+            precision: 10,
+            scale: 2,
+        }), // To track waste. oz?
+        expired_count: decimal('expired_count', {
+            precision: 10,
+            scale: 2,
+        }),
+        unexpired_count: decimal('unexpired_count', {
+            precision: 10,
+            scale: 2,
+        }),
+        reused_count: decimal('reused_count', {
+            precision: 10,
+            scale: 2,
+        }), // To track waste
+        submitted_at: timestamp('submitted_at', {
+            precision: 3,
+            withTimezone: true,
+        }), // When item's stock count was submitted by store managers
+    },
+    (table) => {
+        return [
+            check('positive_count', sql`${table.count} >= 0`),
+            check('positive_closed_count', sql`${table.closed_count} >= 0`),
+            check('positive_sealed_count', sql`${table.sealed_count} >= 0`),
+            check(
+                'open_items_weight_check',
+                sql`${table.open_items_weight} >= 0`
+            ),
+            check('expired_count_check', sql`${table.expired_count} >= 0`),
+            check('unexpired_count_check', sql`${table.unexpired_count} >= 0`),
+            check('reused_count_check', sql`${table.reused_count} >= 0`),
+            pgPolicy('Enable inserting records for auth users only', {
+                for: 'insert',
+                to: authenticatedRole,
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable updating records for auth users only', {
+                for: 'update',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+                withCheck: sql`true`,
+            }),
+            pgPolicy('Enable reading records for auth users only', {
+                for: 'select',
+                to: authenticatedRole,
+                using: sql`true`, // This allows all authenticated users to select all rows
+            }),
+            pgPolicy('Enable deleting records for auth users only', {
                 for: 'delete',
                 to: authenticatedRole,
                 using: sql`true`, // This allows all authenticated users to select all rows
@@ -653,72 +758,6 @@ export const historyTable = pgTable(
     },
     () => {
         return [
-            pgPolicy('Enable inserting for auth users only', {
-                for: 'insert',
-                to: authenticatedRole,
-                withCheck: sql`true`,
-            }),
-            pgPolicy('Enable updating for auth users only', {
-                for: 'update',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-                withCheck: sql`true`,
-            }),
-            pgPolicy('Enable reading for auth users only', {
-                for: 'select',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-            }),
-            pgPolicy('Enable deleting for auth users only', {
-                for: 'delete',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-            }),
-        ];
-    }
-);
-
-// Vendor-specific item details when neccessary, for edge cases where vendors have different names or details for the same general/internal item we use
-// Primary Use: For automating the generating/emailing of excel files for/to vendors that need exact details
-// Eg Petes milk needs "PACIFIC ORIGINAL ALMOND MILK - BARISTA" exactly in its excel file, while we (store managers) only care about "Almond milk" at time of ordering
-export const vendorItemsTable = pgTable(
-    'vendor_items',
-    {
-        id: serial('id').primaryKey(),
-        item_id: integer('item_id')
-            .notNull()
-            .references(() => itemsTable.id),
-        vendor_id: integer('vendor_id')
-            .notNull()
-            .references(() => vendorsTable.id),
-        item_name: varchar('item_name'), // exact name of item vendor needs/uses
-        item_code: varchar('item_code'), // vendor specific item code/number (SUPC for Sysco, Petes Milk, Grand Central, etc)
-        brand_code: varchar('item_brand'), // brand acronym/code of item from vendor (eg AREZIMP or WHLFCLS from Sysco vendor, etc)
-        units: varchar('units'),
-        is_active: boolean('is_active').notNull().default(true),
-        is_primary: boolean('is_primary').notNull().default(false), // whether this is the primary item for this vendor
-        item_description: text('item_description'), // vendor description of item. SEE MASTER ORDER SHEET - SYSCO TABS
-        created_at: timestamp('created_at', {
-            precision: 3,
-            withTimezone: true,
-        })
-            .notNull()
-            .defaultNow(),
-    },
-    (table) => {
-        return [
-            // can have multiple records with the same vendor and general item but different brands/names
-            // Remove item_name if you want 1 item_name per vendor/general item (but using is_primary will alleviate any problems?)
-            uniqueIndex('vendor_item_unique_idx').on(
-                table.vendor_id,
-                table.item_id,
-                table.item_name
-            ),
-            uniqueIndex('single_primary_vendor_item').on(
-                table.vendor_id,
-                table.item_id,
-                table.is_primary
-            ),
             pgPolicy('Enable inserting for auth users only', {
                 for: 'insert',
                 to: authenticatedRole,

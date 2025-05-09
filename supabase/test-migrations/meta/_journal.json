@@ -57,6 +57,20 @@
       "when": 1745351266880,
       "tag": "0007_shallow_big_bertha",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1746825599861,
+      "tag": "0008_blushing_trish_tilby",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1746830615936,
+      "tag": "0009_nebulous_vector",
+      "breakpoints": true
     }
   ]
 }

@@ -97,9 +97,9 @@ export default function Stores() {
                         <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
                             <p>{`Your store's due orders are filtered by store categories (stockroom, front counter, etc) and are due either on a daily or weekly basis.`}</p>
                             <p>{`You can autofill orders with the item's PAR level
-                        using the 'Autofill Orders' button, and edit their levels using the 'Edit PARS' button.`}</p>
+                        using 'Autofill Orders', and edit their levels using 'Edit PARS'.`}</p>
                             <p>
-                                Clicking submit will submit all orders for that
+                                Clicking submit on Orders Due page will submit all orders for that
                                 store category only.
                             </p>
                         </PopoverContent>
