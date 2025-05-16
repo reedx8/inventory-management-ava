@@ -330,6 +330,7 @@ export default function Bakery() {
                     />
                     {openPrintView && (
                         <PrintView
+                            openPrintView={openPrintView}
                             setOpenPrintView={setOpenPrintView}
                             data={data}
                         />
@@ -346,9 +347,11 @@ export default function Bakery() {
 }
 
 const PrintView = ({
+    openPrintView,
     setOpenPrintView,
     data,
 }: {
+    openPrintView: boolean;
     setOpenPrintView: (open: boolean) => void;
     data: BakeryOrder[];
 }) => {
@@ -358,7 +361,7 @@ const PrintView = ({
     }, []);
     if (!mounted) return null;
     return createPortal(
-        <div className='print-view-overlay fixed inset-0 w-screen h-screen z-[999999] bg-white flex flex-col px-8'>
+        <div className={`${openPrintView ? 'print-view-overlay' : ''} fixed inset-0 w-screen h-screen z-[999999] bg-white flex flex-col px-8`} >
             <Button
                 className='button-view fixed top-1 right-1 bg-myDarkbrown/30 text-myDarkbrown hover:bg-neutral-100'
                 onClick={() => setOpenPrintView(false)}

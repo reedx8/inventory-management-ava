@@ -60,7 +60,8 @@ ul {
 
 /* For bakery's print view only */
 @media print {
-    body > *:not(.print-view-overlay) {
+    /* only hide background when print view is open */
+    body:has(.print-view-overlay) > *:not(.print-view-overlay) {
         display: none !important;
     }
     /* body *:not(.print-view-overlay):not(.print-view-overlay *) {
