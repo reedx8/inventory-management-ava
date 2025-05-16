@@ -1,5 +1,17 @@
 // select queries -- call from /src/app/api folder
-import { eq, and, sql, gt, or, isNull, like, asc, count } from 'drizzle-orm';
+import {
+    eq,
+    and,
+    sql,
+    gt,
+    or,
+    isNull,
+    like,
+    asc,
+    count,
+    gte,
+    desc,
+} from 'drizzle-orm';
 import { db } from '../index';
 import {
     ordersTable,
@@ -37,7 +49,6 @@ export async function getStoresBakeryOrders(
                         order: storeBakeryOrdersTable.order_qty,
                         // stage: orderStagesTable.stage_name,
                         store_categ: itemsTable.store_categ,
-                        // due_date: sql`${dummyDate}`, // dummy data for now
                         // due_date: ordersTable.due_date,
                         store_name: storesTable.name,
                         cron_categ: itemsTable.cron_categ,
@@ -61,19 +72,33 @@ export async function getStoresBakeryOrders(
                         storesTable,
                         eq(storesTable.id, storeBakeryOrdersTable.store_id)
                     )
-                    .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
+                    .leftJoin(
+                        parsTable,
+                        and(
+                            eq(parsTable.item_id, itemsTable.id),
+                            eq(parsTable.store_id, storeId)
+                        )
+                    )
+                    // .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
                     .where(
                         and(
                             eq(storeBakeryOrdersTable.store_id, storeId),
                             eq(itemsTable.is_active, true),
-                            eq(parsTable.store_id, storeId),
+                            // eq(parsTable.store_id, storeId),
                             sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
                             isNull(storeBakeryOrdersTable.submitted_at)
                             // eq(orderStagesTable.stage_name, 'DUE')
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         )
                     )
-                    .orderBy(asc(bakeryOrdersTable.item_id));
+                    .orderBy(
+                        sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+                        desc(itemsTable.main_categ),
+                        asc(itemsTable.sub_categ),
+                        asc(itemsTable.name)
+                    );
+                // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.name));
+                // .orderBy(asc(bakeryOrdersTable.item_id));
             });
 
             return {
@@ -102,7 +127,6 @@ export async function getStoresBakeryOrders(
                         order: storeBakeryOrdersTable.order_qty,
                         // stage: orderStagesTable.stage_name,
                         store_categ: itemsTable.store_categ,
-                        // due_date: sql`${dummyDate}`, // dummy data for now
                         // due_date: ordersTable.due_date,
                         store_name: storesTable.name,
                         cron_categ: itemsTable.cron_categ,
@@ -126,21 +150,37 @@ export async function getStoresBakeryOrders(
                         storesTable,
                         eq(storesTable.id, storeBakeryOrdersTable.store_id)
                     )
-                    .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
-                    .where(
+                    .leftJoin(
+                        parsTable,
                         and(
-                            eq(itemsTable.is_active, true),
+                            eq(parsTable.item_id, itemsTable.id),
                             eq(
                                 parsTable.store_id,
                                 storeBakeryOrdersTable.store_id
-                            ),
+                            )
+                        )
+                    )
+                    // .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
+                    .where(
+                        and(
+                            eq(itemsTable.is_active, true),
+                            // eq(
+                            //     parsTable.store_id,
+                            //     storeBakeryOrdersTable.store_id
+                            // ),
                             sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
                             isNull(storeBakeryOrdersTable.submitted_at)
                             // eq(orderStagesTable.stage_name, 'DUE')
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         )
                     )
-                    .orderBy(asc(storeBakeryOrdersTable.store_id));
+                    .orderBy(
+                        sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+                        desc(itemsTable.main_categ),
+                        asc(itemsTable.sub_categ),
+                        asc(itemsTable.name)
+                    );
+                // .orderBy(asc(storeBakeryOrdersTable.store_id));
             });
             // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
 
@@ -164,7 +204,7 @@ export async function getStoresBakeryOrders(
     // return result;
 }
 
-// Get external vendor orders for each store (store -> orders due page)
+// (Not used yet) Get external vendor orders for each store (store -> orders due page)
 export async function getStoreOrders(
     store_location_id: string | null,
     dow: number
@@ -299,6 +339,7 @@ export async function getStoreOrders(
     // return result;
 }
 
+// (not used yet)
 export async function getWeeklyStock(store_location_id: string | null) {
     // const dummyDate: string = '2025-06-15'; // dummy data for now
 
@@ -361,46 +402,124 @@ export async function getWeeklyStock(store_location_id: string | null) {
     // return result;
 }
 
-// Output empty milk and bread items for store managers to fill in their stock counts
-export async function getMilkBreadStock(store_location_id: string) {
-    // const dummyDate: string = '2025-06-15'; // dummy data for now
+// Output empty milk and bread items for store managers to fill in their stock counts (stock page -> milk bread btn)
+export async function getMilkBreadStock(
+    store_location_id: number,
+    stockType: string
+) {
+    try {
+        const result = await queryWithAuthRole(async (tx) => {
+            // First check if there are any stock records from today for this store
+            const todayStockCheck = await tx
+                .select({ count: sql`count(*)` })
+                .from(stockTable)
+                .innerJoin(itemsTable, eq(itemsTable.id, stockTable.item_id))
+                .where(
+                    and(
+                        eq(stockTable.store_id, store_location_id),
+                        eq(itemsTable.cron_categ, stockType),
+                        sql`DATE(${stockTable.submitted_at}) = CURRENT_DATE` // Check if date part equals current date
+                    )
+                );
 
-    const storeId = parseInt(store_location_id);
-    const result = await queryWithAuthRole(async (tx) => {
-        return await tx
-            .select({
-                id: stockTable.id,
-                itemName: itemsTable.name,
-                // nameFromVendor: vendorItemsTable.item_name,
-                units: vendorItemsTable.units,
-                count: sql`0::integer`,
-                // store_name: storesTable.name,
-            })
-            .from(stockTable)
-            .innerJoin(itemsTable, eq(itemsTable.id, stockTable.item_id))
-            .innerJoin(
-                vendorItemsTable,
-                eq(vendorItemsTable.item_id, itemsTable.id)
-            )
-            .innerJoin(storesTable, eq(storesTable.id, stockTable.store_id))
-            .where(
-                and(
-                    eq(stockTable.store_id, storeId),
-                    eq(itemsTable.is_active, true),
-                    eq(vendorItemsTable.is_active, true),
-                    isNull(stockTable.submitted_at),
-                    // gt(stockTable.created_at, sql`now() - interval '2 day'`),
-                    or(
-                        eq(itemsTable.cron_categ, 'MILK'),
-                        eq(itemsTable.cron_categ, 'BREAD')
+            // If there are stock records from today, return empty array
+            if (todayStockCheck[0].count > 0) {
+                return [];
+            }
+
+            return await tx
+                .select({
+                    id: itemsTable.id,
+                    // Use vendor alt_name when available, otherwise use item name
+                    name: sql`COALESCE(${vendorItemsTable.alt_name}, ${itemsTable.name})`,
+                    // Use vendor units when available, otherwise use item units
+                    units: sql`COALESCE(${vendorItemsTable.units}, ${itemsTable.units})`,
+                    qty: sql`0::integer`,
+                    store_id: sql`${store_location_id}::integer`,
+                    cron_categ: itemsTable.cron_categ,
+                    store_name: storesTable.name,
+                    // store_name: sql`(SELECT name FROM stores WHERE id = ${store_location_id}::integer)`,
+                })
+                .from(itemsTable)
+                .leftJoin(
+                    vendorItemsTable,
+                    and(
+                        eq(vendorItemsTable.item_id, itemsTable.id),
+                        eq(vendorItemsTable.is_primary, true)
                     )
                 )
-            );
-    });
-    // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
-    return result;
+                .innerJoin(
+                    storesTable,
+                    and(
+                        eq(storesTable.id, store_location_id) // only used to check if store is active
+                    )
+                )
+                .where(
+                    and(
+                        eq(itemsTable.is_active, true),
+                        eq(storesTable.is_active, true),
+                        or(
+                            eq(itemsTable.cron_categ, 'MILK'),
+                            eq(itemsTable.cron_categ, 'BREAD')
+                        ),
+                        eq(itemsTable.cron_categ, stockType)
+                    )
+                );
+        });
+        return result;
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: null,
+        };
+    }
 }
 
+// // Output empty milk and bread items for store managers to fill in their stock counts
+// export async function getMilkBreadStock(store_location_id: number) {
+//     try {
+//         const result = await queryWithAuthRole(async (tx) => {
+//             return await tx
+//                 .select({
+//                     id: itemsTable.id,
+//                     name: vendorItemsTable.alt_name ?? itemsTable.name,
+//                     units: vendorItemsTable.units ?? itemsTable.units,
+//                     count: sql`0::integer`,
+//                     store_id: store_location_id,
+//                     cron_categ: itemsTable.cron_categ,
+//                 })
+//                 .from(itemsTable)
+//                 .rightJoin(
+//                     vendorItemsTable,
+//                     eq(vendorItemsTable.item_id, itemsTable.id)
+//                 )
+//                 .where(
+//                     and(
+//                         eq(itemsTable.is_active, true),
+//                         eq(vendorItemsTable.is_active, true),
+//                         eq(vendorItemsTable.is_primary, true),
+//                         or(
+//                             eq(itemsTable.cron_categ, 'MILK'),
+//                             eq(itemsTable.cron_categ, 'BREAD')
+//                         )
+//                     )
+//                 );
+//         });
+
+//         return result;
+//     } catch (error) {
+//         const err = error as Error;
+//         return {
+//             success: false,
+//             error: err.message,
+//             data: null,
+//         };
+//     }
+// }
+
+// (not used yet)
 export async function getWasteStock(store_location_id: string) {
     // const dummyDate: string = '2025-06-15'; // dummy data for now
 
@@ -477,9 +596,15 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                             )
                         )
                     )
-                    .orderBy(asc(bakeryOrdersTable.item_id));
+                    .orderBy(
+                        sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+                        desc(itemsTable.main_categ),
+                        asc(itemsTable.sub_categ),
+                        asc(itemsTable.name)
+                    );
+                // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.name));
+                // .orderBy(asc(bakeryOrdersTable.item_id));
             });
-            // .groupBy(storeBakeryOrdersTable.id, itemsTable.name);
         } catch (error) {
             const err = error as Error;
             return {
@@ -542,7 +667,15 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                             0
                         )
                     )
-                    .orderBy(asc(itemsTable.id));
+                    .orderBy(
+                        sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+                        desc(itemsTable.main_categ),
+                        asc(itemsTable.sub_categ),
+                        asc(itemsTable.name)
+                    );
+                // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.name));
+                // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.id));
+                // .orderBy(asc(itemsTable.id));
             });
         } catch (error) {
             const err = error as Error;
@@ -752,7 +885,6 @@ export async function getStoreCount() {
     }
 }
 
-// Returns daily PAR levels for a store (eg pastry par levels only)
 export async function getDailyParLevels(
     storeId: number,
     dow: string,
@@ -765,22 +897,38 @@ export async function getDailyParLevels(
                     id: itemsTable.id,
                     name: itemsTable.name,
                     qty: parsTable[dow as keyof typeof parsTable],
-                    store_id: parsTable.store_id,
-                    store_name: storesTable.name,
+                    store_id: sql`${storeId}`.as('store_id'), // ": parsTable.store_id," would be null when item not in pars table
+                    // store_id: storeId,
+                    // store_id: parsTable.store_id,
+                    store_name:
+                        sql`(SELECT name FROM stores WHERE id = ${storeId})`.as(
+                            'store_name'
+                        ),
+                    // store_name: storesTable.name,
                 })
-                .from(parsTable)
-                .innerJoin(itemsTable, eq(parsTable.item_id, itemsTable.id))
-                .innerJoin(storesTable, eq(storesTable.id, parsTable.store_id))
+                .from(itemsTable)
+                .leftJoin(
+                    parsTable,
+                    and(
+                        eq(parsTable.item_id, itemsTable.id),
+                        eq(parsTable.store_id, storeId)
+                    )
+                )
+                .leftJoin(storesTable, eq(storesTable.id, parsTable.store_id))
                 .where(
                     and(
-                        eq(parsTable.store_id, storeId),
                         eq(itemsTable.cron_categ, categ),
                         eq(itemsTable.is_active, true)
                     )
                 )
-                .orderBy(asc(itemsTable.id));
+                .orderBy(
+                    sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+                    desc(itemsTable.main_categ),
+                    asc(itemsTable.sub_categ),
+                    asc(itemsTable.name)
+                );
+            // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.name));
         });
-
         return {
             success: true,
             error: null,
@@ -795,6 +943,53 @@ export async function getDailyParLevels(
         };
     }
 }
+
+// Returns daily PAR levels for a store (eg pastry par levels only)
+// export async function getDailyParLevels(
+//     storeId: number,
+//     dow: string,
+//     categ: string
+// ) {
+//     try {
+//         const result = await queryWithAuthRole(async (tx) => {
+//             return await tx
+//                 .select({
+//                     id: itemsTable.id,
+//                     name: itemsTable.name,
+//                     qty: parsTable[dow as keyof typeof parsTable],
+//                     store_id: parsTable.store_id,
+//                     store_name: storesTable.name,
+//                 })
+//                 .from(parsTable)
+//                 // .rightJoin(itemsTable, eq(parsTable.item_id, itemsTable.id))
+//                 .innerJoin(itemsTable, eq(parsTable.item_id, itemsTable.id))
+//                 // .leftJoin(storesTable, eq(storesTable.id, parsTable.store_id))
+//                 .innerJoin(storesTable, eq(storesTable.id, parsTable.store_id))
+//                 .where(
+//                     and(
+//                         eq(parsTable.store_id, storeId),
+//                         eq(itemsTable.cron_categ, categ),
+//                         eq(itemsTable.is_active, true)
+//                     )
+//                 )
+//                 .orderBy(desc(itemsTable.main_categ), asc(itemsTable.name));
+//             // .orderBy(asc(itemsTable.id));
+//         });
+
+//         return {
+//             success: true,
+//             error: null,
+//             data: result,
+//         };
+//     } catch (error) {
+//         const err = error as Error;
+//         return {
+//             success: false,
+//             error: err.message,
+//             data: [],
+//         };
+//     }
+// }
 
 // Helper functions
 
@@ -818,6 +1013,7 @@ function getDaysName(dow: number): string {
     return weekdays[dow];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function queryWithAuthRole<T>(queryFn: (tx: any) => Promise<T>) {
     return await db.transaction(async (tx) => {
         if (process.env.APP_ENV !== 'test') {

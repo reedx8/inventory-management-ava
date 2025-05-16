@@ -57,3 +57,26 @@ ul {
         --sidebar-ring: 217.2 91.2% 59.8%;
     }
 }
+
+/* For bakery's print view only */
+@media print {
+    body > *:not(.print-view-overlay) {
+        display: none !important;
+    }
+    /* body *:not(.print-view-overlay):not(.print-view-overlay *) {
+        display: none !important;
+    } */
+
+    .print-view-overlay {
+        display: block !important;
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        z-index: auto !important;
+        background: white !important;
+        box-shadow: none !important;
+    }
+    .button-view {
+        display: none !important;
+    }
+}

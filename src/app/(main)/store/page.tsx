@@ -12,11 +12,11 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { Edit, Edit2, Info } from 'lucide-react';
+import { Edit2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SheetTemplate from '@/components/sheet/sheet-template';
 import SheetData from '@/components/sheet/sheet-data';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
 
 export default function Stores() {
     const { userRole, userStoreId } = useAuth();

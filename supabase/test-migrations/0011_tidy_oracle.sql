@@ -1,0 +1,1 @@
+ALTER TABLE "items" ADD CONSTRAINT "sub_category_check" CHECK ("items"."sub_categ" IN ('NONE', 'CUPCAKES'));

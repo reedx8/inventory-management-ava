@@ -154,7 +154,7 @@ export async function putStoreBakeryOrders(
                 //         order_qty: storeBakeryOrdersTable.order_qty,
                 //     });
 
-                console.log('Updated:', updated);
+                // console.log('Updated:', updated);
                 results.push({
                     id: order.id,
                     updated: updated.length > 0,
@@ -492,7 +492,6 @@ export async function putBakeryBatchCompleteOrders() {
         };
     }
 }
-
 // Updates daily PAR levels for a store (eg pastry par levels only)
 export async function updateDailyParLevels({
     data,
@@ -505,26 +504,43 @@ export async function updateDailyParLevels({
         const updates = await executeWithAuthRole(async (trx) => {
             const results = await Promise.all(
                 data.map(async (item) => {
-                    const updated = await trx
-                        .update(parsTable)
-                        .set({ [dow as keyof typeof parsTable]: item.qty })
+                    // First check if the record exists
+                    const existingRecord = await trx
+                        .select()
+                        .from(parsTable)
                         .where(
                             and(
                                 eq(parsTable.item_id, item.id),
                                 eq(parsTable.store_id, item.store_id)
                             )
                         )
-                        .returning();
-                    // Format: UPDATE "pars" SET "column_name" = value WHERE ...
-                    // const query = sql`
-                    //     UPDATE ${parsTable}
-                    //     SET ${sql.identifier(dow)} = ${item.qty}
-                    //     WHERE "item_id" = ${item.id}
-                    //     AND "store_id" = ${item.store_id}
-                    //     RETURNING *
-                    // `;
+                        .limit(1);
 
-                    // const updated = await trx.execute(query);
+                    let updated;
+
+                    if (existingRecord.length === 0) {
+                        // Record doesn't exist, need to INSERT
+                        updated = await trx
+                            .insert(parsTable)
+                            .values({
+                                item_id: item.id,
+                                store_id: item.store_id,
+                                [dow as keyof typeof parsTable]: item.qty,
+                            })
+                            .returning();
+                    } else {
+                        // Record exists, perform UPDATE
+                        updated = await trx
+                            .update(parsTable)
+                            .set({ [dow as keyof typeof parsTable]: item.qty })
+                            .where(
+                                and(
+                                    eq(parsTable.item_id, item.id),
+                                    eq(parsTable.store_id, item.store_id)
+                                )
+                            )
+                            .returning();
+                    }
 
                     return {
                         id: item.id,
@@ -549,42 +565,6 @@ export async function updateDailyParLevels({
             message: 'All updates successful',
             updates,
         };
-
-        // const results = await executeWithAuthRole(async (trx) => {
-        //     // Create an array of promises for each update operation
-        //     const updatePromises = data.map(async (item) => {
-        //         return await trx
-        //             .update(parsTable)
-        //             .set({ [dow as keyof typeof parsTable]: item.qty })
-        //             .where(
-        //                 and(
-        //                     eq(parsTable.item_id, item.id),
-        //                     eq(parsTable.store_id, item.store_id)
-        //                 )
-        //             );
-        //     });
-
-        //     // Wait for all update operations to complete
-        //     return await Promise.all(updatePromises);
-        // });
-
-        // const results = await executeWithAuthRole(async (trx) => {
-        //     data.map(async (item) => {
-        //         const updated = await trx
-        //             .update(parsTable)
-        //             .set({ [dow as keyof typeof parsTable]: item.qty })
-        //             .where(
-        //                 and(
-        //                     eq(parsTable.item_id, item.id),
-        //                     eq(parsTable.store_id, item.store_id)
-        //                 )
-        //             );
-        //     });
-        // });
-        // return {
-        //     success: true,
-        //     message: 'All updates successful',
-        // };
     } catch (error) {
         const err = error as Error;
         return {
@@ -594,6 +574,108 @@ export async function updateDailyParLevels({
         };
     }
 }
+
+// Updates daily PAR levels for a store (eg pastry par levels only)
+// export async function updateDailyParLevels({
+//     data,
+//     dow,
+// }: {
+//     data: SheetDataType[];
+//     dow: string;
+// }) {
+//     try {
+//         const updates = await executeWithAuthRole(async (trx) => {
+//             const results = await Promise.all(
+//                 data.map(async (item) => {
+//                     const updated = await trx
+//                         .update(parsTable)
+//                         .set({ [dow as keyof typeof parsTable]: item.qty })
+//                         .where(
+//                             and(
+//                                 eq(parsTable.item_id, item.id),
+//                                 eq(parsTable.store_id, item.store_id)
+//                             )
+//                         )
+//                         .returning();
+//                     // Format: UPDATE "pars" SET "column_name" = value WHERE ...
+//                     // const query = sql`
+//                     //     UPDATE ${parsTable}
+//                     //     SET ${sql.identifier(dow)} = ${item.qty}
+//                     //     WHERE "item_id" = ${item.id}
+//                     //     AND "store_id" = ${item.store_id}
+//                     //     RETURNING *
+//                     // `;
+
+//                     // const updated = await trx.execute(query);
+
+//                     return {
+//                         id: item.id,
+//                         updated: updated.length > 0,
+//                     };
+//                 })
+//             );
+//             return results;
+//         });
+
+//         const failures = updates.filter((update) => update.updated === false);
+//         if (failures.length > 0) {
+//             return {
+//                 success: false,
+//                 message: 'Some or all updates failed',
+//                 updates,
+//             };
+//         }
+
+//         return {
+//             success: true,
+//             message: 'All updates successful',
+//             updates,
+//         };
+
+//         // const results = await executeWithAuthRole(async (trx) => {
+//         //     // Create an array of promises for each update operation
+//         //     const updatePromises = data.map(async (item) => {
+//         //         return await trx
+//         //             .update(parsTable)
+//         //             .set({ [dow as keyof typeof parsTable]: item.qty })
+//         //             .where(
+//         //                 and(
+//         //                     eq(parsTable.item_id, item.id),
+//         //                     eq(parsTable.store_id, item.store_id)
+//         //                 )
+//         //             );
+//         //     });
+
+//         //     // Wait for all update operations to complete
+//         //     return await Promise.all(updatePromises);
+//         // });
+
+//         // const results = await executeWithAuthRole(async (trx) => {
+//         //     data.map(async (item) => {
+//         //         const updated = await trx
+//         //             .update(parsTable)
+//         //             .set({ [dow as keyof typeof parsTable]: item.qty })
+//         //             .where(
+//         //                 and(
+//         //                     eq(parsTable.item_id, item.id),
+//         //                     eq(parsTable.store_id, item.store_id)
+//         //                 )
+//         //             );
+//         //     });
+//         // });
+//         // return {
+//         //     success: true,
+//         //     message: 'All updates successful',
+//         // };
+//     } catch (error) {
+//         const err = error as Error;
+//         return {
+//             success: false,
+//             message: 'Transaction failed',
+//             error: err.message,
+//         };
+//     }
+// }
 
 // Helper function for authenticated transactions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

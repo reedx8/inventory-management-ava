@@ -38,7 +38,9 @@ export type SheetDataType = {
     qty: number;
     store_name: string;
     store_id: number;
-    was_updated: boolean;
+    was_updated?: boolean;
+    units?: string;
+    cron_categ?: string;
 };
 
 // Active store locations only. Names matter -- must match as app table's use the name (and not id, better for testing since id's can seed randomly causing confusion in testing)
@@ -100,4 +102,9 @@ export type ItemInfo = {
     store_categ: string | undefined;
     cron_categ: string | undefined;
     picture: string | undefined;
+};
+
+export type ParsPayload = {
+    data: SheetDataType[];
+    dow: string;
 };

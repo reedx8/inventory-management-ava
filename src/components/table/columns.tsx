@@ -12,19 +12,13 @@ export const BakeryColumns: ColumnDef<BakeryOrder>[] = [
         header: 'Name',
         cell: (info) => {
             return (
-                <div>
-                    <p>{`${info.row.original.name}`}</p>
-                    <p className='text-neutral-500/70 text-xs'>{` ${info.row.original.units ?? ''}`}</p>
-                </div>
+                <p>{`${info.row.original.name}`}</p>
+                // {/* <p className='text-neutral-500/70 text-xs'>{` ${info.row.original.units ?? ''}`}</p> */}
             );
         },
     },
-    // {
-    //     accessorKey: 'units',
-    //     header: 'Units',
-    // },
     ...STORE_LOCATIONS.map((store) => ({
-        // this creates a table for for each store, and outputs its store's order qty for that item
+        // this creates a column for for each store, and outputs its store's order qty for that item
         id: `store_${store}`, // unique id for each column
         header: store,
         accessorFn: (row: {
@@ -33,6 +27,7 @@ export const BakeryColumns: ColumnDef<BakeryOrder>[] = [
             const storeData = row.store_data?.find(
                 (data) => data.store_name === store
             );
+
             return storeData?.order_qty ?? '-';
         },
         // cell: ({ getValue }) => {
@@ -47,21 +42,17 @@ export const BakeryColumns: ColumnDef<BakeryOrder>[] = [
     })),
     {
         accessorKey: 'order_qty',
-        header: 'Total',
+        header: () => (
+            <div className='font-semibold text-right'>
+                <p className='font-semibold'>Total</p>
+            </div>
+        ),
+        cell: (info) => {
+            return (
+                <p className='text-right'>
+                    {Number(Number(info.row.original.order_qty).toFixed(2))}
+                </p>
+            );
+        },
     },
 ];
-
-// export const VendorColumns: ColumnDef<VendorContact>[] = [
-//     {
-//         accessorKey: 'name',
-//         header: 'Name',
-//     },
-//     {
-//         accessorKey: 'email',
-//         header: 'Email',
-//     },
-//     {
-//         accessorKey: 'phone',
-//         header: 'Phone',
-//     },
-// ];

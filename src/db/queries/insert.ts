@@ -2,9 +2,26 @@ import { db } from '../index';
 import { eq, and, sql, isNull } from 'drizzle-orm';
 import { stockTable } from '../schema';
 import { config } from 'dotenv';
+import { SheetDataType } from '@/components/types';
 config({ path: '.env' });
 
-export async function inserMilkBreadStock() {}
+export async function insertMilkBreadStock(
+    data: SheetDataType[],
+    storeId: number
+) {
+    const result = await executeWithAuthRole(async (tx) => {
+        return await tx.insert(stockTable).values(
+            data.map((item: SheetDataType) => ({
+                item_id: item.id,
+                store_id: storeId,
+                count: item.qty,
+                units: item.units,
+                submitted_at: sql`now()`,
+            }))
+        );
+    });
+    return result;
+}
 
 // Helper function for authenticated transactions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

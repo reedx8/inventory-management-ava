@@ -5,7 +5,8 @@ import {
     getWasteStock,
     getWeeklyStock,
 } from '@/db/queries/select';
-import { postMilkBreadStock } from '@/db/queries/update';
+// import { postMilkBreadStock } from '@/db/queries/update';
+import { insertMilkBreadStock } from '@/db/queries/insert';
 
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
@@ -27,29 +28,61 @@ export async function GET(request: NextRequest) {
         switch (stockType) {
             case 'weekly':
                 const weeklyStock = await getWeeklyStock(storeId);
-                return Response.json(weeklyStock);
-            case 'milkBread':
+                return NextResponse.json(weeklyStock, {
+                    status: 200,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-store, no-cache, must-revalidate',
+                        Pragma: 'no-cache',
+                        Expires: '0',
+                    },
+                });
+            case 'BREAD':
+            case 'MILK':
                 if (storeId) {
-                    const milkBreadStock = await getMilkBreadStock(storeId);
-                    return Response.json(milkBreadStock);
+                    const milkBreadStock = await getMilkBreadStock(
+                        Number(storeId),
+                        stockType.toUpperCase()
+                    );
+
+                    // dont cache since items/vendor_items may change in a day (eg items.is_active, etc)
+                    return NextResponse.json(milkBreadStock, {
+                        status: 200,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Cache-Control':
+                                'no-store, no-cache, must-revalidate',
+                            Pragma: 'no-cache',
+                            Expires: '0',
+                        },
+                    });
                 }
-                return Response.json(
-                    { error: 'No storeId provided' },
+                return NextResponse.json(
+                    { error: 'GET api/v1/store-stock no storeId provided' },
                     { status: 400 }
                 );
             case 'waste':
                 if (storeId) {
                     const weeklyStock = await getWasteStock(storeId);
-                    return Response.json(weeklyStock);
+                    return NextResponse.json(weeklyStock, {
+                        status: 200,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Cache-Control':
+                                'no-store, no-cache, must-revalidate',
+                            Pragma: 'no-cache',
+                            Expires: '0',
+                        },
+                    });
                 }
-                return Response.json(
-                    { error: 'No storeId provided' },
+                return NextResponse.json(
+                    { error: 'GET api/v1/store-stock no storeId provided' },
                     { status: 400 }
                 );
             default:
-                return Response.json(
+                return NextResponse.json(
                     {
-                        error: 'Invalid stockType: Provide a valid stockType through your api url',
+                        error: 'GET api/v1/store-stock invalid stockType: Provide a valid stockType through your api url',
                     },
                     { status: 400 }
                 );
@@ -57,11 +90,8 @@ export async function GET(request: NextRequest) {
         // const stock = await getWeeklyStock(storeId); //
         // return Response.json(stock);
     } catch (error) {
-        console.error('Error fetching store stock:', error);
-        return Response.json(
-            { error: 'Failed to fetch store stock' },
-            { status: 500 }
-        );
+        // console.error('Error fetching store stock:', error);
+        return NextResponse.json({ error: error }, { status: 500 });
     }
 }
 
@@ -69,7 +99,7 @@ export async function POST(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const storeId: string | null = searchParams.get('storeId'); // storeId = null for all stores
     const stockType: string | null = searchParams.get('stockType');
-    const result = await request.json();
+    const data = await request.json();
 
     // console.log('storeId: ', storeId);
 
@@ -90,21 +120,14 @@ export async function POST(request: NextRequest) {
             //     return Response.json(weeklyStock);
             case 'milkBread':
                 if (storeId) {
-                    const milkBreadStock = await postMilkBreadStock(
-                        storeId,
-                        result
+                    const milkBreadStock = await insertMilkBreadStock(
+                        data,
+                        Number(storeId)
                     );
-                    console.log('milkBreadStock: ', milkBreadStock);
-                    if (!milkBreadStock.status) {
-                        return Response.json(
-                            { error: 'Failed to post milk/bread stock' },
-                            { status: 400 }
-                        );
-                    }
-                    return Response.json(milkBreadStock);
+                    return NextResponse.json(milkBreadStock);
                 }
-                return Response.json(
-                    { error: 'No storeId provided' },
+                return NextResponse.json(
+                    { error: 'POST api/v1/store-stock no storeId provided' },
                     { status: 400 }
                 );
             // case 'waste':
@@ -114,18 +137,15 @@ export async function POST(request: NextRequest) {
             //     }
             //     return Response.json({ error: 'No storeId provided' }, { status: 400 });
             default:
-                return Response.json(
+                return NextResponse.json(
                     {
-                        error: 'Invalid stockType: Provide a valid stockType through your api url',
+                        error: 'POST api/v1/store-stock valid stockType not provided in api url',
                     },
                     { status: 400 }
                 );
         }
     } catch (error) {
-        console.error('Error posting store stock:', error);
-        return Response.json(
-            { error: 'Failed posting store stock' },
-            { status: 500 }
-        );
+        // console.error('Error posting store stock:', error);
+        return NextResponse.json({ error: error }, { status: 500 });
     }
 }

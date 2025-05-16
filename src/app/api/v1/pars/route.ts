@@ -2,6 +2,7 @@ import { getDailyParLevels } from '@/db/queries/select';
 import { updateDailyParLevels } from '@/db/queries/update';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
+import { ParsPayload } from '@/components/types';
 export const dynamic = 'force-dynamic'; // no caching
 
 // get daily PAR levels for a store
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        let response = await getDailyParLevels(
+        const response = await getDailyParLevels(
             Number(storeId),
             dow.toLowerCase(),
             categ.toUpperCase()
@@ -70,7 +71,8 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     // const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const payload = await request.json();
-    let { data, dow } = payload;
+    let { data, dow } = payload as ParsPayload;
+
     dow = dow.toLowerCase();
     const validDays = [
         'monday',

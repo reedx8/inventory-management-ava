@@ -25,7 +25,16 @@ import { Button } from '@/components/ui/button';
 import SheetTemplate from '@/components/sheet/sheet-template';
 // import { zodResolver } from '@zod/form';
 // import { useForm } from 'react-hook-form';
-import { Check, CircleOff, ListCheck, Pencil, Send } from 'lucide-react';
+import {
+    Check,
+    CircleOff,
+    Expand,
+    ListCheck,
+    Minimize2,
+    Pencil,
+    Printer,
+    Send,
+} from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -44,6 +53,8 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { Info } from 'lucide-react';
+import { createPortal } from 'react-dom';
+// import { Separator } from '@/components/ui/separator';
 
 export default function Bakery() {
     const [data, setData] = useState<BakeryOrder[] | undefined>();
@@ -51,7 +62,7 @@ export default function Bakery() {
     const { toast } = useToast();
     const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
     const [isSubmittingBatch, setIsSubmittingBatch] = useState<boolean>(false);
-
+    const [openPrintView, setOpenPrintView] = useState<boolean>(false);
     // handes edit button click on page basically
     const handleSheetSubmission = async (formData: BakeryOrder[]) => {
         // console.log('handle auto submit pressed');
@@ -224,66 +235,77 @@ export default function Bakery() {
             )}
             {!isLoading && data && data?.length > 0 && (
                 <section className='flex flex-col'>
-                    <div className='flex justify-end gap-2 mb-2'>
-                        <SheetTemplate
-                            title='Edit Completed Orders'
-                            trigger={
-                                <Button
-                                    variant='myTheme4'
-                                    disabled={isSubmittingBatch}
-                                    // variant='outline'
-                                    // className='border-myDarkbrown text-myDarkbrown'
-                                >
-                                    <Pencil />
-                                    Edit
-                                </Button>
-                            }
-                            isCollapsible={true}
-                            description={`Enter in the number of actual orders completed for each item. Pressing Submit will only send those items edited. Use batch complete to send the remaining orders.`}
-                            // noItemsText={'No Pastry Orders Yet!'}
+                    <div className='flex justify-between mb-2'>
+                        <Button
+                            variant='ghost'
+                            onClick={() => setOpenPrintView(true)}
+                            className='p-0 flex gap-2 text-myDarkbrown hover:bg-transparent hover:text-myDarkbrown/60'
                         >
-                            <BakeryOrdersForm
-                                // data={data}
-                                onSubmit={handleSheetSubmission}
-                            />
-                        </SheetTemplate>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button
-                                    variant='myTheme5'
-                                    disabled={isSubmittingBatch}
-                                >
-                                    <ListCheck />
-                                    Batch Complete
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                        Fulfill All Orders?
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Press Submit only if all store orders
-                                        were successfully fulfilled. Otherwise
-                                        press Cancel.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>
-                                        Cancel
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction asChild>
-                                        <Button
-                                            variant='myTheme'
-                                            onClick={handleBatchCompleteBtn}
-                                            disabled={isSubmittingBatch}
-                                        >
-                                            Submit
-                                        </Button>
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                            <Expand /> <p className='text-sm'>Print View</p>
+                        </Button>
+                        <div>
+                            <SheetTemplate
+                                title='Edit Completed Orders'
+                                trigger={
+                                    <Button
+                                        variant='ghost'
+                                        className='text-sm text-myDarkbrown hover:bg-transparent hover:text-myDarkbrown/60'
+                                        // variant='myTheme4'
+                                        disabled={isSubmittingBatch}
+                                        // variant='outline'
+                                        // className='border-myDarkbrown text-myDarkbrown'
+                                    >
+                                        <Pencil />
+                                        Edit
+                                    </Button>
+                                }
+                                isCollapsible={true}
+                                description={`Enter in the number of actual orders completed for each item. Pressing Submit will only send those items edited. Use batch complete to send the remaining orders.`}
+                                // noItemsText={'No Pastry Orders Yet!'}
+                            >
+                                <BakeryOrdersForm
+                                    // data={data}
+                                    onSubmit={handleSheetSubmission}
+                                />
+                            </SheetTemplate>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        variant='myTheme5'
+                                        disabled={isSubmittingBatch}
+                                    >
+                                        <ListCheck />
+                                        Batch Complete
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>
+                                            Fulfill All Orders?
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Press Submit only if all store
+                                            orders were successfully fulfilled.
+                                            Otherwise press Cancel.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>
+                                            Cancel
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction asChild>
+                                            <Button
+                                                variant='myTheme'
+                                                onClick={handleBatchCompleteBtn}
+                                                disabled={isSubmittingBatch}
+                                            >
+                                                Submit
+                                            </Button>
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
                         {/* <Button variant='myTheme' size='lg' className='w-fit self-end'>
                         Auto-Complete Orders
                     </Button> */}
@@ -306,6 +328,12 @@ export default function Bakery() {
                             </div>
                         }
                     />
+                    {openPrintView && (
+                        <PrintView
+                            setOpenPrintView={setOpenPrintView}
+                            data={data}
+                        />
+                    )}
                 </section>
             )}
             {!isLoading && data && data?.length === 0 && (
@@ -316,6 +344,67 @@ export default function Bakery() {
         </main>
     );
 }
+
+const PrintView = ({
+    setOpenPrintView,
+    data,
+}: {
+    setOpenPrintView: (open: boolean) => void;
+    data: BakeryOrder[];
+}) => {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+    if (!mounted) return null;
+    return createPortal(
+        <div className='print-view-overlay fixed inset-0 w-screen h-screen z-[999999] bg-white flex flex-col px-8'>
+            <Button
+                className='button-view fixed top-1 right-1 bg-myDarkbrown/30 text-myDarkbrown hover:bg-neutral-100'
+                onClick={() => setOpenPrintView(false)}
+            >
+                <Minimize2 style={{ width: '20px', height: '20px' }} />
+            </Button>
+            <Button
+                className='button-view fixed bottom-1 right-1'
+                variant='myTheme'
+                onClick={() => window.print()}
+            >
+                <Printer />
+                Print
+            </Button>
+            <div className='grid grid-cols-1 overflow-y-auto'>
+                <div className='grid grid-cols-9 text-sm border'>
+                    <p className='text-md col-span-4 font-semibold'>Name</p>
+                    {STORE_LOCATIONS.map((store) => (
+                        <p key={store} className='text-md font-semibold text-center'>
+                            {store}
+                        </p>
+                    ))}
+                    <p className='text-md font-semibold text-right bg-neutral-100'>Total</p>
+                </div>
+                <div className='grid grid-cols-1'>
+                    {data.map((order) => (
+                        <div key={order.id} className='grid grid-cols-9 text-xs border'>
+                            <p className='col-span-4 border-r'>{order.name}</p>
+                            {STORE_LOCATIONS.map((store_location) => (
+                                <p key={store_location} className='text-center border-r'>
+                                    {
+                                        order.store_data?.find(
+                                            (store) => store.store_name === store_location
+                                        )?.order_qty || '-'
+                                    }
+                                </p>
+                            ))}
+                            <p className='text-right font-semibold bg-neutral-100'>{Number(Number(order.order_qty).toFixed(2))}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
 
 type BakeryOrdersFormProps = {
     data?: BakeryOrder[];
@@ -433,7 +522,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                         <Select
                             onValueChange={(value) => setStoreLocation(value)}
                         >
-                            <SelectTrigger className='w-fit h-6'>
+                            <SelectTrigger className='w-fit h-8'>
                                 <SelectValue placeholder={storeLocation} />
                             </SelectTrigger>
                             <SelectContent>
@@ -479,8 +568,8 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                         id={`completed-${order.id}`}
                                         type='number'
                                         value={
-                                            order.made_qty ||
-                                            order.order_qty ||
+                                            Number(Number(order.made_qty).toFixed(2)) ||
+                                            Number(Number(order.order_qty).toFixed(2)) ||
                                             ''
                                         }
                                         min='0'

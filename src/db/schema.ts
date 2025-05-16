@@ -33,8 +33,8 @@ export const itemsTable = pgTable(
             .default(sql`0.00`), // Default, most recent list price for item, unless specified in vendor_items table
         store_categ: varchar('store_categ').notNull(), // categories for store managers
         invoice_categ: varchar('invoice_categ').notNull().default('NONE'), // accounting category for invoicing
-        main_categ: varchar('main_categ'), // main food category (US food groups + custom groups)
-        sub_categ: varchar('sub_categ'), // food sub category
+        main_categ: varchar('main_categ'), // main food category (eg cakes)
+        sub_categ: varchar('sub_categ'), // food sub category (if needed)
         cron_categ: varchar('cron_categ').default('NONE'), // convenient categories exclusively for inventory schedule and cron jobs
         is_waste_tracked: boolean('is_waste_tracked').default(false),
         item_description: text('item_description'), // internal description of item
@@ -68,6 +68,14 @@ export const itemsTable = pgTable(
             check(
                 'cron_category_check',
                 sql`${table.cron_categ} IN ('PASTRY', 'MILK', 'BREAD', 'RETAILBEANS', 'MEATS', 'NONE')`
+            ),
+            check(
+                'main_category_check',
+                sql`${table.main_categ} IN ('CAKES', 'TURNOVERS', 'MUFFINS', 'BAGELS', 'CROISSANTS', 'NONE')`
+            ),
+            check(
+                'sub_category_check',
+                sql`${table.sub_categ} IN ('NONE', 'CUPCAKES')`
             ),
             pgPolicy('Enable update for authenticated users only', {
                 for: 'update',

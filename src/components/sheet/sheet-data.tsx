@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import StockItem from '@/app/(main)/store/stock/page';
+// import StockItem from '@/app/(main)/store/stock/page';
 import Image from 'next/image';
 import completePic from '/public/illustrations/complete.svg';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
-import { SheetDataType } from '@/components/types';
+import { ParsPayload, SheetDataType } from '@/components/types';
 import { useToast } from '@/hooks/use-toast';
 
 type ContentType = 'store:milk' | 'store:bread' | 'store:par' | 'bakery:orders';
@@ -32,7 +32,7 @@ export default function SheetData({
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [parCategory, setParCategory] = useState<string>('Pastry');
     const [category, setCategory] = useState<string>('Milk');
-    const [placeholder, setPlaceholder] = useState<string>(() => {
+    const [ placeholder ] = useState<string>(() => {
         if (contentType === 'store:par') {
             return parCategory;
         } else if (
@@ -44,8 +44,10 @@ export default function SheetData({
             return '';
         }
     });
-    const [dow, setDow] = useState<string>('Monday');
+    const [dowSelection, setDowSelection] = useState<string>('Monday');
+    const [ todaysDow ] = useState<number>(new Date().getDay());
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [refreshStockTrigger, setRefreshStockTrigger] = useState<number>(0); // only use for milk/bread
     const { toast } = useToast();
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -54,14 +56,9 @@ export default function SheetData({
         // console.log(data);
 
         if (
-            (contentType === 'store:milk' || contentType === 'store:bread') &&
-            data?.some((item) => item.qty === null)
+            contentType === 'store:par' &&
+            parCategory.toLowerCase() === 'pastry'
         ) {
-            setFormFeedback('Please fill in all fields before submitting');
-            return;
-        }
-
-        if (contentType === 'store:par' && parCategory.toLowerCase() === 'pastry') {
             const updatedData = data.filter((item) => item.was_updated);
             if (updatedData.length === 0) {
                 setFormFeedback('No changes to submit');
@@ -70,9 +67,9 @@ export default function SheetData({
 
             setIsSubmitting(true);
 
-            const payload = {
+            const payload: ParsPayload = {
                 data: updatedData,
-                dow: dow.toLowerCase(),
+                dow: dowSelection.toLowerCase(),
             };
 
             try {
@@ -89,10 +86,12 @@ export default function SheetData({
                 if (!response.ok) {
                     throw new Error(data.error);
                 }
-                setData((prev) => prev.map((item) => ({
-                    ...item,
-                    was_updated: false,
-                })));
+                setData((prev) =>
+                    prev.map((item) => ({
+                        ...item,
+                        was_updated: false,
+                    }))
+                );
 
                 // setData(data.map((item: SheetDataType) => ({
                 //     ...item,
@@ -101,12 +100,13 @@ export default function SheetData({
 
                 toast({
                     title: 'PAR Levels Updated',
-                    description: 'Pastry PAR levels have been updated successfully',
+                    description:
+                        'Pastry PAR levels have been updated successfully',
                     className: 'bg-myBrown border-none text-myDarkbrown',
                 });
             } catch (error) {
                 let errMsg;
-                if (String(error).length > 100){
+                if (String(error).length > 100) {
                     errMsg = String(error).slice(0, 100) + '...';
                 } else {
                     errMsg = String(error);
@@ -117,19 +117,113 @@ export default function SheetData({
                     variant: 'destructive',
                 });
             }
+        } else if (
+            contentType === 'store:milk' ||
+            contentType === 'store:bread'
+        ) {
+            try {
+                setIsSubmitting(true);
+                const response = await fetch(
+                    `/api/v1/store-stock?stockType=milkBread&storeId=${storeId}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    }
+                );
+
+                const responseData = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(responseData.error);
+                }
+
+                toast({
+                    title: 'Stock Updated',
+                    description: 'Stock has been updated successfully',
+                    className: 'bg-myBrown border-none text-myDarkbrown',
+                });
+            } catch (error) {
+                let errMsg;
+                if (String(error).length > 100) {
+                    errMsg = String(error).slice(0, 100) + '...';
+                } else {
+                    errMsg = String(error);
+                }
+                toast({
+                    title: 'Error Updating Stock',
+                    description: errMsg,
+                    variant: 'destructive',
+                });
+            }
+            setRefreshStockTrigger((prev) => prev + 1);
         }
 
         setIsSubmitting(false);
     };
 
     useEffect(() => {
+        const fetchMilkBreadStock = async () => {
+            const store_id = storeId ? storeId : 0;
+            let stockType = '';
+            if (category.toLowerCase() === 'milk') {
+                // only fetch milk on Mondays and Thursdays
+                if (todaysDow !== 1 && todaysDow !== 4) {
+                    setData([]);
+                    return;
+                }
+                stockType = 'MILK';
+            } else if (category.toLowerCase() === 'bread') {
+                // only fetch bread on Mondays
+                if (todaysDow !== 1) {
+                    setData([]);
+                    return;
+                }
+                stockType = 'BREAD';
+            } else {
+                setData([]);
+                return;
+            }
+
+            setIsLoading(true);
+
+            try {
+                const response = await fetch(
+                    `/api/v1/store-stock?stockType=${stockType}&storeId=${store_id}`
+                );
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error);
+                }
+                setData(data);
+            } catch (error) {
+                let errorMsg;
+                if (String(error).length > 100) {
+                    errorMsg = String(error).substring(0, 100) + '...';
+                } else {
+                    errorMsg = String(error);
+                }
+                // console.log('errorMsg: ', errorMsg);
+
+                toast({
+                    title: 'Error fetching milk & bread stock',
+                    description: errorMsg,
+                    variant: 'destructive',
+                });
+                setData([]);
+            }
+            setIsLoading(false);
+        };
+
         const fetchDailyParLevels = async () => {
             setIsLoading(true);
-            const storeid = storeId ? storeId : 0;
+            const store_id = storeId ? storeId : 0;
             try {
-                // console.log(dow);
+                // console.log(dowSelection);
                 const response = await fetch(
-                    `/api/v1/pars?storeId=${storeId}&dow=${dow}&categ=${parCategory}`
+                    `/api/v1/pars?storeId=${store_id}&dow=${dowSelection}&categ=${parCategory}`
                 );
                 const data = await response.json();
 
@@ -138,13 +232,15 @@ export default function SheetData({
                     throw new Error(data.error);
                 }
 
-                setData(data.map((item: SheetDataType) => ({
-                    ...item,
-                    was_updated: false,
-                })));
+                setData(
+                    data.map((item: SheetDataType) => ({
+                        ...item,
+                        was_updated: false,
+                    }))
+                );
             } catch (error) {
                 let errMsg;
-                if (String(error).length > 100){
+                if (String(error).length > 100) {
                     errMsg = String(error).slice(0, 100) + '...';
                 } else {
                     errMsg = String(error);
@@ -160,17 +256,29 @@ export default function SheetData({
             // console.log(data);
         };
 
-        if (contentType === 'store:par' && parCategory.toLowerCase() === 'pastry') {
+        if (
+            contentType === 'store:par' &&
+            parCategory.toLowerCase() === 'pastry'
+        ) {
             fetchDailyParLevels();
         } else if (
             contentType === 'store:milk' ||
             contentType === 'store:bread'
         ) {
-            // fetch milk or bread values here
-            console.log('milk or bread');
+            // fetch milk or bread only on Mondays or Thursdays
+            fetchMilkBreadStock();
         }
         setFormFeedback(null);
-    }, [contentType, dow, parCategory, storeId]);
+    }, [
+        contentType,
+        dowSelection,
+        parCategory,
+        storeId,
+        toast,
+        category,
+        refreshStockTrigger,
+        todaysDow,
+    ]);
 
     return (
         <div className='flex flex-col h-full'>
@@ -186,38 +294,39 @@ export default function SheetData({
                     )}
                 </div>
                 <div className='flex text-sm gap-2 self-end'>
-                    {contentType === 'store:par' && parCategory.toLowerCase() === 'pastry' && (
-                        <Select
-                            defaultValue='Monday'
-                            onValueChange={(value) => {
-                                setDow(value);
-                            }}
-                            disabled={isSubmitting || isLoading}
-                        >
-                            <SelectTrigger className='w-fit h-8 text-sm'>
-                                <SelectValue placeholder={dow} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'Monday',
-                                    'Tuesday',
-                                    'Wednesday',
-                                    'Thursday',
-                                    'Friday',
-                                    'Saturday',
-                                    'Sunday',
-                                ].map((day) => (
-                                    <SelectItem
-                                        className='h-8 text-sm'
-                                        value={day}
-                                        key={day}
-                                    >
-                                        {day}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
+                    {contentType === 'store:par' &&
+                        parCategory.toLowerCase() === 'pastry' && (
+                            <Select
+                                defaultValue='Monday'
+                                onValueChange={(value) => {
+                                    setDowSelection(value);
+                                }}
+                                disabled={isSubmitting || isLoading}
+                            >
+                                <SelectTrigger className='w-fit h-8 text-sm'>
+                                    <SelectValue placeholder={dowSelection} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {[
+                                        'Monday',
+                                        'Tuesday',
+                                        'Wednesday',
+                                        'Thursday',
+                                        'Friday',
+                                        'Saturday',
+                                        'Sunday',
+                                    ].map((day) => (
+                                        <SelectItem
+                                            className='h-8 text-sm'
+                                            value={day}
+                                            key={day}
+                                        >
+                                            {day}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                     <Select
                         defaultValue={placeholder}
                         onValueChange={(value) => {
@@ -283,20 +392,37 @@ export default function SheetData({
             )}
             {!isLoading && data && data.length === 0 && (
                 <div className='flex flex-col items-center justify-center gap-2 mt-4'>
-                    {contentType === 'store:milk' ||
-                        (contentType === 'store:bread' && (
-                            <>
-                                <Image
-                                    src={completePic}
-                                    alt='complete'
-                                    width={200}
-                                    height={200}
-                                />
-                                <p className='text-md text-neutral-500'>
-                                    No milk or bread due!
-                                </p>
-                            </>
-                        ))}
+                    {(contentType === 'store:milk' ||
+                        contentType === 'store:bread') && (
+                        <>
+                            {category.toLowerCase() === 'milk' && (
+                                <>
+                                    <Image
+                                        src={completePic}
+                                        alt='complete'
+                                        width={200}
+                                        height={200}
+                                    />
+                                    <p className='text-md text-neutral-500'>
+                                        No milk due!
+                                    </p>
+                                </>
+                            )}
+                            {category.toLowerCase() === 'bread' && (
+                                <>
+                                    <Image
+                                        src={completePic}
+                                        alt='complete'
+                                        width={200}
+                                        height={200}
+                                    />
+                                    <p className='text-md text-neutral-500'>
+                                        No bread due!
+                                    </p>
+                                </>
+                            )}
+                        </>
+                    )}
                     {contentType === 'store:par' && (
                         <>
                             <CircleOff className='w-8 h-8 text-neutral-500' />
@@ -320,13 +446,31 @@ export default function SheetData({
                                         key={item.id}
                                         className='flex justify-between h-fit items-center mt-1 text-sm'
                                     >
-                                        <p>{item.name}</p>
+                                        <p>
+                                            {item.name}
+                                            {item.units && (
+                                                <Badge
+                                                    variant='outline'
+                                                    className='text-xs ml-2 font-normal border-none text-black bg-gray-100'
+                                                >
+                                                    {item.units}
+                                                </Badge>
+                                            )}
+                                        </p>
                                         <input
                                             name='count'
                                             type='number'
                                             id={item.id.toString()}
                                             className='w-16 rounded-sm border-2 h-8 pl-1'
-                                            defaultValue={item.qty === null ? 0 : Number(Number(item.qty).toFixed(1))}
+                                            defaultValue={
+                                                item.qty === null
+                                                    ? 0
+                                                    : Number(
+                                                          Number(
+                                                              item.qty
+                                                          ).toFixed(2)
+                                                      )
+                                            }
                                             // value={item.level ?? 0}
                                             placeholder='0'
                                             step={0.5}
@@ -341,7 +485,8 @@ export default function SheetData({
                                                                       e.target
                                                                           .value
                                                                   ),
-                                                                  was_updated: true,
+                                                                  was_updated:
+                                                                      true,
                                                               }
                                                             : p
                                                     )

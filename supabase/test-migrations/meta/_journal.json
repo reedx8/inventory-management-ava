@@ -71,6 +71,20 @@
       "when": 1746830615936,
       "tag": "0009_nebulous_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1747424023056,
+      "tag": "0010_graceful_skullbuster",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1747424411973,
+      "tag": "0011_tidy_oracle",
+      "breakpoints": true
     }
   ]
 }

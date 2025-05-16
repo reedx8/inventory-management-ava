@@ -1,0 +1,2 @@
+ALTER TABLE "items" ADD CONSTRAINT "main_category_check" CHECK ("items"."main_categ" IN ('CAKES', 'TURNOVERS', 'MUFFINS', 'BAGELS', 'CROISSANTS', 'NONE'));--> statement-breakpoint
+ALTER TABLE "items" ADD CONSTRAINT "sub_category_check" CHECK ("items"."sub_categ" IN ('NONE', 'CUPCAKES'));

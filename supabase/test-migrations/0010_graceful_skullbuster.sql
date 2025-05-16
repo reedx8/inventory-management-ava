@@ -1,0 +1,1 @@
+ALTER TABLE "items" ADD CONSTRAINT "main_category_check" CHECK ("items"."main_categ" IN ('CAKES', 'TURNOVERS', 'MUFFINS', 'BAGELS', 'CROISSANTS', 'NONE'));

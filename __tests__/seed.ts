@@ -21,9 +21,14 @@ if (!TEST_CONNECTION_STRING) {
 }
 const TEST_DB = drizzle(TEST_CONNECTION_STRING!);
 
+const order_qtys = [
+    0, 0, 0, 1, 1, 1, 2, 2, 2.5, 3, 3.5, 4, 4, 4, 5, 5, 5.5, 6, 7, 7.5, 8, 8, 9,
+    9.5, 10, 10.5, 11, 11.5, 12, 12.5, 13, 13, 13.5, 14, 14.5, 15, 15,
+];
+
 async function main() {
     // seedItemsVendorsTables(); // Items and vendors table need to be seeded first
-    seedTodaysDailyBakeryOrders(); // then you can do storeBakeryOrders and bakeryOrders
+    seedTodaysDailyBakeryOrders(false); // then you can do storeBakeryOrders and bakeryOrders
     // seedVendorsTable();
 }
 
@@ -33,27 +38,29 @@ async function seedTodaysDailyBakeryOrders(forBakery: boolean = false) {
     await clearTable(schema.storeBakeryOrdersTable);
     await clearTable(schema.bakeryOrdersTable);
 
-    // Get the current date and set the time to between 5 and 6 AM
+    // Get the current date and set the time to 4 AM (mimics current cron job)
     const today = new Date();
-    today.setHours(5); // Set to 5 AM
-    today.setMinutes(Math.floor(Math.random() * 60)); // Random minutes between 0-59
-    today.setSeconds(Math.floor(Math.random() * 60)); // Random seconds between 0-59
+    today.setHours(4); // Set to 4 AM
+    today.setMinutes(0); // Set to 0 minutes
+    today.setSeconds(0); // Set to 0 seconds
+    // today.setMinutes(Math.floor(Math.random() * 60)); // Random minutes between 0-59
+    // today.setSeconds(Math.floor(Math.random() * 60)); // Random seconds between 0-59
 
     // Create the max date (6 AM same day)
-    const todayMax = new Date(today);
-    todayMax.setHours(6);
-    todayMax.setMinutes(0);
-    todayMax.setSeconds(0);
+    // const todayMax = new Date(today);
+    // todayMax.setHours(6);
+    // todayMax.setMinutes(0);
+    // todayMax.setSeconds(0);
 
     const storeDate = new Date();
     storeDate.setHours(9); // Set to 9 AM
 
-    const storeDateMax = new Date(storeDate);
-    storeDateMax.setHours(10);
-    storeDateMax.setMinutes(0);
-    storeDateMax.setSeconds(0);
+    // const storeDateMax = new Date(storeDate);
+    // storeDateMax.setHours(10);
+    // storeDateMax.setMinutes(0);
+    // storeDateMax.setSeconds(0);
 
-    const numOfOrders = forBakery ? 30 : 15;
+    const numOfOrders = forBakery ? 38 : 38;
 
     // randomly seed bakery_orders table with drizzle-seed
     await seed(TEST_DB, {
@@ -61,12 +68,17 @@ async function seedTodaysDailyBakeryOrders(forBakery: boolean = false) {
     }).refine((f) => ({
         bakeryOrders: {
             columns: {
-                item_id: f.int({ minValue: 14, maxValue: 46, isUnique: true }), // id's 14-46 = pastry items
+                item_id: f.int({ minValue: 14, maxValue: 51, isUnique: true }), // id's 14-51 = pastry items
+                // item_id: f.valuesFromArray({
+                //     values: Array.from({ length: 38 }, (_, i) => i + 14),
+                //     isUnique: true,
+                // }),
                 units: f.valuesFromArray({
                     values: UNITS, // TODO; should seed with items.units instead
                 }), // cron job should copy items.units to bakeryOrders.units
                 group_order_no: f.valuesFromArray({ values: [1] }),
-                created_at: f.date({ minDate: today, maxDate: todayMax }), // create order between 5 and 6 AM today to mimic cron job
+                created_at: f.date({ minDate: today, maxDate: today }),
+                // created_at: f.date({ minDate: today, maxDate: todayMax }), // create order between 4 and 5 AM today to mimic cron job
                 completed_at: f.valuesFromArray({ values: [undefined] }),
                 bakery_comments: f.valuesFromArray({ values: [undefined] }),
                 temp_tot_made: f.valuesFromArray({ values: [0] }), // satisfies field's positive num check constraint
@@ -84,15 +96,21 @@ async function seedTodaysDailyBakeryOrders(forBakery: boolean = false) {
             await TEST_DB.insert(schema.storeBakeryOrdersTable).values({
                 order_id: i,
                 store_id: id,
-                // order_qty: sql`floor(random() * 20 + 1)`, // generate a random integer between 1 and 20 (inclusive)
                 is_par_submit: false,
                 // created_at: sql`now()`,
                 created_at: today,
-                // order_qty: '1',
                 order_qty: forBakery
-                    ? String(Math.floor(Math.random() * 10))
+                    ? String(
+                          order_qtys[
+                              Math.floor(Math.random() * order_qtys.length)
+                          ]
+                      )
                     : undefined,
-                submitted_at: forBakery ? today : undefined,
+                // order_qty: forBakery
+                //     ? String(Math.floor(Math.random() * 10))
+                //     : undefined,
+                // order_qty: sql`floor(random() * 20 + 1)`, // generate a random integer between 1 and 20 (inclusive)
+                submitted_at: forBakery ? storeDate : undefined,
             });
         }
     }

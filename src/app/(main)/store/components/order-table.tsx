@@ -235,6 +235,11 @@ export default function OrderTable({
             header: `${new Date(
                 new Date().setDate(new Date().getDate() + 1)
             ).toLocaleDateString('en-US', { weekday: 'long' })} PAR`,
+            cell: (info) => {
+                return (
+                    <p>{`${Number(Number(info.row.original.pars_value).toFixed(2))}`}</p>
+                )
+            }
         },
         {
             accessorKey: 'order',
