@@ -11,7 +11,7 @@ import {
 } from './test-data';
 import { config } from 'dotenv';
 import { PgTableWithColumns } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
+import { eq, or, sql } from 'drizzle-orm';
 config({ path: '.env' });
 
 const TEST_CONNECTION_STRING = process.env.TEST_DATABASE_URL;
@@ -28,8 +28,76 @@ const order_qtys = [
 
 async function main() {
     // seedItemsVendorsTables(); // Items and vendors table need to be seeded first
-    seedTodaysDailyBakeryOrders(false); // then you can do storeBakeryOrders and bakeryOrders
+    // seedTodaysDailyBakeryOrders(false); // then you can do storeBakeryOrders and bakeryOrders
     // seedVendorsTable();
+    seedMilkBreadStock(true, false);
+}
+
+// seed milk bread stock/stock orders for either order managers (stock orders) or store managers (stock)
+async function seedMilkBreadStock(isMonday: boolean, forStoreMngrs: boolean) {
+    await clearTable(schema.ordersTable); // just to clear any connected order records made during milk/bread submission
+    await clearTable(schema.stockTable);
+
+    if (forStoreMngrs) {
+        return;
+    }
+
+    await clearTable(schema.stockTable);
+    let milkBreadItems: { id: number; units: string | null }[] = [];
+
+    if (isMonday) {
+        // ifi monday, grab both milk and bread items
+        milkBreadItems = await TEST_DB.select({
+            id: schema.itemsTable.id,
+            units: schema.vendorItemsTable.units,
+        })
+            .from(schema.itemsTable)
+            .leftJoin(
+                schema.vendorItemsTable,
+                eq(schema.itemsTable.id, schema.vendorItemsTable.item_id)
+            )
+            .where(
+                or(
+                    eq(schema.itemsTable.cron_categ, 'MILK'),
+                    eq(schema.itemsTable.cron_categ, 'BREAD')
+                )
+            );
+    } else {
+        // if not monday, then it's for thursday, so only grab milk items
+        milkBreadItems = await TEST_DB.select({
+            id: schema.itemsTable.id,
+            units: schema.vendorItemsTable.units,
+        })
+            .from(schema.itemsTable)
+            .leftJoin(
+                schema.vendorItemsTable,
+                eq(schema.itemsTable.id, schema.vendorItemsTable.item_id)
+            )
+            .where(eq(schema.itemsTable.cron_categ, 'MILK'));
+    }
+
+    // should mirror insert logic in insert.ts
+    for (let id = 1; id <= STORES.length; ++id) {
+        for (const item of milkBreadItems) {
+            const stockTableInsert = await TEST_DB.insert(schema.stockTable)
+                .values({
+                    item_id: item.id,
+                    store_id: id,
+                    count: String(Math.floor(Math.random() * 10)),
+                    units: item.units,
+                    submitted_at: sql`now()`,
+                })
+                .returning({ id: schema.stockTable.id });
+
+            await TEST_DB.insert(schema.ordersTable).values({
+                item_id: item.id,
+                store_id: id,
+                stock_id: stockTableInsert[0].id,
+                units: item.units,
+                store_submit_at: sql`now()`,
+            });
+        }
+    }
 }
 
 // Seed daily bakery orders tables with todays orders, replicate cron job

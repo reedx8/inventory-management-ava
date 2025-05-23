@@ -182,7 +182,7 @@ export const stockTable = pgTable(
         submitted_at: timestamp('submitted_at', {
             precision: 3,
             withTimezone: true,
-        }),
+        }), // when store managers submitted their stock count for item
     },
     (table) => {
         return [
@@ -292,8 +292,7 @@ export const weekCloseTable = pgTable(
     }
 );
 
-// History of item orders for Ava's vendors. Orders per store are instead in store_orders table
-// Order stages are tracked via tot_qty_* fields (order stages = store's submit, submit orders to vendor, then delivered)
+// History and current item orders for Ava's vendors per store
 export const ordersTable = pgTable(
     'orders',
     {
@@ -301,56 +300,44 @@ export const ordersTable = pgTable(
         item_id: integer('item_id')
             .notNull()
             .references(() => itemsTable.id),
-        // store_id: integer('store_id')
-        //     .notNull()
-        //     .references(() => storesTable.id),
-        tot_qty_store: decimal('tot_qty_store', { precision: 10, scale: 2 }),
-        tot_qty_vendor: decimal('tot_qty_vendor', { precision: 10, scale: 2 }),
-        tot_qty_delivered: decimal('tot_qty_delivered', {
-            precision: 10,
-            scale: 2,
-        }),
-        vendor_id: integer('vendor_id')
+        store_id: integer('store_id')
             .notNull()
-            .references(() => vendorsTable.id), // default/predicted vendor of item. Value is copied from items.vendor_id
+            .references(() => storesTable.id),
+        vendor_id: integer('vendor_id').references(() => vendorsTable.id), // Optional default/predicted vendor of item. Value is copied from items.vendor_id
+        stock_id: integer('stock_id').references(() => stockTable.id), // Optional stock count of item at time of order
+        qty: decimal('qty', { precision: 10, scale: 2 }), // null if no order was submitted by order managers
+        par: decimal('par', { precision: 10, scale: 2 }), // par level at time of order
         units: varchar('units'), // quantity per order, copied from orders.units (unless changed at time of vendor order)
-        due_date: timestamp('due_date', {
-            precision: 3,
-            withTimezone: true,
-        }).notNull(),
         list_price: decimal('list_price', {
             precision: 10,
             scale: 2,
-        }).notNull(), // Previous list price of item. Default value is items.list_price
+        }), // List price at time of order (tf need to allow null to wait for list price update at time of order not time of stock count). Default value is items.list_price.
         final_price: decimal('final_price', {
             precision: 10,
             scale: 2,
-        }).notNull(), // final invoiced price for item, default value = items.list_price
+        }), // (may delete, invoice table) final invoiced price for item, default value = items.list_price
         adj_price: decimal('adj_price', {
             precision: 10,
             scale: 2,
-        }), // average price of item across stores, edge case for ccp items?, to report to stores
-        group_order_no: integer('group_order_no'), // group order number for orders that are grouped together (eg for a weekly order)
+        }), // (may delete, invoice table) average price of item across stores, edge case for ccp items?, to report to stores
+        is_par_submit: boolean('is_par_submit').notNull().default(false), // whether order was submitted by store managers as a PAR order
+        group_order_no: integer('group_order_no'), // (may delete) group order number for orders that are grouped together (eg for a weekly order)
         ordered_via: varchar('ordered_via').default('MANUALLY'), // How order was eventually processed. Eg manual (shopped in store, manually emailed, etc), email, web, or api
-        created_at: timestamp('created_at', {
+        store_submit_at: timestamp('store_submit_at', {
             precision: 3,
             withTimezone: true,
         })
             .notNull()
-            .defaultNow(), // date order originally created
-        updated_at: timestamp('updated_at', {
+            .defaultNow(), // date order originally submitted by store
+        order_submit_at: timestamp('order_submit_at', {
             precision: 3,
             withTimezone: true,
-        }),
+        }), // null if no order was submitted by order managers
     },
     (table) => {
         return [
-            check('tot_qty_store_check', sql`${table.tot_qty_store} >= 0`),
-            check('tot_qty_vendor_check', sql`${table.tot_qty_vendor} >= 0`),
-            check(
-                'tot_qty_delivered_check',
-                sql`${table.tot_qty_delivered} >= 0`
-            ),
+            check('positive_qty', sql`${table.qty} >= 0`),
+            check('positive_par', sql`${table.par} >= 0`),
             check('positive_list_price', sql`${table.list_price} >= 0`),
             check('positive_final_price', sql`${table.final_price} >= 0`),
             check('positive_adj_price', sql`${table.adj_price} >= 0`),
@@ -359,88 +346,6 @@ export const ordersTable = pgTable(
                 sql`${table.ordered_via} IN ('MANUALLY', 'EMAIL', 'WEB', 'API')`
             ),
             check('positive_group_order_no', sql`${table.group_order_no} >= 0`),
-            pgPolicy('Enable inserting orders for auth users only', {
-                for: 'insert',
-                to: authenticatedRole,
-                withCheck: sql`true`,
-            }),
-            pgPolicy('Enable updating orders for auth users only', {
-                for: 'update',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-                withCheck: sql`true`,
-            }),
-            pgPolicy('Enable reading orders for auth users only', {
-                for: 'select',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-            }),
-            pgPolicy('Enable deleting orders for auth users only', {
-                for: 'delete',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-            }),
-        ];
-    }
-);
-
-// History of store orders for every store
-export const storeOrdersTable = pgTable(
-    'store_orders',
-    {
-        id: serial('id').primaryKey(),
-        order_id: integer('order_id')
-            .notNull()
-            .references(() => ordersTable.id),
-        store_id: integer('store_id')
-            .notNull()
-            .references(() => storesTable.id),
-        qty: decimal('qty', { precision: 10, scale: 2 }),
-        is_par_submit: boolean('is_par_submit').notNull().default(false),
-        is_priority_delivery: boolean('is_priority_delivery')
-            .notNull()
-            .default(false),
-        comments: text('comments'), // store's comments
-        // created_by: varchar('created_by').notNull().default('SYSTEM'),
-        created_at: timestamp('created_at', {
-            precision: 3,
-            withTimezone: true,
-        })
-            .notNull()
-            .defaultNow(),
-        submitted_at: timestamp('submitted_at', {
-            precision: 3,
-            withTimezone: true,
-        }),
-        updated_at: timestamp('updated_at', {
-            precision: 3,
-            withTimezone: true,
-        }),
-    },
-    (table) => {
-        return [
-            check('positive_qty', sql`${table.qty} >= 0`),
-            pgPolicy('Enable inserting store orders for auth users only', {
-                for: 'insert',
-                to: authenticatedRole,
-                withCheck: sql`true`,
-            }),
-            pgPolicy('Enable updating store orders for auth users only', {
-                for: 'update',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-                withCheck: sql`true`,
-            }),
-            pgPolicy('Enable reading store orders for auth users only', {
-                for: 'select',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-            }),
-            pgPolicy('Enable deleting store orders for auth users only', {
-                for: 'delete',
-                to: authenticatedRole,
-                using: sql`true`, // This allows all authenticated users to select all rows
-            }),
             pgPolicy('Enable inserting orders for auth users only', {
                 for: 'insert',
                 to: authenticatedRole,
@@ -1041,17 +946,21 @@ export const stock_item_schedulesTable = pgTable(
 export type InsertItem = typeof itemsTable.$inferInsert;
 export type SelectItem = typeof itemsTable.$inferSelect;
 // export type UpdateItem = typeof itemsTable.$inferUpdate;
+
 export type InsertStock = typeof stockTable.$inferInsert;
 export type SelectStock = typeof stockTable.$inferSelect;
 // export type UpdateStock = typeof stockTable.$inferUpdate;
+
 export type InsertVendor = typeof vendorsTable.$inferInsert;
 export type SelectVendor = typeof vendorsTable.$inferSelect;
 // export type UpdateVendor = typeof vendorsTable.$inferUpdate;
+
 export type InsertOrder = typeof ordersTable.$inferInsert;
 export type SelectOrder = typeof ordersTable.$inferSelect;
 // export type UpdateOrder = typeof ordersTable.$inferUpdate;
-export type InsertStoreOrder = typeof storeOrdersTable.$inferInsert;
-export type SelectStoreOrder = typeof storeOrdersTable.$inferSelect;
+
+// export type InsertStoreOrder = typeof storeOrdersTable.$inferInsert;
+// export type SelectStoreOrder = typeof storeOrdersTable.$inferSelect;
 // export type UpdateStoreOrder = typeof storeOrdersTable.$inferUpdate;
 
 export type InsertBakeryOrder = typeof bakeryOrdersTable.$inferInsert;

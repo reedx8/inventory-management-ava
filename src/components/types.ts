@@ -43,10 +43,28 @@ export type SheetDataType = {
     cron_categ?: string;
 };
 
+// to get weekly par levels on orders -> milk/bread page
+export type SheetDataType2 = {
+    item_id: number;
+    name: string;
+    qty: number;
+    units: string;
+    store_id: number;
+    store_name: string;
+    was_updated: boolean;
+};
+
 // Active store locations only. Names matter -- must match as app table's use the name (and not id, better for testing since id's can seed randomly causing confusion in testing)
 export const STORE_LOCATIONS = ['Hall', 'Progress', 'Kruse', 'Orenco'] as const;
-
 export type StoreLocation = (typeof STORE_LOCATIONS)[number];
+export const STORE_LIST = [
+    // used in sheet-data, better than STORE_LOCATIONS. MUST match Store Table in DB.
+    { id: 1, name: 'Hall' },
+    { id: 2, name: 'Progress' },
+    { id: 3, name: 'Kruse' },
+    { id: 4, name: 'Orenco' },
+] as const;
+export type StoreList = (typeof STORE_LIST)[number]['name'];
 
 // Invoice Categories
 export const INVOICE_CATEGORIES = [
@@ -105,6 +123,6 @@ export type ItemInfo = {
 };
 
 export type ParsPayload = {
-    data: SheetDataType[];
+    data: SheetDataType[] | SheetDataType2[];
     dow: string;
 };

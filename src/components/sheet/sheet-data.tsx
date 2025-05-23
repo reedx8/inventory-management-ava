@@ -446,7 +446,7 @@ export default function SheetData({
                                         key={item.id}
                                         className='flex justify-between h-fit items-center mt-1 text-sm'
                                     >
-                                        <p>
+                                        <div>
                                             {item.name}
                                             {item.units && (
                                                 <Badge
@@ -456,7 +456,7 @@ export default function SheetData({
                                                     {item.units}
                                                 </Badge>
                                             )}
-                                        </p>
+                                        </div>
                                         <input
                                             name='count'
                                             type='number'

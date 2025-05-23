@@ -140,6 +140,7 @@ export function AppSidebar() {
     const [currentPage, setCurrentPage] = useState('/');
     const pathname = usePathname();
     useEffect(() => {
+        // console.log('useeffect Appsidebar ------------------')
         setCurrentPage(pathname);
         if (userRole === 'admin') {
             setItems(adminPages);

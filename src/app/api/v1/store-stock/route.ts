@@ -8,6 +8,7 @@ import {
 // import { postMilkBreadStock } from '@/db/queries/update';
 import { insertMilkBreadStock } from '@/db/queries/insert';
 
+// get stock for store managers (milk/bread, etc)
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const storeId: string | null = searchParams.get('storeId'); // storeId = null for all stores
@@ -45,8 +46,15 @@ export async function GET(request: NextRequest) {
                         stockType.toUpperCase()
                     );
 
+                    if (!milkBreadStock.success) {
+                        return NextResponse.json(
+                            { error: milkBreadStock.error },
+                            { status: 400 }
+                        );
+                    }
+
                     // dont cache since items/vendor_items may change in a day (eg items.is_active, etc)
-                    return NextResponse.json(milkBreadStock, {
+                    return NextResponse.json(milkBreadStock.data, {
                         status: 200,
                         headers: {
                             'Content-Type': 'application/json',
@@ -124,6 +132,13 @@ export async function POST(request: NextRequest) {
                         data,
                         Number(storeId)
                     );
+                    if (!milkBreadStock.success) {
+                        return NextResponse.json(
+                            { error: milkBreadStock.error },
+                            { status: 400 }
+                        );
+                    }
+
                     return NextResponse.json(milkBreadStock);
                 }
                 return NextResponse.json(

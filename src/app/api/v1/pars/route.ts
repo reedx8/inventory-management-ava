@@ -1,8 +1,11 @@
-import { getDailyParLevels } from '@/db/queries/select';
-import { updateDailyParLevels } from '@/db/queries/update';
+import { getDailyParLevels, getWeeklyParLevels } from '@/db/queries/select';
+import {
+    updateDailyParLevels,
+    updateWeeklyParLevels,
+} from '@/db/queries/update';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
-import { ParsPayload } from '@/components/types';
+// import { ParsPayload } from '@/components/types';
 export const dynamic = 'force-dynamic'; // no caching
 
 // get daily PAR levels for a store
@@ -11,17 +14,27 @@ export async function GET(request: NextRequest) {
     const storeId: string | null = searchParams.get('storeId');
     const dow: string | null = searchParams.get('dow');
     const categ: string | null = searchParams.get('categ');
-    const validDays = [
-        'monday',
-        'tuesday',
-        'wednesday',
-        'thursday',
-        'friday',
-        'saturday',
-        'sunday',
-    ];
+    if (dow && dow.toLowerCase() !== 'weekly') {
+        const validDays = [
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday',
+        ];
+        if (!dow || !validDays.includes(dow.toLowerCase())) {
+            return NextResponse.json(
+                {
+                    error: 'GET api/v1/pars requires a valid day of week (eg monday)',
+                },
+                { status: 400 }
+            );
+        }
+    }
 
-    if (!storeId || !dow || !categ || !validDays.includes(dow.toLowerCase())) {
+    if (!storeId || !dow || !categ) {
         return NextResponse.json(
             {
                 error: 'GET api/v1/pars requires valid storeId, day of week, and item category',
@@ -40,11 +53,19 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const response = await getDailyParLevels(
-            Number(storeId),
-            dow.toLowerCase(),
-            categ.toUpperCase()
-        );
+        let response;
+        if (dow.toLowerCase() === 'weekly') {
+            response = await getWeeklyParLevels(
+                Number(storeId),
+                categ.toUpperCase()
+            );
+        } else {
+            response = await getDailyParLevels(
+                Number(storeId),
+                dow.toLowerCase(),
+                categ.toUpperCase()
+            );
+        }
 
         if (!response.success) {
             return NextResponse.json(response, { status: 400 });
@@ -71,26 +92,42 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     // const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const payload = await request.json();
-    let { data, dow } = payload as ParsPayload;
+    let { data, dow } = payload;
 
-    dow = dow.toLowerCase();
-    const validDays = [
-        'monday',
-        'tuesday',
-        'wednesday',
-        'thursday',
-        'friday',
-        'saturday',
-        'sunday',
-    ];
-
-    if (!validDays.includes(dow)) {
+    if (!data || !dow) {
         return NextResponse.json(
-            {
-                error: 'PUT api/v1/pars requires a valid day of week (eg monday)',
-            },
+            { error: 'PUT api/v1/pars requires data and dow' },
             { status: 400 }
         );
+    }
+
+    if (data.length === 0 || dow.length === 0) {
+        return NextResponse.json(
+            { error: 'PUT api/v1/pars requires data and dow' },
+            { status: 400 }
+        );
+    }
+
+    if (dow.toLowerCase() !== 'weekly') {
+        dow = dow.toLowerCase();
+        const validDays = [
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday',
+        ];
+
+        if (!validDays.includes(dow)) {
+            return NextResponse.json(
+                {
+                    error: 'PUT api/v1/pars requires a valid day of week (eg monday)',
+                },
+                { status: 400 }
+            );
+        }
     }
 
     const supabase = await createClient();
@@ -103,7 +140,12 @@ export async function PUT(request: NextRequest) {
     }
 
     try {
-        const response = await updateDailyParLevels({ data, dow });
+        let response;
+        if (dow.toLowerCase() === 'weekly') {
+            response = await updateWeeklyParLevels({ data, dow });
+        } else {
+            response = await updateDailyParLevels({ data, dow });
+        }
         if (!response.success) {
             return NextResponse.json(response, { status: 400 });
         }

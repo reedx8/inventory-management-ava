@@ -57,9 +57,8 @@ export default function LoginPage() {
     useEffect(() => {
         // redirect if already logged in
         async function checkIfLoggedIn() {
-            const supabase = await createClient();
+            const supabase = createClient();
             const { error } = await supabase.auth.getUser();
-            // const { data, error } = await supabase.auth.getUser();
 
             if (!error) {
                 redirect('/');

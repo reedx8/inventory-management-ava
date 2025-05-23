@@ -39,22 +39,30 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
-    // console.log('User: ', user);
-
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth')
-    ) {
-        // no user, potentially respond by redirecting the user to the login page
+    if (user === null) {
+        // no user, redirect to login page
         const url = request.nextUrl.clone();
         url.pathname = '/login';
         return NextResponse.redirect(url);
     }
 
+    // if (
+    //     !user &&
+    //     !request.nextUrl.pathname.startsWith('/login') &&
+    //     !request.nextUrl.pathname.startsWith('/auth')
+    // ) {
+    //     // no user, potentially respond by redirecting the user to the login page
+    //     const url = request.nextUrl.clone();
+    //     url.pathname = '/login';
+    //     return NextResponse.redirect(url);
+    // }
+
     // Protect routes:
+    // const storeManagerRoutes = ['/', '/store', '/contact']
+    // const orderManagerRoutes = ['/', '/orders', '/contact']
+    // const bakeryManagerRoutes = ['/', '/bakery', '/contact']
     if (
-        user?.user_metadata.role !== 'admin' &&
+        user.user_metadata.role !== 'admin' &&
         request.nextUrl.pathname.startsWith('/manage')
     ) {
         const url = request.nextUrl.clone();
@@ -63,7 +71,9 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (
-        user?.user_metadata.role === 'order_manager' &&
+        // user.user_metadata.role === 'order_manager' &&
+        // !orderManagerRoutes.includes(request.nextUrl.pathname.split('/')[1])
+        user.user_metadata.role === 'order_manager' &&
         (request.nextUrl.pathname.startsWith('/bakery') ||
             request.nextUrl.pathname.startsWith('/store'))
     ) {
@@ -71,7 +81,7 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/';
         return NextResponse.redirect(url);
     } else if (
-        user?.user_metadata.role === 'store_manager' &&
+        user.user_metadata.role === 'store_manager' &&
         (request.nextUrl.pathname.startsWith('/bakery') ||
             request.nextUrl.pathname.startsWith('/orders'))
     ) {
@@ -79,7 +89,7 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/';
         return NextResponse.redirect(url);
     } else if (
-        user?.user_metadata.role === 'bakery_manager' &&
+        user.user_metadata.role === 'bakery_manager' &&
         (request.nextUrl.pathname.startsWith('/store') ||
             request.nextUrl.pathname.startsWith('/orders'))
     ) {

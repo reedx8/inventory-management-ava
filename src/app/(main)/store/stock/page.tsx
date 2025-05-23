@@ -1,31 +1,9 @@
 'use client';
-// import StoreNavsBar from '@/components/pages-navbar';
 import React, { useState, useEffect } from 'react';
-// import {
-//     Table,
-//     TableBody,
-//     TableCell,
-//     TableHead,
-//     TableHeader,
-//     TableRow,
-// } from '@/components/ui/table';
-// import { Input } from '@/components/ui/input';
-// import { Button } from '@/components/ui/button';
-// import {
-//     flexRender,
-//     getCoreRowModel,
-//     getFilteredRowModel,
-//     getPaginationRowModel,
-//     useReactTable,
-// } from '@tanstack/react-table';
-// import { Dot } from 'lucide-react';
-// import noStockPic from '/public/illustrations/empty.svg';
-// import Image from 'next/image';
 import { HeaderBar } from '@/components/header-bar';
 import { useAuth } from '@/contexts/auth-context';
 import PagesNavBar from '@/components/pages-navbar';
 import { Skeleton } from '@/components/ui/skeleton';
-// import ItemsTable from '@/components/items-table';
 import StockTable from './components/stock-table';
 // import TrackWasteSheet from './components/track-waste-sheet';
 // import MilkBreadSheet from './components/milk-bread-sheet';
@@ -33,11 +11,6 @@ import { NoStockDue } from '@/components/placeholders';
 import SheetTemplate from '@/components/sheet/sheet-template';
 import { Milk } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-// import Image from 'next/image';
-// import completePic from '/public/illustrations/complete.svg';
-// import { Input } from '@/components/ui/input';
-// import { useFormStatus } from 'react-dom';
-// import { ScrollArea } from '@/components/ui/scroll-area';
 import SheetData from '@/components/sheet/sheet-data';
 // import { useToast } from '@/hooks/use-toast';
 type StockItem = {
@@ -110,7 +83,7 @@ export default function Stock() {
             <section className='flex justify-between items-center'>
                 <PagesNavBar />
                 <div className='flex gap-2'>
-                    {/* <SheetTemplate
+                    <SheetTemplate
                         title='Milk & Bread Stock'
                         trigger={
                             <Button variant='myTheme3'>
@@ -126,7 +99,7 @@ export default function Stock() {
                             storeId={userStoreId}
                             contentType='store:milk'
                         />
-                    </SheetTemplate> */}
+                    </SheetTemplate>
                     {/* <MilkBreadSheet /> */}
                     {/* <TrackWasteSheet /> */}
                 </div>

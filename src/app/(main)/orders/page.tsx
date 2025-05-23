@@ -1,9 +1,10 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PagesNavBar from '@/components/pages-navbar';
 import { HeaderBar } from '@/components/header-bar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NoOrders } from '@/components/placeholders';
+// import { useAuth } from '@/contexts/auth-context';
 
 interface OrderItem {
     id: number;
@@ -16,11 +17,15 @@ interface OrderItem {
 }
 
 export default function Orders() {
-    const [data, setData] = useState<OrderItem[]>();
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [data, setData] = useState<any[]>();
+    // const [data, setData] = useState<OrderItem[]>();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    // const [testData, setTestData] = useState<any[]>();
+    // const { userStoreId, userRole } = useAuth();
 
     useEffect(() => {
         // setData([]);
+        setIsLoading(true)
         const myPromise = new Promise((resolve) => {
             setTimeout(() => {
                 setIsLoading(false);

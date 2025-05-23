@@ -1,0 +1,1 @@
+ALTER TABLE "stock" ADD COLUMN "order_submitted" boolean DEFAULT false NOT NULL;

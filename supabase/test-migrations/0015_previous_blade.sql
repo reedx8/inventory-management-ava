@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ALTER COLUMN "list_price" DROP NOT NULL;

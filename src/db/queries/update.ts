@@ -7,13 +7,17 @@ import {
     stockTable,
     // vendorItemsTable,
     storeBakeryOrdersTable,
-    storeOrdersTable,
+    // storeOrdersTable,
     parsTable,
+    ordersTable,
+    vendorItemsTable,
 } from '../schema';
 import { OrderItem } from '@/app/(main)/store/types';
-import { SheetDataType } from '@/components/types';
+import { SheetDataType, SheetDataType2 } from '@/components/types';
 // import { parse } from 'path';
 import { config } from 'dotenv';
+import { SheetDataTypeCU } from '@/app/(main)/orders/components/sheet-data-costunit';
+import { MilkBreadOrder } from '@/app/(main)/orders/types';
 config({ path: '.env' });
 
 // Send store's orders for external vendors only (store page)
@@ -31,20 +35,20 @@ export async function putStoreOrders(
                 data.map(async (order) => {
                     try {
                         const updated = await trx
-                            .update(storeOrdersTable)
+                            .update(ordersTable)
                             .set({
                                 qty: sql`${order.order}::decimal`,
                                 submitted_at: sql`now()`,
                             })
                             .where(
                                 and(
-                                    eq(storeOrdersTable.store_id, storeId),
-                                    eq(storeOrdersTable.id, order.id)
+                                    eq(ordersTable.store_id, storeId),
+                                    eq(ordersTable.id, order.id)
                                 )
                             )
                             .returning({
-                                id: storeOrdersTable.id,
-                                store_id: storeOrdersTable.store_id,
+                                id: ordersTable.id,
+                                store_id: ordersTable.store_id,
                             });
 
                         return {
@@ -676,6 +680,176 @@ export async function updateDailyParLevels({
 //         };
 //     }
 // }
+
+export async function updateWeeklyParLevels({
+    data,
+    dow,
+}: {
+    data: SheetDataType2[];
+    dow: string;
+}) {
+    try {
+        const updates = await executeWithAuthRole(async (trx) => {
+            const results = await Promise.all(
+                data.map(async (item) => {
+                    // First check if the record exists
+                    const existingRecord = await trx
+                        .select()
+                        .from(parsTable)
+                        .where(
+                            and(
+                                eq(parsTable.item_id, item.item_id),
+                                eq(parsTable.store_id, item.store_id)
+                            )
+                        )
+                        .limit(1);
+
+                    let updated;
+                    if (existingRecord.length === 0) {
+                        // Record doesn't exist, need to INSERT
+                        updated = await trx
+                            .insert(parsTable)
+                            .values({
+                                item_id: item.item_id,
+                                store_id: item.store_id,
+                                weekly: item.qty,
+                            })
+                            .returning();
+                    } else {
+                        // Record exists, perform UPDATE
+                        updated = await trx
+                            .update(parsTable)
+                            .set({
+                                weekly: item.qty,
+                            })
+                            .where(
+                                and(
+                                    eq(parsTable.item_id, item.item_id),
+                                    eq(parsTable.store_id, item.store_id)
+                                )
+                            )
+                            .returning();
+                    }
+
+                    return {
+                        id: item.item_id,
+                        store_id: item.store_id,
+                        updated: updated.length > 0,
+                    };
+                })
+            );
+            return results;
+        });
+
+        const failures = updates.filter((update) => update.updated === false);
+        if (failures.length > 0) {
+            return {
+                success: false,
+                message: 'Some or all updates failed',
+                data: updates,
+            };
+        }
+
+        return {
+            success: true,
+            message: 'All updates successful',
+            data: updates,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            message: 'Transaction failed',
+            error: err.message,
+        };
+    }
+}
+
+export async function updateCostUnit(data: SheetDataTypeCU[]) {
+    try {
+        const result = await executeWithAuthRole(async (tx) => {
+            return await Promise.all(
+                data.map(async (item: SheetDataTypeCU) => {
+                    const updated = await tx
+                        .update(vendorItemsTable)
+                        .set({
+                            list_price: item.cost_unit,
+                        })
+                        .where(eq(vendorItemsTable.id, item.vendor_item_id))
+                        .returning();
+
+                    return {
+                        vendor_item_id: item.vendor_item_id,
+                        updated: updated.length > 0,
+                    };
+                })
+            );
+        });
+
+        const failures = result.filter((item) => item.updated === false);
+        if (failures.length > 0) {
+            return {
+                success: false,
+                message: 'Some or all updates failed',
+                data: result,
+            };
+        }
+
+        return {
+            success: true,
+            message: 'All updates successful',
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: null,
+        };
+    }
+}
+
+// updates milk bread orders from order managers, will be called per store
+export async function updateMilkBreadStockOrders(data: MilkBreadOrder[]) {
+    try {
+        const result = await executeWithAuthRole(async (tx) => {
+            return await Promise.all(
+                data.map(async (item: MilkBreadOrder) => {
+                    return await tx
+                        .update(ordersTable)
+                        .set({
+                            qty: item.order_qty,
+                            par: item.par,
+                            list_price: item.cpu, // we want to update list price at time of order, not time of stock count
+                            vendor_id: item.vendor_id,
+                            order_submit_at: sql`now()`,
+                        })
+                        .where(
+                            and(
+                                eq(ordersTable.id, item.order_id),
+                                // eq(ordersTable.stock_id, item.id),
+                                eq(ordersTable.store_id, item.store_id)
+                            )
+                        );
+                })
+            );
+        });
+
+        return {
+            success: true,
+            data: result,
+            error: null,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: null,
+        };
+    }
+}
 
 // Helper function for authenticated transactions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

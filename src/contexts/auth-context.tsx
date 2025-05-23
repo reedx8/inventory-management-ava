@@ -22,42 +22,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const supabase = createClient();
+    // console.log('auth context called')
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // const userName = '';
+      const newUserDetails = {
+        userName: 'Account', // Default value
+        userRole: '',
+        userStoreId: 0,
+      };
+
       if (session?.user?.email) {
         const name = session.user.email;
         if (name.includes('@')) {
           const formattedName = name.split('@')[0];
-          // setUserName(formattedName[0].toUpperCase() + formattedName.slice(1));
-          setUserDetails(prevState => ({
-            ...prevState,
-            userName: formattedName[0].toUpperCase() + formattedName.slice(1),
-          }));
+          newUserDetails.userName = formattedName[0].toUpperCase() + formattedName.slice(1);
         }
-      } else {
-        // setUserName('Account');
-        setUserDetails(prevState => ({
-          ...prevState,
-          userName: 'Account',
-        }));
       }
 
       if (session?.user?.user_metadata){
-        const role = session.user.user_metadata.role ?? '';
-        const store_id = session.user.user_metadata.store_id ?? 0;
-        setUserDetails(prevState => ({
-          ...prevState,
-          userRole: role,
-          userStoreId: store_id,
-        }));
+        newUserDetails.userRole = session.user.user_metadata.role || '';
+        newUserDetails.userStoreId = session.user.user_metadata.store_id || 0;
       }
 
-
-      // if (session?.user?.user_metadata?.role){
-        // setUsersRole(session.user.user_metadata.role)
-        // const roleName = session.user.user_metadata.role;
-      // }
+      setUserDetails(newUserDetails);
     });
 
     return () => {
