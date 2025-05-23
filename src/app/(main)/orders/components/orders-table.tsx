@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/select';
 import { STORE_LOCATIONS } from '@/components/types';
 import { useToast } from '@/hooks/use-toast';
+// import { sendToGoogleSheet } from './send-to-gsheet';
 // import { MILK_BREAD_VENDORS } from '@/components/types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -268,6 +269,15 @@ export default function OrdersTable({
         setIsSubmitting(true);
 
         try {
+            const gsheetResponse = await fetch('/api/v1/send-to-gsheet', {
+                method: 'POST',
+                body: JSON.stringify({ data: categStoresData, activeCateg, storeId }),
+            });
+            const gsheetResponseData = await gsheetResponse.json();
+            if (!gsheetResponse.ok) {
+                throw new Error(gsheetResponseData.error);
+            }
+
             const response = await fetch('/api/v1/milk-bread', {
                 method: 'PUT',
                 body: JSON.stringify(categStoresData),
@@ -276,7 +286,9 @@ export default function OrdersTable({
             if (!response.ok) {
                 throw new Error(responseData.error);
             }
-            // console.log('DATA: ', responseData.data);
+
+
+
             toast({
                 title: 'Orders submitted',
                 description: 'Orders have been submitted successfully',
