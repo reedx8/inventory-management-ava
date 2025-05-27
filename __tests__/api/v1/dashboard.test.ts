@@ -146,7 +146,7 @@ describe('Dashboard API Mock Tests', () => {
         expect(response.status).toBe(400);
         const responseData = await response.json();
         expect(responseData.error).toContain(
-            'You need to pass "fetch" in API url'
+            'GET api/v1/dashboard needs "fetch"'
         );
     });
 });
