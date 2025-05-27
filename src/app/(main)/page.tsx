@@ -19,6 +19,7 @@ import {
     Cake,
     ChevronDown,
     Store,
+    Milk,
     // ChevronRight,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -101,49 +102,43 @@ const invSchedule = [
     },
 ];
 
+export type DashboardType = {
+    bakeryDueTodayCount: number | null;
+    itemCount: number | undefined;
+    storeCount: number | undefined;
+    milkBreadDueTodayCount: number | undefined;
+}
+
 export default function Home() {
-    const [bakeryDueTodayCount, setBakeryDueTodayCount] = useState<
-        number | null
-    >(null);
-    const [itemCount, setItemCount] = useState<number | undefined>();
-    const [storeCount, setStoreCount] = useState<number | undefined>();
     const { userRole, userStoreId } = useAuth();
-    // const [openCakeOrders, setOpenCakeOrders] = useState<number | undefined>();
+    const [dashboard, setDashboard] = useState<DashboardType>({
+        bakeryDueTodayCount: null,
+        itemCount: undefined,
+        storeCount: undefined,
+        milkBreadDueTodayCount: undefined,
+    });
     // const [isLoading, setIsLoading] = useState<boolean>(true);
     // const todaysDate : string = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
         const getDashboardData = async (storeId: number) => {
             try {
-                // const storeId = userStoreId ?? 0;
-                console.log('storeId: ' + storeId);
-                const [bakeryResponse, itemResponse, storeResponse] =
-                    await Promise.all([
-                        fetch(
-                            'api/v1/dashboard?fetch=bakeryDueToday&storeId=' +
-                                storeId
-                        ),
-                        fetch('api/v1/dashboard?fetch=itemCount'),
-                        fetch('api/v1/dashboard?fetch=storeCount'),
-                    ]);
-
-                const bakeryResult = await bakeryResponse.json();
-                const itemResult = await itemResponse.json();
-                const storeResult = await storeResponse.json();
-
-                if (!bakeryResponse.ok) throw new Error(bakeryResult.error);
-                if (!itemResponse.ok) throw new Error(itemResult.error);
-                if (!storeResponse.ok) throw new Error(storeResult.error);
-
-                setBakeryDueTodayCount(bakeryResult.data[0].count);
-                setItemCount(itemResult.data[0].count);
-                setStoreCount(storeResult.data[0].count);
+                const dow = todaysDay();
+                const response = await fetch(
+                    'api/v1/dashboard?fetch=all&storeId=' + storeId + '&dow=' + dow
+                );
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error);
+                setDashboard(result);
             } catch (error) {
                 const err = error as Error;
-                console.log('Dashboard data fetch failed:' + err);
-                setBakeryDueTodayCount(0);
-                setItemCount(0);
-                setStoreCount(0);
+                console.log('Dashboard data fetch failed: ' + err);
+                setDashboard({
+                    bakeryDueTodayCount: 0,
+                    itemCount: 0,
+                    storeCount: 0,
+                    milkBreadDueTodayCount: 0,
+                });
             }
         };
         // const storeId = userStoreId ?? 0;
@@ -169,14 +164,16 @@ export default function Home() {
                         <Store width={17} className='mr-1 text-myBrown' /> Store
                         Locations:{' '}
                         <span className='ml-1 text-lg'>
-                            {storeCount === undefined ? '--' : storeCount}
+                            {dashboard.storeCount === undefined ? '-' : dashboard.storeCount}
+                            {/* {storeCount === undefined ? '--' : storeCount} */}
                         </span>
                     </h2>
                     <h2 className='flex items-center'>
                         <Box width={17} className='mr-1 text-myBrown' />
                         Item Count:
                         <span className='ml-1 text-lg'>
-                            {itemCount === undefined ? '--' : itemCount}
+                            {dashboard.itemCount === undefined ? '-' : dashboard.itemCount}
+                            {/* {itemCount === undefined ? '--' : itemCount} */}
                         </span>
                     </h2>
                 </div>
@@ -197,7 +194,8 @@ export default function Home() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {miniOrderCards(bakeryDueTodayCount)}
+                            {miniOrderCards(dashboard.bakeryDueTodayCount)}
+                            {/* {miniOrderCards(bakeryDueTodayCount)} */}
                         </CardContent>
                     </Card>
                     <Card className='h-full shadow-md flex flex-col items-center'>
@@ -209,7 +207,7 @@ export default function Home() {
                                 Stock counts due today
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>{miniStockCards()}</CardContent>
+                        <CardContent>{miniStockCards(dashboard.milkBreadDueTodayCount)}</CardContent>
                     </Card>
                 </div>
                 {/* <div className='flex-1 h-full'>{CarouselComponent()}</div> */}
@@ -341,7 +339,7 @@ function miniOrderCards(bakeryDueTodayCount: number | null) {
                     </div>
                     <div className='text-center'>
                         <p className='text-5xl text-myBrown drop-shadow-sm'>
-                            {type.count !== null ? type.count : '--'}
+                            {type.count !== null ? type.count : '-'}
                             {/* {type.count ?? 0} */}
                         </p>
                         <div className='text-sm flex items-center justify-center gap-1'>
@@ -356,16 +354,35 @@ function miniOrderCards(bakeryDueTodayCount: number | null) {
         </div>
     );
 }
-function miniStockCards() {
+function miniStockCards(milkBreadDueTodayCount: number | undefined) {
     return (
-        <div className='flex flex-col items-center'>
-            <div className='text-5xl text-myBrown drop-shadow-sm'>0</div>
-            <div className='flex gap-1 text-sm items-center'>
-                <Box width={18} className='text-myBrown' />
+        <div className='w-[125px]'>
+        <div className='flex h-[25px] w-full mb-1'>
+            <div className='w-full h-full text-center rounded-full bg-myBrown/30'>
+                Milk & Bread
+            </div>
+        </div>
+        <div className='text-center'>
+            <p className='text-5xl text-myBrown drop-shadow-sm'>
+                {milkBreadDueTodayCount !== undefined ? milkBreadDueTodayCount : '-'}
+                {/* {type.count ?? 0} */}
+            </p>
+            <div className='text-sm flex items-center justify-center gap-1'>
+                <Milk width={18} className='text-myBrown' />
                 Items
             </div>
         </div>
-    );
+    </div>
+    )
+    // return (
+    //     <div className='flex flex-col items-center'>
+    //         <div className='text-5xl text-myBrown drop-shadow-sm'>0</div>
+    //         <div className='flex gap-1 text-sm items-center'>
+    //             <Milk width={18} className='text-myBrown' />
+    //             Items
+    //         </div>
+    //     </div>
+    // );
 }
 
 // Open/Pending cake orders for squarespace card

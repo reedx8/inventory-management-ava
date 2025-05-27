@@ -4,6 +4,7 @@ import {
     getBakeryDueTodayCount,
     getItemCount,
     getStoreCount,
+    getMilkBreadDueTodayCount,
 } from '@/db/queries/select';
 export const dynamic = 'force-dynamic'; // no caching
 
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const fetchType: string | null = searchParams.get('fetch');
     const storeId: string | null = searchParams.get('storeId');
+    const dow: string | null = searchParams.get('dow');
     // const todaysDate: string | null = searchParams.get('todaysDate');
 
     const supabase = await createClient();
@@ -31,10 +33,30 @@ export async function GET(request: NextRequest) {
             response = await getItemCount();
         } else if (fetchType === 'storeCount') {
             response = await getStoreCount();
+        } else if (fetchType === 'all') {
+            const storeIdInt = storeId === null ? 0 : parseInt(storeId);
+            const [
+                bakeryResponse,
+                itemResponse,
+                storeResponse,
+                milkBreadResponse,
+            ] = await Promise.all([
+                getBakeryDueTodayCount(storeIdInt),
+                getItemCount(),
+                getStoreCount(),
+                getMilkBreadDueTodayCount(storeIdInt, dow ?? ''),
+            ]);
+            response = {
+                success: true,
+                bakeryDueTodayCount: bakeryResponse.data ?? 0,
+                itemCount: itemResponse.data ?? 0,
+                storeCount: storeResponse.data ?? 0,
+                milkBreadDueTodayCount: milkBreadResponse.data ?? 0,
+            };
         } else {
             return NextResponse.json(
                 {
-                    error: 'You need to pass "fetch" in API url with the data needed (eg bakeryDueToday)',
+                    error: 'GET api/v1/dashboard needs "fetch"',
                 },
                 { status: 400 }
             );
@@ -44,6 +66,8 @@ export async function GET(request: NextRequest) {
             return NextResponse.json(response, { status: 400 });
         }
         // return NextResponse.json(response, { status: 200 });
+
+        // console.log(response);
 
         // should prevent netlify from caching this response
         return new NextResponse(JSON.stringify(response), {

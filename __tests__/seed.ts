@@ -11,7 +11,7 @@ import {
 } from './test-data';
 import { config } from 'dotenv';
 import { PgTableWithColumns } from 'drizzle-orm/pg-core';
-import { eq, or, sql } from 'drizzle-orm';
+import { eq, or, sql, and } from 'drizzle-orm';
 config({ path: '.env' });
 
 const TEST_CONNECTION_STRING = process.env.TEST_DATABASE_URL;
@@ -41,12 +41,11 @@ async function seedMilkBreadStock(isMonday: boolean, forStoreMngrs: boolean) {
     if (forStoreMngrs) {
         return;
     }
-
-    await clearTable(schema.stockTable);
+    // else for order managers that follows, fill in random stock counts:
     let milkBreadItems: { id: number; units: string | null }[] = [];
 
     if (isMonday) {
-        // ifi monday, grab both milk and bread items
+        // if monday, grab both milk and bread items
         milkBreadItems = await TEST_DB.select({
             id: schema.itemsTable.id,
             units: schema.vendorItemsTable.units,
@@ -57,9 +56,12 @@ async function seedMilkBreadStock(isMonday: boolean, forStoreMngrs: boolean) {
                 eq(schema.itemsTable.id, schema.vendorItemsTable.item_id)
             )
             .where(
-                or(
-                    eq(schema.itemsTable.cron_categ, 'MILK'),
-                    eq(schema.itemsTable.cron_categ, 'BREAD')
+                and(
+                    eq(schema.itemsTable.is_active, true),
+                    or(
+                        eq(schema.itemsTable.cron_categ, 'MILK'),
+                        eq(schema.itemsTable.cron_categ, 'BREAD')
+                    )
                 )
             );
     } else {
@@ -73,10 +75,15 @@ async function seedMilkBreadStock(isMonday: boolean, forStoreMngrs: boolean) {
                 schema.vendorItemsTable,
                 eq(schema.itemsTable.id, schema.vendorItemsTable.item_id)
             )
-            .where(eq(schema.itemsTable.cron_categ, 'MILK'));
+            .where(
+                and(
+                    eq(schema.itemsTable.is_active, true),
+                    eq(schema.itemsTable.cron_categ, 'MILK')
+                )
+            );
     }
 
-    // should mirror insert logic in insert.ts
+    // mirrors insert logic in insert.ts
     for (let id = 1; id <= STORES.length; ++id) {
         for (const item of milkBreadItems) {
             const stockTableInsert = await TEST_DB.insert(schema.stockTable)

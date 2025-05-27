@@ -19,7 +19,7 @@ import {
     ColumnDef,
     CellContext,
 } from '@tanstack/react-table';
-import { Dot, Pencil, Send } from 'lucide-react';
+import { Dot, Loader2, Pencil, Send } from 'lucide-react';
 import { MilkBreadOrder } from '../types';
 import {
     AlertDialog,
@@ -269,28 +269,47 @@ export default function OrdersTable({
         setIsSubmitting(true);
 
         try {
-            const gsheetResponse = await fetch('/api/v1/send-to-gsheet', {
-                method: 'POST',
-                body: JSON.stringify({ data: categStoresData, activeCateg, storeId }),
-            });
-            const gsheetResponseData = await gsheetResponse.json();
-            if (!gsheetResponse.ok) {
-                throw new Error(gsheetResponseData.error);
+            const [gsheetResponse, dbResponse] = await Promise.all([
+                fetch('/api/v1/send-to-gsheet', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        data: categStoresData,
+                        activeCateg,
+                        storeId,
+                    }),
+                }),
+                fetch('/api/v1/milk-bread', {
+                    method: 'PUT',
+                    body: JSON.stringify(categStoresData),
+                }),
+            ]);
+
+            if (!gsheetResponse.ok || !dbResponse.ok) {
+                throw new Error(
+                    'Failed to submit orders to Google Sheet and/or database'
+                );
             }
 
-            const response = await fetch('/api/v1/milk-bread', {
-                method: 'PUT',
-                body: JSON.stringify(categStoresData),
-            });
-            const responseData = await response.json();
-            if (!response.ok) {
-                throw new Error(responseData.error);
-            }
+            // const gsheetResponse = await fetch('/api/v1/send-to-gsheet', {
+            //     method: 'POST',
+            //     body: JSON.stringify({ data: categStoresData, activeCateg, storeId }),
+            // });
+            // const gsheetResponseData = await gsheetResponse.json();
+            // if (!gsheetResponse.ok) {
+            //     throw new Error(gsheetResponseData.error);
+            // }
 
-
+            // const response = await fetch('/api/v1/milk-bread', {
+            //     method: 'PUT',
+            //     body: JSON.stringify(categStoresData),
+            // });
+            // const responseData = await response.json();
+            // if (!response.ok) {
+            //     throw new Error(responseData.error);
+            // }
 
             toast({
-                title: 'Orders submitted',
+                title: 'Orders Submitted',
                 description: 'Orders have been submitted successfully',
                 className: 'bg-myBrown border-none text-myDarkbrown',
             });
@@ -337,6 +356,7 @@ export default function OrdersTable({
                                             pageIndex: 0,
                                         });
                                     }}
+                                    disabled={isSubmitting}
                                 >
                                     {category}
                                 </Button>
@@ -354,6 +374,7 @@ export default function OrdersTable({
                                 pageIndex: 0,
                             });
                         }}
+                        disabled={isSubmitting}
                     >
                         <SelectTrigger className='w-fit'>
                             <SelectValue
@@ -379,7 +400,9 @@ export default function OrdersTable({
                                                     <Dot className='text-myDarkbrown w-6 h-6' />
                                                 </>
                                             ) : (
-                                                <p className='text-neutral-400'>{store}</p>
+                                                <p className='text-neutral-400'>
+                                                    {store}
+                                                </p>
                                             )}
                                         </div>
                                     </SelectItem>
@@ -538,6 +561,12 @@ export default function OrdersTable({
                     </div>
                 </form>
             </div>
+            {/* Show loading spinner over entire screen while submitting*/}
+            {isSubmitting && (
+                <div className='fixed inset-0 z-9999 flex items-center justify-center cursor-wait'>
+                    <Loader2 className='animate-spin text-myDarkbrown h-12 w-12' />
+                </div>
+            )}
         </div>
     );
 }

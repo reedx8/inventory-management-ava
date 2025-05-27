@@ -782,9 +782,10 @@ export async function getVendorContacts() {
     }
 }
 
+// home: get bakery due today count
 export async function getBakeryDueTodayCount(storeId: number) {
     try {
-        const result = await queryWithAuthRole(async (tx) => {
+        let result = await queryWithAuthRole(async (tx) => {
             return await tx
                 .select({
                     count: count(storeBakeryOrdersTable.id),
@@ -805,6 +806,9 @@ export async function getBakeryDueTodayCount(storeId: number) {
                     )
                 );
         });
+
+        result = result[0]?.count ?? 0;
+
         return {
             success: true,
             error: null,
@@ -815,20 +819,22 @@ export async function getBakeryDueTodayCount(storeId: number) {
         return {
             success: false,
             error: err.message,
-            data: [],
+            data: null,
         };
     }
 }
 
+// home: get item count
 export async function getItemCount() {
     try {
-        const result = await queryWithAuthRole(async (tx) => {
+        let result = await queryWithAuthRole(async (tx) => {
             return await tx
                 .select({
                     count: count(itemsTable.id),
                 })
                 .from(itemsTable);
         });
+        result = result[0]?.count ?? 0;
 
         return {
             success: true,
@@ -840,7 +846,7 @@ export async function getItemCount() {
         return {
             success: false,
             error: err.message,
-            data: [],
+            data: null,
         };
     }
 }
@@ -885,20 +891,19 @@ export async function getAllItems() {
     }
 }
 
+// home: get store count
 export async function getStoreCount() {
     try {
-        const result = await queryWithAuthRole(async (tx) => {
+        let result = await queryWithAuthRole(async (tx) => {
             return await tx
                 .select({
                     count: count(storesTable.id),
                 })
-                .from(storesTable);
+                .from(storesTable)
+                .where(eq(storesTable.is_active, true));
         });
-        // const result = await db
-        //     .select({
-        //         count: count(storesTable.id),
-        //     })
-        //     .from(storesTable);
+
+        result = result[0]?.count ?? 0;
 
         return {
             success: true,
@@ -910,7 +915,178 @@ export async function getStoreCount() {
         return {
             success: false,
             error: err.message,
-            data: [],
+            data: null,
+        };
+    }
+}
+
+// home: get milk and bread stock counts due today - milk/bread due monday, only milk due thursday
+export async function getMilkBreadDueTodayCount(storeId: number, dow: string) {
+    if (dow.toLowerCase() !== 'monday' && dow.toLowerCase() !== 'thursday') {
+        return {
+            success: true,
+            error: null,
+            data: 0,
+        };
+    }
+
+    try {
+        const result = await queryWithAuthRole(async (tx) => {
+            let itemCount;
+            let todayStockCount;
+
+            if (dow.toLowerCase() === 'monday') {
+                itemCount = await tx
+                    .select({
+                        count: count(itemsTable.id),
+                    })
+                    .from(itemsTable)
+                    .where(
+                        and(
+                            or(
+                                eq(itemsTable.cron_categ, 'MILK'),
+                                eq(itemsTable.cron_categ, 'BREAD')
+                            ),
+                            eq(itemsTable.is_active, true)
+                        )
+                    );
+                itemCount = itemCount[0]?.count ?? 0;
+
+                if (storeId === 0) {
+                    // admin view
+                    let storeCount = await tx
+                        .select({
+                            count: count(storesTable.id),
+                        })
+                        .from(storesTable)
+                        .where(eq(storesTable.is_active, true));
+
+                    storeCount = storeCount[0]?.count ?? 0;
+
+                    itemCount = itemCount * storeCount;
+
+                    todayStockCount = await tx
+                        .select({
+                            count: count(stockTable.id),
+                        })
+                        .from(stockTable)
+                        .innerJoin(
+                            itemsTable,
+                            eq(itemsTable.id, stockTable.item_id)
+                        )
+                        .where(
+                            and(
+                                or(
+                                    eq(itemsTable.cron_categ, 'MILK'),
+                                    eq(itemsTable.cron_categ, 'BREAD')
+                                ),
+                                sql`${stockTable.submitted_at} >= NOW() - INTERVAL '24 hours'`
+                            )
+                        );
+                    todayStockCount = todayStockCount[0]?.count ?? 0;
+                } else {
+                    // store view
+                    todayStockCount = await tx
+                        .select({
+                            count: count(stockTable.id),
+                        })
+                        .from(stockTable)
+                        .innerJoin(
+                            itemsTable,
+                            eq(itemsTable.id, stockTable.item_id)
+                        )
+                        .where(
+                            and(
+                                eq(stockTable.store_id, storeId),
+                                or(
+                                    eq(itemsTable.cron_categ, 'MILK'),
+                                    eq(itemsTable.cron_categ, 'BREAD')
+                                ),
+                                sql`${stockTable.submitted_at} >= NOW() - INTERVAL '24 hours'`
+                            )
+                        );
+                    todayStockCount = todayStockCount[0]?.count ?? 0;
+                }
+            } else if (dow.toLowerCase() === 'thursday') {
+                itemCount = await tx
+                    .select({
+                        count: count(itemsTable.id),
+                    })
+                    .from(itemsTable)
+                    .where(
+                        and(
+                            eq(itemsTable.cron_categ, 'MILK'),
+                            eq(itemsTable.is_active, true)
+                        )
+                    );
+                itemCount = itemCount[0]?.count ?? 0;
+
+                if (storeId === 0) {
+                    // admin view
+                    let storeCount = await tx
+                        .select({
+                            count: count(storesTable.id),
+                        })
+                        .from(storesTable)
+                        .where(eq(storesTable.is_active, true));
+
+                    storeCount = storeCount[0]?.count ?? 0;
+
+                    itemCount = itemCount * storeCount;
+
+                    todayStockCount = await tx
+                        .select({
+                            count: count(stockTable.id),
+                        })
+                        .from(stockTable)
+                        .innerJoin(
+                            itemsTable,
+                            eq(itemsTable.id, stockTable.item_id)
+                        )
+                        .where(
+                            and(
+                                eq(itemsTable.cron_categ, 'MILK'),
+                                sql`${stockTable.submitted_at} >= NOW() - INTERVAL '24 hours'`
+                            )
+                        );
+                    todayStockCount = todayStockCount[0]?.count ?? 0;
+                } else {
+                    // store view
+                    todayStockCount = await tx
+                        .select({
+                            count: count(stockTable.id),
+                        })
+                        .from(stockTable)
+                        .innerJoin(
+                            itemsTable,
+                            eq(itemsTable.id, stockTable.item_id)
+                        )
+                        .where(
+                            and(
+                                eq(stockTable.store_id, storeId),
+                                eq(itemsTable.cron_categ, 'MILK'),
+                                sql`${stockTable.submitted_at} >= NOW() - INTERVAL '24 hours'`
+                            )
+                        );
+                    todayStockCount = todayStockCount[0]?.count ?? 0;
+                }
+            }
+
+            return Math.abs(itemCount - todayStockCount);
+        });
+        return {
+            success: true,
+            error: null,
+            data: result,
+            // data: [{ count: result }],
+        };
+    } catch (error) {
+        // console.log('SELECT error: ', error);
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: null,
         };
     }
 }
