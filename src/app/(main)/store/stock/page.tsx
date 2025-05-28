@@ -9,9 +9,14 @@ import StockTable from './components/stock-table';
 // import MilkBreadSheet from './components/milk-bread-sheet';
 import { NoStockDue } from '@/components/placeholders';
 import SheetTemplate from '@/components/sheet/sheet-template';
-import { Milk } from 'lucide-react';
+import { Info, Milk } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SheetData from '@/components/sheet/sheet-data';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 // import { useToast } from '@/hooks/use-toast';
 type StockItem = {
     id: number;
@@ -82,7 +87,25 @@ export default function Stock() {
             <HeaderBar pageName={'Store'} />
             <section className='flex justify-between items-center'>
                 <PagesNavBar />
-                <div className='flex gap-2'>
+                <div className='flex gap-1 items-center'>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant='ghost'
+                                className='flex gap-2 text-myDarkbrown hover:bg-transparent hover:text-myDarkbrown/60'
+                            >
+                                <Info /> <p className='text-xs'>Info</p>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
+                            <p>Your store's CTC/CCP stock are due on a weekly basis.</p>
+                            <p>
+                                Milk and bread stock can be submitted instead using the 'Milk
+                                & Bread' button at top of page, and their stock counts
+                                are due every monday and/or thursday.
+                            </p>
+                        </PopoverContent>
+                    </Popover>
                     <SheetTemplate
                         title='Milk & Bread Stock'
                         trigger={

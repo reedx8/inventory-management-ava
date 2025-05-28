@@ -72,7 +72,7 @@ export default function Stores() {
                     );
                 }
             } catch (error) {
-                console.error(error);
+                console.log(error);
                 setMergedData([]);
                 // setData([]);
                 // setStoreData([]);
@@ -87,7 +87,7 @@ export default function Stores() {
             <HeaderBar pageName={'Store'} />
             <section className='flex justify-between items-center'>
                 <PagesNavBar />
-                <div className='flex gap-2'>
+                <div className='flex gap-1 items-center'>
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant='ghost' className='flex gap-2 text-myDarkbrown hover:bg-transparent hover:text-myDarkbrown/60'>

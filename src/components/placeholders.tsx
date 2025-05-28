@@ -4,6 +4,7 @@ import noPastriesPic from '/public/illustrations/cooking.svg';
 import noStockPic from '/public/illustrations/empty.svg';
 import baristaPic from '/public/illustrations/barista.svg';
 import wellDone from '/public/illustrations/wellDone.svg';
+import noMilkBreadPic from '/public/illustrations/groceries.svg';
 
 // Coming soon placeholder
 export function ComingSoon({ subtitle }: { subtitle: string }) {
@@ -22,7 +23,7 @@ export function ComingSoon({ subtitle }: { subtitle: string }) {
     );
 }
 
-// No orders placeholder (supply chain coordinator)
+// No orders placeholder (order manager)
 export function NoOrders({ subtitle }: { subtitle: string }) {
     return (
         <div className='w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] flex flex-col items-center justify-center gap-2 bg-white p-2 rounded-2xl shadow-md mt-2'>
@@ -44,7 +45,7 @@ export function NoOrders({ subtitle }: { subtitle: string }) {
     );
 }
 
-// No passtries due placeholder
+// No pastries due placeholder
 export function NoPastriesDue() {
     return (
         <div className='w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] flex flex-col items-center justify-center gap-1 bg-white p-2 rounded-2xl shadow-md mt-2'>
@@ -78,7 +79,7 @@ export function NoStockDue() {
                 height={300}
                 className='drop-shadow-lg'
             />
-            <p className='text-xl sm:text-2xl text-gray-600'>No Stock Due!</p>
+            <p className='text-xl sm:text-2xl text-gray-600'>No CTC/CCP Stock Due!</p>
             <p className='text-xs sm:text-sm text-gray-400'>
                 All stock counts have been sent
             </p>
@@ -98,13 +99,37 @@ export function NoStoreOrdersDue() {
                 className='drop-shadow-lg'
             />
             <p className='text-xl sm:text-2xl text-gray-600'>No Orders Due!</p>
-            <p className='text-xs sm:text-sm text-gray-400'>All orders have been sent</p>
+            <p className='text-xs sm:text-sm text-gray-400'>
+                All orders have been sent
+            </p>
             {/* <p className='text-sm text-gray-400'>
         Create an order below if needed
     </p>
     <Button size='lg' variant='myTheme'>
         Create Order
     </Button> */}
+        </div>
+    );
+}
+
+export function NoMilkBreadDue() {
+    return (
+        <div className='w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] flex flex-col items-center justify-center gap-1 bg-white p-2 rounded-2xl shadow-md mt-2'>
+        {/* <div className='flex flex-col items-center justify-center gap-2 mb-4'> */}
+            <Image
+                src={noMilkBreadPic}
+                alt='no milk & bread orders pic'
+                width={250}
+                height={250}
+                className='drop-shadow-lg'
+            />
+            <p className='text-xl sm:text-2xl text-gray-600'>
+                No Milk & Bread Orders!
+            </p>
+            <p className='text-xs sm:text-sm text-gray-400'>
+                All orders have been completed
+            </p>
+            {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
         </div>
     );
 }

@@ -32,7 +32,7 @@ export default function SheetData({
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [parCategory, setParCategory] = useState<string>('Pastry');
     const [category, setCategory] = useState<string>('Milk');
-    const [ placeholder ] = useState<string>(() => {
+    const [placeholder] = useState<string>(() => {
         if (contentType === 'store:par') {
             return parCategory;
         } else if (
@@ -53,7 +53,6 @@ export default function SheetData({
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault(); // stop page from refreshing
         setFormFeedback(null);
-        // console.log(data);
 
         if (
             contentType === 'store:par' &&
@@ -462,6 +461,7 @@ export default function SheetData({
                                             type='number'
                                             id={item.id.toString()}
                                             className='w-16 rounded-sm border-2 h-8 pl-1'
+                                            // defaultValue instead of value to avoid browser restricting submit on invalid input but valid field value, confusing UX
                                             defaultValue={
                                                 item.qty === null
                                                     ? 0
@@ -471,19 +471,19 @@ export default function SheetData({
                                                           ).toFixed(2)
                                                       )
                                             }
-                                            // value={item.level ?? 0}
                                             placeholder='0'
                                             step={0.5}
                                             disabled={isSubmitting}
+                                            autoComplete='off' // prevents auto-fill in most cases, which wont trigger onChange
                                             onChange={(e) => {
+                                                let value = e.target.value;
                                                 setData((prev) =>
                                                     prev?.map((p) =>
                                                         p.id === item.id
                                                             ? {
                                                                   ...p,
                                                                   qty: Number(
-                                                                      e.target
-                                                                          .value
+                                                                      value
                                                                   ),
                                                                   was_updated:
                                                                       true,
@@ -492,16 +492,25 @@ export default function SheetData({
                                                     )
                                                 );
                                             }}
-                                            //                       ...p,
-                                            //                       count: Number(
-                                            //                           e.target
-                                            //                               .value
-                                            //                       ),
-                                            //                   }
-                                            //                 : p
-                                            //         )
-                                            //     )
-                                            // }
+                                            // onBlur just in case auto-fill still occurs in browser, isNaN check to prevent null object
+                                            onBlur={(e) => {
+                                                let value =
+                                                    e.currentTarget.value;
+                                                setData((prev) =>
+                                                    prev?.map((p) =>
+                                                        p.id === item.id
+                                                            ? {
+                                                                  ...p,
+                                                                  qty: Number(
+                                                                      value
+                                                                  ),
+                                                                  was_updated:
+                                                                      true,
+                                                              }
+                                                            : p
+                                                    )
+                                                );
+                                            }}
                                             // onFocus and onClick allows consistent selection of all text in input field
                                             onFocus={(e) => {
                                                 setTimeout(() => {
@@ -513,6 +522,7 @@ export default function SheetData({
                                                     e.target as HTMLInputElement
                                                 ).select()
                                             }
+                                            // onWheel to prevent value from being changed by scrolling
                                             onWheel={(e) =>
                                                 e.currentTarget.blur()
                                             }

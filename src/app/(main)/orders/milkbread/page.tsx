@@ -12,8 +12,14 @@ import { useToast } from '@/hooks/use-toast';
 import SheetTemplate from '@/components/sheet/sheet-template';
 import { Button } from '@/components/ui/button';
 import SheetData from '../components/sheet-data';
-import { DollarSign, Edit2 } from 'lucide-react';
+import { DollarSign, Edit2, Info } from 'lucide-react';
 import SheetDataCostUnit from '../components/sheet-data-costunit';
+import { NoMilkBreadDue } from '@/components/placeholders';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 
 // const dummyData: MilkBreadOrder[] = [
 //     {
@@ -139,11 +145,38 @@ export default function MilkBread() {
             <HeaderBar pageName={'Orders'} />
             <section className='flex justify-between'>
                 <PagesNavBar />
-                <div className='flex gap-2 items-center'>
+                <div className='flex gap-1 items-center'>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant='ghost'
+                                className='flex gap-2 text-myDarkbrown hover:bg-transparent hover:text-myDarkbrown/60'
+                            >
+                                <Info /> <p className='text-xs'>Info</p>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
+                            <p>
+                                Each store's stock counts are filtered by category,
+                                and store location (see store dropdown), and
+                                stores that still need orders completed are
+                                marked by a dot in that dropdown.
+                            </p>
+                            <p>
+                                Submitting will only submit orders for the
+                                currently selected category and store.
+                            </p>
+                            <p>
+                                All orders have been submitted only once 'No Milk &
+                                Bread Orders' is shown.
+                            </p>
+                        </PopoverContent>
+                    </Popover>
                     <SheetTemplate
                         trigger={
                             <Button variant={'myTheme3'} className='text-xs'>
-                                <DollarSign className='w-4 h-4' /> Edit Cost/Unit
+                                <DollarSign className='w-4 h-4' /> Edit
+                                Cost/Unit
                             </Button>
                         }
                         title={'Edit Cost/Unit'}
@@ -209,20 +242,7 @@ export default function MilkBread() {
             )}
             {!isLoading && data && data.length === 0 && (
                 <section className='flex flex-col items-center justify-center gap-2 mb-4'>
-                    <Image
-                        src={noMilkBreadPic}
-                        alt='no milk & bread orders pic'
-                        width={250}
-                        height={250}
-                        className='drop-shadow-lg'
-                    />
-                    <p className='text-2xl text-neutral-600'>
-                        No Milk & Bread Orders!
-                    </p>
-                    <p className='text-sm text-neutral-400'>
-                        All orders have been completed
-                    </p>
-                    {/* <Button size='lg' variant='myTheme'>Create Order</Button> */}
+                    <NoMilkBreadDue />
                 </section>
             )}
         </main>

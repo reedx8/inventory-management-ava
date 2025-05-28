@@ -216,15 +216,13 @@ export default function SheetDataCostUnit({
                                                 name='count'
                                                 type='number'
                                                 id={item.vendor_item_id.toString()}
-                                                className='w-16 rounded-sm border-2 h-8 pl-1'
+                                                className='w-20 rounded-sm border-2 h-8 pl-1'
                                                 defaultValue={
                                                     item.cost_unit === null
                                                         ? 0
                                                         : Number(
-                                                              Number(
-                                                                  item.cost_unit
-                                                              ).toFixed(2)
-                                                          )
+                                                              item.cost_unit
+                                                          ).toFixed(2)
                                                 }
                                                 // value={item.level ?? 0}
                                                 placeholder='0'
