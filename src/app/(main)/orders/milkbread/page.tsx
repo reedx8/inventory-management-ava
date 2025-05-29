@@ -157,14 +157,14 @@ export default function MilkBread() {
                         </PopoverTrigger>
                         <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
                             <p>
-                                Each store's stock counts are filtered by category,
+                                Each store's stock counts are filtered by item category
                                 and store location (see store dropdown), and
                                 stores that still need orders completed are
                                 marked by a dot in that dropdown.
                             </p>
                             <p>
                                 Submitting will only submit orders for the
-                                currently selected category and store.
+                                currently selected category and store. Data is sent to spreadsheets in IMS folder.
                             </p>
                             <p>
                                 All orders have been submitted only once 'No Milk &

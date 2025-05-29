@@ -521,7 +521,7 @@ export default function OrdersTable({
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>
-                                        {`Submit All ${
+                                        {`Submit ${
                                             activeCateg[0] +
                                             activeCateg.slice(1).toLowerCase()
                                         } Orders? (${
@@ -536,6 +536,11 @@ export default function OrdersTable({
                                                         ]
                                                     } are completed. Otherwise press Cancel.`}
                                     </AlertDialogDescription>
+                                    {activeCateg.toUpperCase() === 'BREAD' && (
+                                        <AlertDialogDescription className='text-xs text-red-500'>
+                                            {`Note: First ensure "Grand Central Orders 2025" spreadsheet is ready for new week's data, then press Submit.`}
+                                        </AlertDialogDescription>
+                                    )}
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>
