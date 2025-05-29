@@ -253,7 +253,13 @@ export const weekCloseTable = pgTable(
         submitted_at: timestamp('submitted_at', {
             precision: 3,
             withTimezone: true,
-        }), // When item's stock count was submitted by store managers
+        })
+            .notNull()
+            .defaultNow(), // When item's stock count was originally submitted by store managers
+        updated_at: timestamp('updated_at', {
+            precision: 3,
+            withTimezone: true,
+        }), // When item's stock count was last updated by store managers, if any
     },
     (table) => {
         return [

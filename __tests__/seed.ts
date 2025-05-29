@@ -28,9 +28,9 @@ const order_qtys = [
 
 async function main() {
     // seedItemsVendorsTables(); // Items and vendors table need to be seeded first
-    // seedTodaysDailyBakeryOrders(false); // then you can do storeBakeryOrders and bakeryOrders
+    seedTodaysDailyBakeryOrders(true); // then you can do storeBakeryOrders and bakeryOrders
     // seedVendorsTable();
-    seedMilkBreadStock(true, false);
+    // seedMilkBreadStock(true, false);
 }
 
 // seed milk bread stock/stock orders for either order managers (stock orders) or store managers (stock)

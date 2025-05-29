@@ -23,6 +23,7 @@ import {
     vendorsTable,
     // storeOrdersTable,
     parsTable,
+    // weekCloseTable,
 } from '../schema';
 import { PgColumn } from 'drizzle-orm/pg-core';
 import { config } from 'dotenv';
@@ -1252,6 +1253,59 @@ export async function getCostUnit(categ: string) {
         };
     }
 }
+
+// get week close data for store managers
+// export async function getWeekClose(storeId: number, categ: string) {
+//     try {
+//         const result = await queryWithAuthRole(async (tx) => {
+//             return await tx
+//                 .select({
+//                     id: sql`COALESCE(${weekCloseTable.id}, ${itemsTable.id})`,
+//                     name: itemsTable.name,
+//                     categ: itemsTable.cron_categ,
+//                     count: sql`COALESCE(${weekCloseTable.count}, 0)`,
+//                     closed_count: sql`COALESCE(${weekCloseTable.closed_count}, 0)`,
+//                     sealed_count: sql`COALESCE(${weekCloseTable.sealed_count}, 0)`,
+//                     open_items_weight: sql`COALESCE(${weekCloseTable.open_items_weight}, 0)`,
+//                     expired_count: sql`COALESCE(${weekCloseTable.expired_count}, 0)`,
+//                     unexpired_count: sql`COALESCE(${weekCloseTable.unexpired_count}, 0)`,
+//                     reused_count: sql`COALESCE(${weekCloseTable.reused_count}, 0)`,
+//                     submitted_at: weekCloseTable.submitted_at, // use the null value client-side
+//                     updated_at: weekCloseTable.updated_at, // use the null value client-side
+//                     was_updated: false,
+//                 })
+//                 .from(itemsTable)
+//                 .leftJoin(
+//                     weekCloseTable,
+//                     eq(weekCloseTable.item_id, itemsTable.id)
+//                 )
+//                 .leftJoin(
+//                     storesTable,
+//                     eq(storesTable.id, weekCloseTable.store_id)
+//                 )
+//                 .where(
+//                     and(
+//                         eq(itemsTable.cron_categ, categ.toUpperCase()),
+//                         eq(itemsTable.is_active, true)
+//                     )
+//                 )
+//                 .orderBy(asc(itemsTable.id));
+//         });
+
+//         return {
+//             success: true,
+//             error: null,
+//             data: result,
+//         };
+//     } catch (error) {
+//         const err = error as Error;
+//         return {
+//             success: false,
+//             error: err.message,
+//             data: [],
+//         };
+//     }
+// }
 
 // Helper functions
 

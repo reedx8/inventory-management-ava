@@ -184,7 +184,7 @@ export default function Home() {
                 </div> */}
                 <h2 className='text-2xl flex'>Due Today {scheduleBtn()}</h2>
                 <div className='flex flex-wrap gap-3 sm:grid sm:grid-cols-[auto_1fr] sm:gap-3'>
-                    <Card className='h-full shadow-md flex flex-col items-center min-w-[250px]'>
+                    <Card className='shadow-md flex flex-col items-center min-w-[250px]'>
                         <CardHeader className='text-center'>
                             <CardTitle className='font-normal'>
                                 Orders Due
@@ -198,7 +198,7 @@ export default function Home() {
                             {/* {miniOrderCards(bakeryDueTodayCount)} */}
                         </CardContent>
                     </Card>
-                    <Card className='h-full shadow-md flex flex-col items-center'>
+                    <Card className='shadow-md flex flex-col items-center'>
                         <CardHeader className='text-center'>
                             <CardTitle className='font-normal'>
                                 Stock Due

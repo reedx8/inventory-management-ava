@@ -363,17 +363,18 @@ const PrintView = ({
     return createPortal(
         <div className={`${openPrintView ? 'print-view-overlay' : ''} fixed inset-0 w-screen h-screen z-[999999] bg-white flex flex-col px-8`} >
             <Button
-                className='button-view fixed top-1 right-1 bg-myDarkbrown/30 text-myDarkbrown hover:bg-neutral-100'
+                className='button-view fixed top-2 right-2'
+                variant='myTheme'
                 onClick={() => setOpenPrintView(false)}
             >
                 <Minimize2 style={{ width: '20px', height: '20px' }} />
             </Button>
             <Button
-                className='button-view fixed bottom-1 right-1'
+                className='button-view fixed bottom-2 right-2 text-md'
                 variant='myTheme'
                 onClick={() => window.print()}
             >
-                <Printer />
+                <Printer style={{ width: '20px', height: '20px' }} />
                 Print
             </Button>
             <div className='grid grid-cols-1 overflow-y-auto'>
@@ -388,7 +389,7 @@ const PrintView = ({
                 </div>
                 <div className='grid grid-cols-1'>
                     {data.map((order) => (
-                        <div key={order.id} className='grid grid-cols-9 text-xs border'>
+                        <div key={order.id} className='grid grid-cols-9 text-sm border'>
                             <p className='col-span-4 border-r'>{order.name}</p>
                             {STORE_LOCATIONS.map((store_location) => (
                                 <p key={store_location} className='text-center border-r'>
