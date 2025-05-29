@@ -20,12 +20,15 @@ import { useToast } from '@/hooks/use-toast';
 
 type ContentType = 'store:milk' | 'store:bread' | 'store:par' | 'bakery:orders';
 
+// Used in stores page (edit pars) and stores stock page (milk/bread)
 export default function SheetData({
     storeId,
     contentType,
+    setRefreshParent,
 }: {
     storeId: number;
     contentType: ContentType;
+    setRefreshParent: React.Dispatch<React.SetStateAction<number>> | null;
 }) {
     const [data, setData] = useState<SheetDataType[]>([]);
     const [formFeedback, setFormFeedback] = useState<string | null>(null);
@@ -45,7 +48,7 @@ export default function SheetData({
         }
     });
     const [dowSelection, setDowSelection] = useState<string>('Monday');
-    const [ todaysDow ] = useState<number>(new Date().getDay());
+    const [ todaysDow ] = useState<number>(new Date().getDay()); // for milk/bread stock count
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [refreshStockTrigger, setRefreshStockTrigger] = useState<number>(0); // only use for milk/bread
     const { toast } = useToast();
@@ -115,6 +118,11 @@ export default function SheetData({
                     description: errMsg,
                     variant: 'destructive',
                 });
+            }
+
+            // first check if not null
+            if (setRefreshParent) {
+                setRefreshParent((prev) => prev + 1);
             }
         } else if (
             contentType === 'store:milk' ||

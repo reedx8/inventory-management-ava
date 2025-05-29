@@ -363,6 +363,7 @@ export default function SheetData({
                                             placeholder='0'
                                             step={0.5}
                                             disabled={isSubmitting}
+                                            autoComplete='off'
                                             onChange={(e) => {
                                                 setData((prev) =>
                                                     prev?.map((p) =>

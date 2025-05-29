@@ -102,7 +102,7 @@ export default function Stock() {
                             <p>
                                 Milk and bread stock can be submitted instead using the 'Milk
                                 & Bread' button at top of page, and their stock counts
-                                are due every monday and/or thursday.
+                                are due every Monday and/or Thursday.
                             </p>
                         </PopoverContent>
                     </Popover>
@@ -121,6 +121,7 @@ export default function Stock() {
                         <SheetData
                             storeId={userStoreId}
                             contentType='store:milk'
+                            setRefreshParent={null}
                         />
                     </SheetTemplate>
                     {/* <MilkBreadSheet /> */}

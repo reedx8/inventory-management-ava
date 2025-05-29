@@ -228,6 +228,7 @@ export default function SheetDataCostUnit({
                                                 placeholder='0'
                                                 step='any'
                                                 disabled={isSubmitting}
+                                                autoComplete='off'
                                                 onChange={(e) => {
                                                     setData((prev) =>
                                                         prev?.map((p) =>

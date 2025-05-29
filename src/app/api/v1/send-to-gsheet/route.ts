@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    // TODO; check auth here
     const supabase = await createClient();
     const {
         data: { user },

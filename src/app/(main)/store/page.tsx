@@ -23,6 +23,7 @@ export default function Stores() {
     const [mergedData, setMergedData] = useState<OrderItem[] | undefined>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+    const [refreshParentOnParChange, setRefreshParentOnParChange] = useState<number>(0);
 
     useEffect(() => {
         const fetchStoreOrders = async () => {
@@ -80,7 +81,7 @@ export default function Stores() {
             setIsLoading(false);
         };
         fetchStoreOrders();
-    }, [userRole, userStoreId, refreshTrigger]);
+    }, [userRole, userStoreId, refreshTrigger, refreshParentOnParChange]);
 
     return (
         <main>
@@ -116,7 +117,7 @@ export default function Stores() {
                         isCollapsible={true}
                     >
                         {userRole === 'store_manager' ? (
-                            <SheetData storeId={userStoreId} contentType='store:par' />
+                            <SheetData storeId={userStoreId} contentType='store:par' setRefreshParent={setRefreshParentOnParChange} />
                         ) : (
                             <p className='text-neutral-500 text-sm text-center mt-4'>Admin view work in progress</p>
                         )}
