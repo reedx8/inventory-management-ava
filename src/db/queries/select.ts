@@ -10,6 +10,8 @@ import {
     asc,
     count,
     desc,
+    not,
+    between,
 } from 'drizzle-orm';
 import { db } from '../index';
 import {
@@ -21,9 +23,8 @@ import {
     bakeryOrdersTable,
     storeBakeryOrdersTable,
     vendorsTable,
-    // storeOrdersTable,
     parsTable,
-    // weekCloseTable,
+    weekCloseTable,
 } from '../schema';
 import { PgColumn } from 'drizzle-orm/pg-core';
 import { config } from 'dotenv';
@@ -1255,6 +1256,218 @@ export async function getCostUnit(categ: string) {
 }
 
 // get week close data for store managers
+export async function getMeatWeekClose(
+    storeId: number,
+    // categ: string,
+    subCateg: string
+) {
+    let desired_col: string;
+    // categ = categ.toUpperCase();
+    subCateg = subCateg.toLowerCase();
+
+    if (subCateg === 'closed') {
+        desired_col = 'closed_count';
+    } else if (subCateg === 'sealed') {
+        desired_col = 'sealed_count';
+    } else if (subCateg === 'weight') {
+        desired_col = 'open_items_weight';
+    } else {
+        return {
+            success: false,
+            error: 'Invalid sub-category',
+            data: [],
+        };
+    }
+
+    // if (subCateg === 'count') {
+    //     desired_col = 'count';
+    // } else if (subCateg === 'expired') {
+    //     desired_col = 'expired_count';
+    // } else if (subCateg === 'reused') {
+    //     desired_col = 'reused_count';
+    // } else {
+    //     return {
+    //         success: false,
+    //         error: 'Invalid sub-category',
+    //         data: [],
+    //     };
+    // }
+
+    try {
+        const result = await queryWithAuthRole(async (tx) => {
+            return await tx
+                .select({
+                    id: sql`COALESCE(${weekCloseTable.id}, ${itemsTable.id})`,
+                    name: itemsTable.name,
+                    categ: itemsTable.cron_categ,
+                    qty: weekCloseTable[
+                        desired_col as keyof typeof weekCloseTable
+                    ],
+                    store_id: sql`COALESCE(${weekCloseTable.store_id}, ${storeId})`,
+                    submitted_at: weekCloseTable.submitted_at, // use the null value client-side
+                    updated_at: weekCloseTable.updated_at, // use the null value client-side
+                })
+                .from(itemsTable)
+                .leftJoin(
+                    weekCloseTable,
+                    and(
+                        eq(weekCloseTable.item_id, itemsTable.id),
+                        eq(weekCloseTable.store_id, storeId)
+                    )
+                )
+                .where(
+                    and(
+                        or(
+                            eq(itemsTable.id, 98), // ham, turkey, and chicken id's
+                            eq(itemsTable.id, 99),
+                            eq(itemsTable.id, 100)
+                        ),
+                        eq(itemsTable.is_active, true)
+                    )
+                )
+                .orderBy(asc(itemsTable.id));
+        });
+
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
+        };
+    }
+}
+
+// get week close data for store managers
+export async function getRetailWeekClose(storeId: number, subCateg: string) {
+    let desired_col: string;
+    subCateg = subCateg.toLowerCase();
+
+    if (subCateg === 'count') {
+        desired_col = 'count';
+    } else if (subCateg === 'expired') {
+        desired_col = 'expired_count';
+    } else if (subCateg === 'reused') {
+        desired_col = 'reused_count';
+    } else {
+        return {
+            success: false,
+            error: 'Invalid sub-category',
+            data: [],
+        };
+    }
+
+    try {
+        const result = await queryWithAuthRole(async (tx) => {
+            return await tx
+                .select({
+                    id: sql`COALESCE(${weekCloseTable.id}, ${itemsTable.id})`,
+                    name: itemsTable.name,
+                    categ: itemsTable.cron_categ,
+                    qty: weekCloseTable[
+                        desired_col as keyof typeof weekCloseTable
+                    ],
+                    store_id: sql`COALESCE(${weekCloseTable.store_id}, ${storeId})`,
+                    submitted_at: weekCloseTable.submitted_at, // use the null value client-side
+                    updated_at: weekCloseTable.updated_at, // use the null value client-side
+                })
+                .from(itemsTable)
+                .leftJoin(
+                    weekCloseTable,
+                    and(
+                        eq(weekCloseTable.item_id, itemsTable.id),
+                        eq(weekCloseTable.store_id, storeId)
+                    )
+                )
+                .where(
+                    and(
+                        or(
+                            eq(itemsTable.id, 62), // retail coffee bean id's
+                            eq(itemsTable.id, 64),
+                            eq(itemsTable.id, 66),
+                            eq(itemsTable.id, 67),
+                            eq(itemsTable.id, 69),
+                            eq(itemsTable.id, 71),
+                            eq(itemsTable.id, 73),
+                            eq(itemsTable.id, 75)
+                        ),
+                        eq(itemsTable.is_active, true)
+                    )
+                )
+                .orderBy(asc(itemsTable.id));
+        });
+
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
+        };
+    }
+}
+
+// get week close data for store managers
+export async function getPastryWeekClose(storeId: number) {
+    try {
+        const result = await queryWithAuthRole(async (tx) => {
+            return await tx
+                .select({
+                    id: sql`COALESCE(${weekCloseTable.id}, ${itemsTable.id})`,
+                    name: itemsTable.name,
+                    categ: itemsTable.cron_categ,
+                    qty: weekCloseTable.count,
+                    store_id: sql`COALESCE(${weekCloseTable.store_id}, ${storeId})`,
+                    submitted_at: weekCloseTable.submitted_at, // use the null value client-side
+                    updated_at: weekCloseTable.updated_at, // use the null value client-side
+                })
+                .from(itemsTable)
+                .leftJoin(
+                    weekCloseTable,
+                    and(
+                        eq(weekCloseTable.item_id, itemsTable.id),
+                        eq(weekCloseTable.store_id, storeId)
+                    )
+                )
+                .where(
+                    and(
+                        eq(itemsTable.cron_categ, 'PASTRY'),
+                        // and not between 14 - 23
+                        not(between(itemsTable.id, 14, 23)), // no turnovers, muffins, or croissants
+                        not(between(itemsTable.id, 27, 28)), // no choc chip cookie or zuzu
+                        not(between(itemsTable.id, 39, 47)), // just use square size of the signature cakes
+                        eq(itemsTable.is_active, true)
+                    )
+                )
+                .orderBy(asc(itemsTable.id));
+        });
+
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
+        };
+    }
+}
+
+// get week close data for store managers
 // export async function getWeekClose(storeId: number, categ: string) {
 //     try {
 //         const result = await queryWithAuthRole(async (tx) => {
@@ -1277,11 +1490,10 @@ export async function getCostUnit(categ: string) {
 //                 .from(itemsTable)
 //                 .leftJoin(
 //                     weekCloseTable,
-//                     eq(weekCloseTable.item_id, itemsTable.id)
-//                 )
-//                 .leftJoin(
-//                     storesTable,
-//                     eq(storesTable.id, weekCloseTable.store_id)
+//                     and(
+//                         eq(weekCloseTable.item_id, itemsTable.id),
+//                         eq(weekCloseTable.store_id, storeId)
+//                     )
 //                 )
 //                 .where(
 //                     and(

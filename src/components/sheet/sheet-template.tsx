@@ -29,6 +29,7 @@ import {
 import { ChevronsUpDown, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// This is used in all, if not the majority of, sheets in the app to wrap sheet's data
 const SheetTemplate = ({
     children,
     trigger,

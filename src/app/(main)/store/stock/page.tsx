@@ -9,7 +9,7 @@ import StockTable from './components/stock-table';
 // import MilkBreadSheet from './components/milk-bread-sheet';
 import { NoStockDue } from '@/components/placeholders';
 import SheetTemplate from '@/components/sheet/sheet-template';
-import { Info, Milk } from 'lucide-react';
+import { ClipboardCheck, Info, Milk } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SheetData from '@/components/sheet/sheet-data';
 import {
@@ -17,6 +17,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import SundayCloseData from './components/sunday-close-data';
 // import { useToast } from '@/hooks/use-toast';
 type StockItem = {
     id: number;
@@ -100,12 +101,26 @@ export default function Stock() {
                         <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
                             <p>Your store's CTC/CCP stock are due on a weekly basis.</p>
                             <p>
-                                Milk and bread stock can be submitted instead using the 'Milk
+                                Milk and bread stock can be submitted using the 'Milk
                                 & Bread' button at top of page, and their stock counts
                                 are due every Monday and/or Thursday.
                             </p>
+                            <p>
+                                Sunday Close can be performed using the 'Sunday Close' button at top of page, and is due at the end of every Sunday. 
+                            </p>
                         </PopoverContent>
                     </Popover>
+                    <SheetTemplate
+                        title='Sunday Close'
+                        trigger={
+                            <Button variant='myTheme3' className='text-xs'>
+                                <ClipboardCheck />
+                                <p className='text-xs'>Sunday Close</p>
+                            </Button>
+                        }
+                    >
+                        <SundayCloseData storeId={userStoreId} />
+                    </SheetTemplate>
                     <SheetTemplate
                         title='Milk & Bread Stock'
                         trigger={

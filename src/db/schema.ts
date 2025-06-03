@@ -25,17 +25,17 @@ export const itemsTable = pgTable(
         name: varchar('name').notNull().unique(), // General/internal name of item + size of item (if any). Avoid using brand name, due to vendor_items table, but its ok if you do
         vendor_id: integer('vendor_id')
             .notNull()
-            .references(() => vendorsTable.id), // default vendor that supplies this item
+            .references(() => vendorsTable.id), // default/dummy/placeholder vendor that typically supplies this item. Simply used to fill orders.vendor_id as a rough guess of the vendor that will supply this item, no other use. However for CTC items its just ava design, and not what you may think CCP
         units: varchar('units'), // Items unit from its primary vendor (or bakery), ie quantity of order for ordering, not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc). Just change in csv if vendor changed-to requires different unit
         // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
         list_price: decimal('list_price', { precision: 10, scale: 2 })
             .notNull()
             .default(sql`0.00`), // Default, most recent list price for item, unless specified in vendor_items table
-        store_categ: varchar('store_categ').notNull(), // categories for store managers
+        cron_categ: varchar('cron_categ').default('NONE'), // Most important category field that is used for all order schedules throughout app. Maps to how their gsheets was organized (CTC -> Coffee, Tea, Chocolate, CCP&SYCO -> CCP&SYSCO, Monday Thursday Inventory -> Milk/ Bread, Bakery Orders -> PASTRY). And ensured no overlap between them
+        main_categ: varchar('main_categ'), // sorting category, used only for sorting output of items in specific way (eg cakes)
+        sub_categ: varchar('sub_categ'), // 2nd sorting category (used only when main_categ is not enough to sort items as biz desires)
         invoice_categ: varchar('invoice_categ').notNull().default('NONE'), // accounting category for invoicing
-        main_categ: varchar('main_categ'), // main food category (eg cakes)
-        sub_categ: varchar('sub_categ'), // food sub category (if needed)
-        cron_categ: varchar('cron_categ').default('NONE'), // convenient categories exclusively for inventory schedule and cron jobs
+        store_categ: varchar('store_categ').notNull(), // categories for store managers
         is_waste_tracked: boolean('is_waste_tracked').default(false),
         item_description: text('item_description'), // internal description of item
         is_active: boolean('is_active').notNull().default(true), // whether item is active or not for all stores
@@ -58,7 +58,7 @@ export const itemsTable = pgTable(
         return [
             check(
                 'invoice_categ_check',
-                sql`${table.invoice_categ} IN ('SANDWICH', 'PASTRY', 'FOOD', 'COOLER&EXTRAS', 'BEVERAGE', 'MISC/BATHROOM', 'CHOCOLATE&TEA', 'COFFEE', 'NONE')`
+                sql`${table.invoice_categ} IN ('PASTRY', 'COOLER&EXTRAS', 'BEVERAGE', 'MISC/BATHROOM', 'CTC', 'CCP&SYSCO', 'NONE')`
             ),
             check('positive_list_price', sql`${table.list_price} >= 0`),
             check(
@@ -67,7 +67,7 @@ export const itemsTable = pgTable(
             ),
             check(
                 'cron_category_check',
-                sql`${table.cron_categ} IN ('PASTRY', 'MILK', 'BREAD', 'RETAILBEANS', 'MEATS', 'NONE')`
+                sql`${table.cron_categ} IN ('PASTRY', 'MILK', 'BREAD', 'CHOCOLATE', 'TEA', 'COFFEE', 'CCP&SYSCO', 'NONE')`
             ),
             check(
                 'main_category_check',
