@@ -1303,6 +1303,10 @@ export async function getMeatWeekClose(
                     qty: weekCloseTable[
                         desired_col as keyof typeof weekCloseTable
                     ],
+                    was_qty_submitted:
+                        weekCloseTable[
+                            desired_col as keyof typeof weekCloseTable
+                        ], // only used for null value client-side check (if item was submitted for that specific count type. 'qty' is used for actual submission)
                     store_id: sql`COALESCE(${weekCloseTable.store_id}, ${storeId})`,
                     submitted_at: weekCloseTable.submitted_at, // use the null value client-side
                     updated_at: weekCloseTable.updated_at, // use the null value client-side
@@ -1312,7 +1316,8 @@ export async function getMeatWeekClose(
                     weekCloseTable,
                     and(
                         eq(weekCloseTable.item_id, itemsTable.id),
-                        eq(weekCloseTable.store_id, storeId)
+                        eq(weekCloseTable.store_id, storeId),
+                        sql`${weekCloseTable.submitted_at} >= now() - interval '1 day'`
                     )
                 )
                 .where(
@@ -1348,8 +1353,8 @@ export async function getRetailWeekClose(storeId: number, subCateg: string) {
     let desired_col: string;
     subCateg = subCateg.toLowerCase();
 
-    if (subCateg === 'count') {
-        desired_col = 'count';
+    if (subCateg === 'unexpired') {
+        desired_col = 'unexpired_count';
     } else if (subCateg === 'expired') {
         desired_col = 'expired_count';
     } else if (subCateg === 'reused') {
@@ -1372,6 +1377,10 @@ export async function getRetailWeekClose(storeId: number, subCateg: string) {
                     qty: weekCloseTable[
                         desired_col as keyof typeof weekCloseTable
                     ],
+                    was_qty_submitted:
+                        weekCloseTable[
+                            desired_col as keyof typeof weekCloseTable
+                        ], // only used for null value client-side check (if item was submitted for that specific count type. 'qty' is used for actual submission)
                     store_id: sql`COALESCE(${weekCloseTable.store_id}, ${storeId})`,
                     submitted_at: weekCloseTable.submitted_at, // use the null value client-side
                     updated_at: weekCloseTable.updated_at, // use the null value client-side
@@ -1381,7 +1390,8 @@ export async function getRetailWeekClose(storeId: number, subCateg: string) {
                     weekCloseTable,
                     and(
                         eq(weekCloseTable.item_id, itemsTable.id),
-                        eq(weekCloseTable.store_id, storeId)
+                        eq(weekCloseTable.store_id, storeId),
+                        sql`${weekCloseTable.submitted_at} >= now() - interval '1 day'`
                     )
                 )
                 .where(
@@ -1427,6 +1437,7 @@ export async function getPastryWeekClose(storeId: number) {
                     name: itemsTable.name,
                     categ: itemsTable.cron_categ,
                     qty: weekCloseTable.count,
+                    was_qty_submitted: weekCloseTable.count, // only used for null value client-side check (if item was submitted for that specific count type. 'qty' is used for actual submission)
                     store_id: sql`COALESCE(${weekCloseTable.store_id}, ${storeId})`,
                     submitted_at: weekCloseTable.submitted_at, // use the null value client-side
                     updated_at: weekCloseTable.updated_at, // use the null value client-side
@@ -1436,13 +1447,13 @@ export async function getPastryWeekClose(storeId: number) {
                     weekCloseTable,
                     and(
                         eq(weekCloseTable.item_id, itemsTable.id),
-                        eq(weekCloseTable.store_id, storeId)
+                        eq(weekCloseTable.store_id, storeId),
+                        sql`${weekCloseTable.submitted_at} >= now() - interval '1 day'`
                     )
                 )
                 .where(
                     and(
                         eq(itemsTable.cron_categ, 'PASTRY'),
-                        // and not between 14 - 23
                         not(between(itemsTable.id, 14, 23)), // no turnovers, muffins, or croissants
                         not(between(itemsTable.id, 27, 28)), // no choc chip cookie or zuzu
                         not(between(itemsTable.id, 39, 47)), // just use square size of the signature cakes
@@ -1466,58 +1477,6 @@ export async function getPastryWeekClose(storeId: number) {
         };
     }
 }
-
-// get week close data for store managers
-// export async function getWeekClose(storeId: number, categ: string) {
-//     try {
-//         const result = await queryWithAuthRole(async (tx) => {
-//             return await tx
-//                 .select({
-//                     id: sql`COALESCE(${weekCloseTable.id}, ${itemsTable.id})`,
-//                     name: itemsTable.name,
-//                     categ: itemsTable.cron_categ,
-//                     count: sql`COALESCE(${weekCloseTable.count}, 0)`,
-//                     closed_count: sql`COALESCE(${weekCloseTable.closed_count}, 0)`,
-//                     sealed_count: sql`COALESCE(${weekCloseTable.sealed_count}, 0)`,
-//                     open_items_weight: sql`COALESCE(${weekCloseTable.open_items_weight}, 0)`,
-//                     expired_count: sql`COALESCE(${weekCloseTable.expired_count}, 0)`,
-//                     unexpired_count: sql`COALESCE(${weekCloseTable.unexpired_count}, 0)`,
-//                     reused_count: sql`COALESCE(${weekCloseTable.reused_count}, 0)`,
-//                     submitted_at: weekCloseTable.submitted_at, // use the null value client-side
-//                     updated_at: weekCloseTable.updated_at, // use the null value client-side
-//                     was_updated: false,
-//                 })
-//                 .from(itemsTable)
-//                 .leftJoin(
-//                     weekCloseTable,
-//                     and(
-//                         eq(weekCloseTable.item_id, itemsTable.id),
-//                         eq(weekCloseTable.store_id, storeId)
-//                     )
-//                 )
-//                 .where(
-//                     and(
-//                         eq(itemsTable.cron_categ, categ.toUpperCase()),
-//                         eq(itemsTable.is_active, true)
-//                     )
-//                 )
-//                 .orderBy(asc(itemsTable.id));
-//         });
-
-//         return {
-//             success: true,
-//             error: null,
-//             data: result,
-//         };
-//     } catch (error) {
-//         const err = error as Error;
-//         return {
-//             success: false,
-//             error: err.message,
-//             data: [],
-//         };
-//     }
-// }
 
 // Helper functions
 

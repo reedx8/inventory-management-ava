@@ -44,7 +44,9 @@ export async function GET(request: NextRequest) {
             response = await getRetailWeekClose(Number(storeId), subCateg);
         } else {
             return NextResponse.json(
-                { error: 'GET api/v1/week-close requires valid item category' },
+                {
+                    error: 'GET api/v1/week-close requires valid item category (meat, pastry, or retail)',
+                },
                 { status: 400 }
             );
         }

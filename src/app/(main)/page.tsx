@@ -107,7 +107,7 @@ export type DashboardType = {
     itemCount: number | undefined;
     storeCount: number | undefined;
     milkBreadDueTodayCount: number | undefined;
-}
+};
 
 export default function Home() {
     const { userRole, userStoreId } = useAuth();
@@ -125,7 +125,10 @@ export default function Home() {
             try {
                 const dow = todaysDay();
                 const response = await fetch(
-                    'api/v1/dashboard?fetch=all&storeId=' + storeId + '&dow=' + dow
+                    'api/v1/dashboard?fetch=all&storeId=' +
+                        storeId +
+                        '&dow=' +
+                        dow
                 );
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error);
@@ -164,7 +167,9 @@ export default function Home() {
                         <Store width={17} className='mr-1 text-myBrown' /> Store
                         Locations:{' '}
                         <span className='ml-1 text-lg'>
-                            {dashboard.storeCount === undefined ? '-' : dashboard.storeCount}
+                            {dashboard.storeCount === undefined
+                                ? '-'
+                                : dashboard.storeCount}
                             {/* {storeCount === undefined ? '--' : storeCount} */}
                         </span>
                     </h2>
@@ -172,7 +177,9 @@ export default function Home() {
                         <Box width={17} className='mr-1 text-myBrown' />
                         Item Count:
                         <span className='ml-1 text-lg'>
-                            {dashboard.itemCount === undefined ? '-' : dashboard.itemCount}
+                            {dashboard.itemCount === undefined
+                                ? '-'
+                                : dashboard.itemCount}
                             {/* {itemCount === undefined ? '--' : itemCount} */}
                         </span>
                     </h2>
@@ -207,7 +214,9 @@ export default function Home() {
                                 Stock counts due today
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>{miniStockCards(dashboard.milkBreadDueTodayCount)}</CardContent>
+                        <CardContent>
+                            {miniStockCards(dashboard.milkBreadDueTodayCount)}
+                        </CardContent>
                     </Card>
                 </div>
                 {/* <div className='flex-1 h-full'>{CarouselComponent()}</div> */}
@@ -356,24 +365,65 @@ function miniOrderCards(bakeryDueTodayCount: number | null) {
 }
 function miniStockCards(milkBreadDueTodayCount: number | undefined) {
     return (
+        <div className='flex flex-wrap gap-2'>
+                <div className='w-[125px]'>
+                    <div className='flex h-[25px] w-full mb-1'>
+                        <div className='w-full h-full text-center rounded-full bg-myBrown/30'>
+                            Milk & Bread
+                        </div>
+                    </div>
+                    <div className='text-center'>
+                        <p className='text-5xl text-myBrown drop-shadow-sm'>
+                            {milkBreadDueTodayCount !== undefined
+                        ? milkBreadDueTodayCount
+                        : '-'}
+                            {/* {type.count ?? 0} */}
+                        </p>
+                        <div className='text-sm flex items-center justify-center gap-1'>
+                            <Milk width={18} className='text-myBrown' />
+                            Items
+                        </div>
+                    </div>
+                </div>
+                <div className='w-[125px]'>
+                    <div className='flex h-[25px] w-full mb-1'>
+                        <div className='w-full h-full text-center rounded-full bg-myBrown/30'>
+                                Sunday Close
+                        </div>
+                    </div>
+                    <div className='text-center'>
+                        <p className='text-5xl text-myBrown drop-shadow-sm'>
+                            {todaysDay().toLowerCase() === 'sunday' ? 'Yes' : 'No'}
+                        </p>
+                        <div className='text-sm flex items-center justify-center gap-1'>
+                            <Box width={18} className='text-myBrown' />
+                            Items
+                        </div>
+                    </div>
+                </div>
+        </div>
+    );
+    return (
         <div className='w-[125px]'>
-        <div className='flex h-[25px] w-full mb-1'>
-            <div className='w-full h-full text-center rounded-full bg-myBrown/30'>
-                Milk & Bread
+            <div className='flex h-[25px] w-full mb-1'>
+                <div className='w-full h-full text-center rounded-full bg-myBrown/30'>
+                    Milk & Bread
+                </div>
+            </div>
+            <div className='text-center'>
+                <p className='text-5xl text-myBrown drop-shadow-sm'>
+                    {milkBreadDueTodayCount !== undefined
+                        ? milkBreadDueTodayCount
+                        : '-'}
+                    {/* {type.count ?? 0} */}
+                </p>
+                <div className='text-sm flex items-center justify-center gap-1'>
+                    <Milk width={18} className='text-myBrown' />
+                    Items
+                </div>
             </div>
         </div>
-        <div className='text-center'>
-            <p className='text-5xl text-myBrown drop-shadow-sm'>
-                {milkBreadDueTodayCount !== undefined ? milkBreadDueTodayCount : '-'}
-                {/* {type.count ?? 0} */}
-            </p>
-            <div className='text-sm flex items-center justify-center gap-1'>
-                <Milk width={18} className='text-myBrown' />
-                Items
-            </div>
-        </div>
-    </div>
-    )
+    );
     // return (
     //     <div className='flex flex-col items-center'>
     //         <div className='text-5xl text-myBrown drop-shadow-sm'>0</div>

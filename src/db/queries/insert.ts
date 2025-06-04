@@ -3,6 +3,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { ordersTable, stockTable, weekCloseTable } from '../schema';
 import { config } from 'dotenv';
 import { SheetDataType } from '@/components/types';
+import { SundayCloseType } from '@/app/(main)/store/stock/components/sunday-close-data';
 // import { MilkBreadOrder } from '@/app/(main)/orders/types';
 config({ path: '.env' });
 
@@ -79,20 +80,26 @@ export async function insertMilkBreadStock(
     }
 }
 
-export async function insertUpdateWeekClose(data: any[], subCateg: string) {
+export async function insertUpdateWeekClose(
+    data: SundayCloseType[],
+    subCateg: string
+) {
     try {
         let desired_col;
         subCateg = subCateg.toLowerCase();
         if (subCateg === 'closed') {
+            // for meat items:
             desired_col = 'closed_count';
-            // desired_col = weekCloseTable.closed_count;
         } else if (subCateg === 'sealed') {
             desired_col = 'sealed_count';
         } else if (subCateg === 'weight') {
             desired_col = 'open_items_weight';
         } else if (subCateg === 'count') {
-            // retail beans count and pastry count
+            // for pastry items:
             desired_col = 'count';
+        } else if (subCateg === 'unexpired') {
+            // for retail bean items:
+            desired_col = 'unexpired_count';
         } else if (subCateg === 'expired') {
             desired_col = 'expired_count';
         } else if (subCateg === 'reused') {
@@ -106,13 +113,15 @@ export async function insertUpdateWeekClose(data: any[], subCateg: string) {
         }
 
         const results = await executeWithAuthRole(async (trx) => {
+            // submitted_at === null if weekCloseTable.submitted_at record isnt within past 24 hours for that store
             const ifAlreadySubmitted = data.some(
-                (item: any) => item.submitted_at !== null
+                (item: SundayCloseType) => item.submitted_at !== null
             );
 
             if (ifAlreadySubmitted) {
+                // found record(s) for that store within past 24 hours
                 const updates = await Promise.all(
-                    data.map(async (item: any) => {
+                    data.map(async (item: SundayCloseType) => {
                         await trx
                             .update(weekCloseTable)
                             .set({
@@ -122,7 +131,7 @@ export async function insertUpdateWeekClose(data: any[], subCateg: string) {
                             })
                             .where(
                                 and(
-                                    eq(weekCloseTable.id, item.id),
+                                    eq(weekCloseTable.id, item.id), // item.id will be weekCloseTable.id if select.ts query found records for that store within past 24 hours. Otherwise item.id is itemsTable.id
                                     eq(weekCloseTable.store_id, item.store_id)
                                 )
                             );
@@ -130,9 +139,9 @@ export async function insertUpdateWeekClose(data: any[], subCateg: string) {
                 );
                 return updates;
             } else {
-                // not already submitted:
+                // no record(s) found for that store within past 24 hours, ie not already submitted
                 const inserts = await Promise.all(
-                    data.map(async (item: any) => {
+                    data.map(async (item: SundayCloseType) => {
                         return await trx.insert(weekCloseTable).values({
                             item_id: item.id,
                             store_id: item.store_id,
@@ -143,7 +152,6 @@ export async function insertUpdateWeekClose(data: any[], subCateg: string) {
                     })
                 );
                 return inserts;
-                // return await trx.insert(weekCloseTable).values(data);
             }
         });
         return {

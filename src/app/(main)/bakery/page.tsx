@@ -577,7 +577,7 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                             ''
                                         }
                                         min='0'
-                                        step='0.5'
+                                        step='any'
                                         placeholder='0'
                                         className={`w-20 px-2 py-1 border rounded ${
                                             order.completed_at

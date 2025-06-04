@@ -225,41 +225,41 @@ export const weekCloseTable = pgTable(
         count: decimal('count', {
             precision: 10,
             scale: 2,
-        }),
+        }), // for pastry items
         closed_count: decimal('closed_count', {
             precision: 10,
             scale: 2,
-        }), // to track waste
+        }), // for meat items
         sealed_count: decimal('sealed_count', {
             precision: 10,
             scale: 2,
-        }), // to track waste
+        }), // for meat items
         open_items_weight: decimal('open_items_weight', {
             precision: 10,
             scale: 2,
-        }), // To track waste. oz?
+        }), // For meat items, in oz.
         expired_count: decimal('expired_count', {
             precision: 10,
             scale: 2,
-        }),
+        }), // for retail bean items
         unexpired_count: decimal('unexpired_count', {
             precision: 10,
             scale: 2,
-        }),
+        }), // for retail bean items
         reused_count: decimal('reused_count', {
             precision: 10,
             scale: 2,
-        }), // To track waste
+        }), // for retail bean items
         submitted_at: timestamp('submitted_at', {
             precision: 3,
             withTimezone: true,
         })
             .notNull()
-            .defaultNow(), // When item's stock count was originally submitted by store managers
+            .defaultNow(), // When item's Sunday close entry was originally submitted by store managers
         updated_at: timestamp('updated_at', {
             precision: 3,
             withTimezone: true,
-        }), // When item's stock count was last updated by store managers, if any
+        }), // When item was last updated by store managers, if any
     },
     (table) => {
         return [

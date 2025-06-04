@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Check, CircleOff, Send } from 'lucide-react';
+import { Check, CircleOff, Dot, Send } from 'lucide-react';
 import { useFormStatus } from 'react-dom';
 import {
     Select,
@@ -32,7 +32,7 @@ export type CategoryType = (typeof categTypes)[number];
 // ] as const;
 export const meatSubCategTypes = ['Closed', 'Sealed', 'Weight'] as const;
 export type MeatSubCategoryType = (typeof meatSubCategTypes)[number];
-export const retailSubCategTypes = ['Count', 'Expired', 'Reused'] as const;
+export const retailSubCategTypes = ['Unexpired', 'Expired', 'Reused'] as const;
 export type RetailSubCategoryType = (typeof retailSubCategTypes)[number];
 // export type SubCategoryType = (typeof subCategTypes)[number];
 
@@ -40,7 +40,8 @@ export type SundayCloseType = {
     id: number;
     name: string;
     categ: string;
-    qty: number;
+    qty: number | null;
+    was_qty_submitted: number | null;
     store_id: number;
     submitted_at: string | null;
     updated_at: string | null;
@@ -62,37 +63,38 @@ export type SundayCloseType = {
 //     was_updated: boolean;
 // };
 const meatInstructions =
-    'Meat Instructions: Prior to close count closed boxes ("Closed"), unopened sealed packs ("Sealed"), and the weight ("Weight", in oz) of unopened sealed packs for each meat item.';
+    'Meat Instructions: Prior to close count closed boxes (Closed), unopened sealed packs (Sealed), and the weight (Weight, in oz) of unopened sealed packs for each meat item listed below.';
 
 const pastryInstructions =
-    'Pastry Instructions: Prior to close count the amount of each pastry item you have. The cakes are per slice.';
+    'Pastry Instructions: Prior to close count the amount of the following pastry items. The cakes are counted per slice.';
 
 const retailInstructions =
-    'Retail Beans Instructions: Prior to close count unexpired beans (count), expired beans (expired), and reused (reused) for your retail coffee bean items.';
+    'Retail Bean Instructions: Prior to close count unexpired beans (Unexpired), expired beans (Expired), and reused beans (Reused) for retail coffee bean items below.';
 
 export default function SundayCloseData({
     storeId,
 }: // contentType,
-// setRefreshTrigger,
 {
     storeId: number;
     // contentType: ContentType;
-    // setRefreshTrigger: React.Dispatch<React.SetStateAction<number>>;
 }) {
+    // data is list of items only for the currently selected category and sub category state
     const [data, setData] = useState<SundayCloseType[]>([]);
-    // const [formFeedback, setFormFeedback] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [category, setCategory] = useState<CategoryType>('Meat');
+    const pastrySubCateg = 'count';
     const [subCategory, setSubCategory] = useState(() => {
         if (category.toLowerCase() === 'meat') {
             return meatSubCategTypes[0];
         } else if (category.toLowerCase() === 'retail') {
             return retailSubCategTypes[0];
+        } else if (category.toLowerCase() === 'pastry') {
+            // pastry doesnt need subcateg's/have dropdonw, so just assign it to weekClose.count field
+            return pastrySubCateg;
         } else {
-            // pastry doesnt need subcateg's
-            return 'none';
+            return '';
         }
-    });
+    })
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [instructions, setInstructions] = useState<string>(
         category.toLowerCase() === 'meat'
             ? meatInstructions
@@ -101,21 +103,21 @@ export default function SundayCloseData({
             : pastryInstructions
     );
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    // const [store, setStore] = useState<{ id: number; name: StoreList }>({
-    //     id: STORE_LIST[0].id,
-    //     name: STORE_LIST[0].name,
-    // });
-    // const [qty, setQty] = useState<number>(0);
-    // const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+    const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
     const { toast } = useToast();
-    const signatureCakes = ['strawberry whip cream cake (square)', 'espresso ganache (square)', 'raspberry espresso ganache (square)', 'ava chocolate cake (square)']; // signature cakes to omit the (square) sizing at end for output purposes/UX only
+    const signatureCakes = [
+        'strawberry whip cream cake (square)',
+        'espresso ganache (square)',
+        'raspberry espresso ganache (square)',
+        'ava chocolate cake (square)',
+    ]; // signature cakes to omit the (square) sizing at end for output purposes/UX only
 
     const handleSundayCloseSubmit = async (
         event: React.FormEvent<HTMLFormElement>
     ) => {
         event.preventDefault(); // stop page from refreshing
         // setFormFeedback(null);
-        console.log(data);
+        // console.log(data);
         // return;
 
         setIsSubmitting(true);
@@ -160,7 +162,7 @@ export default function SundayCloseData({
         }
 
         setIsSubmitting(false);
-        // setRefreshTrigger((prev) => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
     };
 
     useEffect(() => {
@@ -199,7 +201,7 @@ export default function SundayCloseData({
         if (weekCloseToday(0)) {
             fetchSundayClose();
         }
-    }, [category, subCategory]);
+    }, [category, subCategory, refreshTrigger]);
 
     return (
         <div className='flex flex-col h-full'>
@@ -290,7 +292,7 @@ export default function SundayCloseData({
                                     setInstructions(retailInstructions);
                                 } else {
                                     // pastry
-                                    setSubCategory('none');
+                                    setSubCategory(pastrySubCateg); // just to ensure it's set to count
                                     setInstructions(pastryInstructions);
                                 }
                             }}
@@ -303,7 +305,7 @@ export default function SundayCloseData({
                                 {categTypes.map((category) => (
                                     <SelectItem
                                         key={category}
-                                        className='h-8 text-sm'
+                                        className='h-8 text-sm flex items-center gap-1'
                                         value={category}
                                     >
                                         {category}
@@ -324,20 +326,23 @@ export default function SundayCloseData({
                                         className='flex justify-between h-fit items-center mt-1 text-sm'
                                     >
                                         <div className='flex items-center gap-1'>
-                                            {item.submitted_at &&
-                                                item.qty !== null && (
-                                                    <Badge
-                                                        className='bg-myBrown'
-                                                        variant='secondary'
-                                                    >
-                                                        <Check
-                                                            size={10}
-                                                            className='text-black'
-                                                        />
-                                                    </Badge>
-                                                )}
+                                            {item.was_qty_submitted !==
+                                                null && (
+                                                <Badge
+                                                    className='bg-myBrown'
+                                                    variant='secondary'
+                                                >
+                                                    <Check
+                                                        size={10}
+                                                        className='text-black'
+                                                    />
+                                                </Badge>
+                                            )}
                                             {item.categ.toLowerCase() ===
-                                            'pastry' && signatureCakes.includes(item.name.toLowerCase())
+                                                'pastry' &&
+                                            signatureCakes.includes(
+                                                item.name.toLowerCase()
+                                            )
                                                 ? item.name
                                                       .split(' ')
                                                       .slice(0, -1)
@@ -360,16 +365,18 @@ export default function SundayCloseData({
                                                 //     item,
                                                 //     subCategory
                                                 // )}
-                                                defaultValue={Number(
+                                                defaultValue={
                                                     item.qty === null
                                                         ? 0
                                                         : Number(
-                                                              item.qty
-                                                          ).toFixed(2)
-                                                ).toFixed(2)}
+                                                              Number(
+                                                                  item.qty
+                                                              ).toFixed(2)
+                                                          )
+                                                }
                                                 // value={item.level ?? 0}
                                                 placeholder='0'
-                                                step={0.5}
+                                                step='any'
                                                 disabled={isSubmitting}
                                                 autoComplete='off'
                                                 onChange={(e) => {
