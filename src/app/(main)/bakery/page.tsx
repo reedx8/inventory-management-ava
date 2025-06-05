@@ -198,14 +198,15 @@ export default function Bakery() {
                     </PopoverTrigger>
                     <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
                         <p>
-                            Daily pasty orders from each store will show on this
-                            page every morning by 9 AM.
+                            Daily pastry orders from each store will show on
+                            this page every morning by 9 AM.
                         </p>
-                        <p>{`You can fulfill individual items in the edit button, and/or batch complete the
+                        <p>{`You can fulfill individual orders using the edit button, and/or batch complete the
                         entire day's orders.`}</p>
                         <p>
-                            Batch complete will mark all remaining items for the
-                            day as fulfilled.
+                            Orders with '-' have been marked as made/completed
+                            via the edit button. Batch complete will mark all
+                            remaining items for the day as made/completed.
                         </p>
                     </PopoverContent>
                 </Popover>
@@ -281,11 +282,11 @@ export default function Bakery() {
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>
-                                            Fulfill All Orders?
+                                            Commplete All Orders?
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
                                             Press Submit only if all store
-                                            orders were successfully fulfilled.
+                                            orders were successfully completed.
                                             Otherwise press Cancel.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
@@ -319,11 +320,15 @@ export default function Bakery() {
                                     {`Today's Bakery Orders`}
                                 </h1>
                                 <p className='text-neutral-500/70 text-sm'>
-                                    Total items due: {data.length}
-                                </p>
-                                <p className='text-neutral-500/70 text-xs'>
-                                    Orders from stores are due everyday by 9
-                                    A.M.
+                                    Total items due: {' '}
+                                    {
+                                        data.filter(
+                                            (order) =>
+                                                order.order_qty &&
+                                                order.order_qty > 0
+                                        ).length
+                                    }{' '}
+                                    / {data.length} items
                                 </p>
                             </div>
                         }
@@ -356,12 +361,33 @@ const PrintView = ({
     data: BakeryOrder[];
 }) => {
     const [mounted, setMounted] = useState(false);
+
+    function getTomorrowDate() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(new Date().getDate() + 1);
+        // get tomorow day name (eg monday, tuesday, etc)
+        const dayName = tomorrow.toLocaleDateString('en-US', {
+            weekday: 'long',
+        });
+
+        const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const day = String(tomorrow.getDate()).padStart(2, '0');
+        const year = tomorrow.getFullYear();
+
+        return `${dayName} ${month}/${day}/${year}`;
+    }
+
     useEffect(() => {
         setMounted(true);
     }, []);
     if (!mounted) return null;
     return createPortal(
-        <div className={`${openPrintView ? 'print-view-overlay' : ''} fixed inset-0 w-screen h-screen z-[999999] bg-white flex flex-col px-8`} >
+        <div
+            className={`${
+                openPrintView ? 'print-view-overlay' : ''
+            } fixed inset-0 w-screen h-screen z-[999999] bg-white flex flex-col px-8`}
+        >
             <Button
                 className='button-view fixed top-2 right-2'
                 variant='myTheme'
@@ -379,28 +405,47 @@ const PrintView = ({
             </Button>
             <div className='grid grid-cols-1 overflow-y-auto'>
                 <div className='grid grid-cols-9 text-sm border'>
-                    <p className='text-md col-span-4 font-semibold'>Name</p>
+                    <div className='text-md col-span-4 flex justify-between pr-1'>
+                        <p className='font-semibold'>Name</p>
+                        <p className='italic'>{getTomorrowDate()}</p>
+                    </div>
+                    <p className='text-md font-semibold text-center bg-neutral-100'>
+                        Total
+                    </p>
                     {STORE_LOCATIONS.map((store) => (
-                        <p key={store} className='text-md font-semibold text-center'>
-                            {store}
+                        <p
+                            key={store}
+                            className='text-md font-semibold text-center'
+                        >
+                            {store.toLowerCase() === 'progress'
+                                ? 'Barrows'
+                                : store}
                         </p>
                     ))}
-                    <p className='text-md font-semibold text-right bg-neutral-100'>Total</p>
+                    {/* <p className='text-md font-semibold text-right bg-neutral-100'>Total</p> */}
                 </div>
                 <div className='grid grid-cols-1'>
                     {data.map((order) => (
-                        <div key={order.id} className='grid grid-cols-9 text-sm border'>
+                        <div
+                            key={order.id}
+                            className='grid grid-cols-9 text-sm border'
+                        >
                             <p className='col-span-4 border-r'>{order.name}</p>
+                            <p className='text-center font-semibold bg-neutral-100'>
+                                {Number(Number(order.order_qty).toFixed(2))}
+                            </p>
                             {STORE_LOCATIONS.map((store_location) => (
-                                <p key={store_location} className='text-center border-r'>
-                                    {
-                                        order.store_data?.find(
-                                            (store) => store.store_name === store_location
-                                        )?.order_qty || '-'
-                                    }
+                                <p
+                                    key={store_location}
+                                    className='text-center border-r'
+                                >
+                                    {order.store_data?.find(
+                                        (store) =>
+                                            store.store_name === store_location
+                                    )?.order_qty ?? '-'}
                                 </p>
                             ))}
-                            <p className='text-right font-semibold bg-neutral-100'>{Number(Number(order.order_qty).toFixed(2))}</p>
+                            {/* <p className='text-right font-semibold bg-neutral-100'>{Number(Number(order.order_qty).toFixed(2))}</p> */}
                         </div>
                     ))}
                 </div>
@@ -416,6 +461,7 @@ type BakeryOrdersFormProps = {
     // onSubmit?: (data: { arg1: BakeryOrder[] }) => Promise<void>;
 };
 
+// Edit button form
 const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
     // const [formData, setFormData] = React.useState<BakeryOrder[]>(data);
     const [formData, setFormData] = useState<BakeryOrder[]>([]);
@@ -527,12 +573,21 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                             onValueChange={(value) => setStoreLocation(value)}
                         >
                             <SelectTrigger className='w-fit h-8'>
-                                <SelectValue placeholder={storeLocation} />
+                                <SelectValue
+                                    placeholder={
+                                        storeLocation.toLowerCase() ===
+                                        'progress'
+                                            ? 'Barrows'
+                                            : storeLocation
+                                    }
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {STORE_LOCATIONS.map((store) => (
                                     <SelectItem value={store} key={store}>
-                                        {store}
+                                        {store.toLowerCase() === 'progress'
+                                            ? 'Barrows'
+                                            : store}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -572,8 +627,16 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                         id={`completed-${order.id}`}
                                         type='number'
                                         value={
-                                            Number(Number(order.made_qty).toFixed(2)) ||
-                                            Number(Number(order.order_qty).toFixed(2)) ||
+                                            Number(
+                                                Number(order.made_qty).toFixed(
+                                                    2
+                                                )
+                                            ) ||
+                                            Number(
+                                                Number(order.order_qty).toFixed(
+                                                    2
+                                                )
+                                            ) ||
                                             ''
                                         }
                                         min='0'

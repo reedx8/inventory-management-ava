@@ -581,7 +581,7 @@ export async function getWasteStock(store_location_id: string) {
     return result;
 }
 
-// Get daily bakery orders, either across all stores or for a specific store (bakery -> daily orders page)
+// Get daily bakery orders, either across all stores or for a specific store (bakery -> daily orders page, and edit btn)
 export async function getBakerysOrders(store_location_id?: number | undefined) {
     // TODO: inner join or left join for all store orders?
 
@@ -618,14 +618,14 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                         and(
                             eq(itemsTable.is_active, true),
                             eq(storeBakeryOrdersTable.store_id, storeId),
-                            sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
+                            sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`
 
                             // Only works up to 4pm, after that it will return no results:
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
-                            gt(
-                                sql`${storeBakeryOrdersTable.order_qty}::decimal`,
-                                0
-                            )
+                            // gt(
+                            //     sql`${storeBakeryOrdersTable.order_qty}::decimal`,
+                            //     0
+                            // )
                         )
                     )
                     .orderBy(
@@ -693,12 +693,12 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                         // storeBakeryOrdersTable.id,
                         // storeBakeryOrdersTable.completed_at
                     )
-                    .having(
-                        gt(
-                            sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
-                            0
-                        )
-                    )
+                    // .having(
+                    //     gt(
+                    //         sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`,
+                    //         0
+                    //     )
+                    // )
                     .orderBy(
                         sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
                         desc(itemsTable.main_categ),

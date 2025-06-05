@@ -20,7 +20,7 @@ export const BakeryColumns: ColumnDef<BakeryOrder>[] = [
     ...STORE_LOCATIONS.map((store) => ({
         // this creates a column for for each store, and outputs its store's order qty for that item
         id: `store_${store}`, // unique id for each column
-        header: store,
+        header: store.toLowerCase() === 'progress' ? 'Barrows' : store,
         accessorFn: (row: {
             store_data: Array<{ store_name: string; order_qty: number }>;
         }) => {
