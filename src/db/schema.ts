@@ -28,7 +28,7 @@ export const itemsTable = pgTable(
             .references(() => vendorsTable.id), // default/dummy/placeholder vendor that typically supplies this item. Simply used to fill orders.vendor_id as a rough guess of the vendor that will supply this item, no other use. However for CTC items its just ava design, and not what you may think CCP
         units: varchar('units'), // Items unit from its primary vendor (or bakery), ie quantity of order for ordering, not size of order (eg XL, or Full/Half, etc). These can be vendor locked/dependant (eg 1 gal, 12/32oz, QUART, 1G, .5G, 2/5#AVG, 1200/4.5 GM, etc). Just change in csv if vendor changed-to requires different unit
         // unit_qty: decimal('unit_qty', { precision: 10, scale: 2 }), // unit quantity of item
-        list_price: decimal('list_price', { precision: 10, scale: 2 })
+        list_price: decimal('list_price', { precision: 20, scale: 6 })
             .notNull()
             .default(sql`0.00`), // Default, most recent list price for item, unless specified in vendor_items table
         cron_categ: varchar('cron_categ').default('NONE'), // Most important category field that is used for all order schedules throughout app. Maps to how their gsheets was organized (CTC -> Coffee, Tea, Chocolate, CCP&SYCO -> CCP&SYSCO, Monday Thursday Inventory -> Milk/ Bread, Bakery Orders -> PASTRY). And ensured no overlap between them
@@ -111,7 +111,7 @@ export const vendorItemsTable = pgTable(
             .notNull()
             .references(() => vendorsTable.id),
         alt_name: varchar('alt_name'), // Alternative name: exact name of item vendor needs/uses, if needed
-        list_price: decimal('list_price', { precision: 10, scale: 2 }), // if needed, vendor items most revent list price
+        list_price: decimal('list_price', { precision: 20, scale: 6 }), // if needed, vendor items most revent list price
         barcode: varchar('barcode'), // vendor specific barcode for item as shown on receipt/invoice, if needed
         item_code: varchar('item_code'), // Aka product code. Vendor specific item code/number (SUPC for Sysco, Petes Milk, Grand Central, etc)
         brand_code: varchar('item_brand'), // brand acronym/code of item from vendor (eg AREZIMP or WHLFCLS from Sysco vendor, etc)
@@ -177,7 +177,7 @@ export const stockTable = pgTable(
         store_id: integer('store_id')
             .notNull()
             .references(() => storesTable.id),
-        count: decimal('count', { precision: 10, scale: 2 }).notNull(),
+        count: decimal('count', { precision: 20, scale: 6 }).notNull(),
         units: varchar('units'),
         submitted_at: timestamp('submitted_at', {
             precision: 3,
@@ -223,32 +223,32 @@ export const weekCloseTable = pgTable(
             .notNull()
             .references(() => storesTable.id),
         count: decimal('count', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // for pastry items
         closed_count: decimal('closed_count', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // for meat items
         sealed_count: decimal('sealed_count', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // for meat items
         open_items_weight: decimal('open_items_weight', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // For meat items, in oz.
         expired_count: decimal('expired_count', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // for retail bean items
         unexpired_count: decimal('unexpired_count', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // for retail bean items
         reused_count: decimal('reused_count', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // for retail bean items
         submitted_at: timestamp('submitted_at', {
             precision: 3,
@@ -311,20 +311,20 @@ export const ordersTable = pgTable(
             .references(() => storesTable.id),
         vendor_id: integer('vendor_id').references(() => vendorsTable.id), // Optional default/predicted vendor of item. Value is copied from items.vendor_id
         stock_id: integer('stock_id').references(() => stockTable.id), // Optional stock count of item at time of order
-        qty: decimal('qty', { precision: 10, scale: 2 }), // null if no order was submitted by order managers
-        par: decimal('par', { precision: 10, scale: 2 }), // par level at time of order
+        qty: decimal('qty', { precision: 20, scale: 6 }), // null if no order was submitted by order managers
+        par: decimal('par', { precision: 20, scale: 6 }), // par level at time of order
         units: varchar('units'), // quantity per order, copied from orders.units (unless changed at time of vendor order)
         list_price: decimal('list_price', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // List price at time of order (tf need to allow null to wait for list price update at time of order not time of stock count). Default value is items.list_price.
         final_price: decimal('final_price', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // (may delete, invoice table) final invoiced price for item, default value = items.list_price
         adj_price: decimal('adj_price', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // (may delete, invoice table) average price of item across stores, edge case for ccp items?, to report to stores
         is_par_submit: boolean('is_par_submit').notNull().default(false), // whether order was submitted by store managers as a PAR order
         group_order_no: integer('group_order_no'), // (may delete) group order number for orders that are grouped together (eg for a weekly order)
@@ -386,10 +386,10 @@ export const bakeryOrdersTable = pgTable(
             .notNull()
             .references(() => itemsTable.id),
         temp_tot_order_qty: decimal('temp_tot_order_qty', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }), // temporary field for now, can be removed and not currently used in queries (temp_tot_made however is used currently but should be removed in future since it can be derived)
-        temp_tot_made: decimal('temp_tot_made', { precision: 10, scale: 2 }), // total actually made by bakery staff (temp_tot_order_qty = tot_made = sum of store_bakery_orders.order_qty)
+        temp_tot_made: decimal('temp_tot_made', { precision: 20, scale: 6 }), // total actually made by bakery staff (temp_tot_order_qty = tot_made = sum of store_bakery_orders.order_qty)
         units: varchar('units'),
         is_checked_off: boolean('is_checked_off').notNull().default(false), // todo checked off by bakery staff (tot_order_qty = tot_made)
         group_order_no: integer('group_order_no').notNull().default(0), // default = 0 when single order (not a batched order). Rare.
@@ -449,8 +449,9 @@ export const storeBakeryOrdersTable = pgTable(
         store_id: integer('store_id')
             .notNull()
             .references(() => storesTable.id),
-        order_qty: decimal('order_qty', { precision: 10, scale: 2 }), // quantity ordered from store managers
-        made_qty: decimal('made_qty', { precision: 10, scale: 2 }), // quantity actually made by bakery staff for store
+        order_qty: decimal('order_qty', { precision: 20, scale: 6 }), // quantity ordered from store managers
+        made_qty: decimal('made_qty', { precision: 20, scale: 6 }), // quantity actually made by bakery staff for store
+        par: decimal('par', { precision: 20, scale: 6 }), // par level at time of order
         is_par_submit: boolean('is_par_submit').notNull().default(false),
         comments: text('comments'),
         created_at: timestamp('created_at', {
@@ -589,9 +590,9 @@ export const vendorSplitTable = pgTable(
         vendor_id: integer('vendor_id')
             .notNull()
             .references(() => vendorsTable.id),
-        qty: decimal('qty', { precision: 10, scale: 2 }),
+        qty: decimal('qty', { precision: 20, scale: 6 }),
         units: varchar('units'), // quantity per order, copied from orders.units (unless changed at time of vendor order)
-        total_spent: decimal('total_spent', { precision: 10, scale: 2 }),
+        total_spent: decimal('total_spent', { precision: 20, scale: 6 }),
     },
     (table) => {
         return [
@@ -629,8 +630,8 @@ export const storesTable = pgTable(
         id: serial('id').primaryKey(),
         name: varchar('name').notNull().unique(), // name of store (eg Hall, Barrows, etc)
         weekly_budget: decimal('weekly_budget', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }).default(sql`0.00`), // weekly budget for store
         is_active: boolean('is_active').notNull().default(false),
         logo: varchar('logo'),
@@ -666,8 +667,8 @@ export const historyTable = pgTable(
         table_name: varchar('table_name').notNull(),
         record_id: integer('record_id').notNull(),
         field_name: varchar('field_name').notNull(),
-        old_value: decimal('old_value', { precision: 10, scale: 2 }),
-        new_value: decimal('new_value', { precision: 10, scale: 2 }),
+        old_value: decimal('old_value', { precision: 20, scale: 6 }),
+        new_value: decimal('new_value', { precision: 20, scale: 6 }),
         changed_at: timestamp('changed_at', {
             precision: 3,
             withTimezone: true,
@@ -715,14 +716,14 @@ export const parsTable = pgTable(
         store_id: integer('store_id')
             .notNull()
             .references(() => storesTable.id),
-        monday: decimal('monday', { precision: 10, scale: 2 }),
-        tuesday: decimal('tuesday', { precision: 10, scale: 2 }),
-        wednesday: decimal('wednesday', { precision: 10, scale: 2 }),
-        thursday: decimal('thursday', { precision: 10, scale: 2 }),
-        friday: decimal('friday', { precision: 10, scale: 2 }),
-        saturday: decimal('saturday', { precision: 10, scale: 2 }),
-        sunday: decimal('sunday', { precision: 10, scale: 2 }),
-        weekly: decimal('weekly', { precision: 10, scale: 2 }),
+        monday: decimal('monday', { precision: 20, scale: 6 }),
+        tuesday: decimal('tuesday', { precision: 20, scale: 6 }),
+        wednesday: decimal('wednesday', { precision: 20, scale: 6 }),
+        thursday: decimal('thursday', { precision: 20, scale: 6 }),
+        friday: decimal('friday', { precision: 20, scale: 6 }),
+        saturday: decimal('saturday', { precision: 20, scale: 6 }),
+        sunday: decimal('sunday', { precision: 20, scale: 6 }),
+        weekly: decimal('weekly', { precision: 20, scale: 6 }),
     },
     (table) => {
         return [
@@ -766,8 +767,8 @@ export const vendorPriceHistoryTable = pgTable(
             .notNull()
             .references(() => itemsTable.id),
         list_price: decimal('list_price', {
-            precision: 10,
-            scale: 2,
+            precision: 20,
+            scale: 6,
         }).notNull(),
         created_at: timestamp('created_at', {
             precision: 3,

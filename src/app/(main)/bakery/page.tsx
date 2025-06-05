@@ -629,12 +629,12 @@ const BakeryOrdersForm = ({ onSubmit }: BakeryOrdersFormProps) => {
                                         value={
                                             Number(
                                                 Number(order.made_qty).toFixed(
-                                                    2
+                                                    6
                                                 )
                                             ) ||
                                             Number(
                                                 Number(order.order_qty).toFixed(
-                                                    2
+                                                    6
                                                 )
                                             ) ||
                                             ''

@@ -371,7 +371,7 @@ export default function SundayCloseData({
                                                         : Number(
                                                               Number(
                                                                   item.qty
-                                                              ).toFixed(2)
+                                                              ).toFixed(6)
                                                           )
                                                 }
                                                 // value={item.level ?? 0}
