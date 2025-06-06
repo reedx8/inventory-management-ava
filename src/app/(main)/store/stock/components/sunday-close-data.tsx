@@ -93,7 +93,7 @@ export default function SundayCloseData({
         } else {
             return '';
         }
-    })
+    });
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [instructions, setInstructions] = useState<string>(
         category.toLowerCase() === 'meat'
@@ -241,7 +241,7 @@ export default function SundayCloseData({
                     <div className='flex flex-col text-neutral-500'>
                         <p className='text-sm'>{instructions}</p>
                     </div>
-                    <div className='flex text-sm gap-2 justify-end'>
+                    <div className='flex text-sm gap-2 justify-end mt-1'>
                         {category.toLowerCase() !== 'pastry' && (
                             <Select
                                 value={subCategory}
@@ -360,7 +360,12 @@ export default function SundayCloseData({
                                                 name='count'
                                                 type='number'
                                                 id={item.id.toString()}
-                                                className='w-16 rounded-sm border-2 h-8 pl-1'
+                                                className={`w-16 rounded-sm border-2 h-8 pl-1 ${
+                                                    item.was_qty_submitted !==
+                                                    null
+                                                        ? 'bg-neutral-100 text-neutral-500'
+                                                        : ''
+                                                }`}
                                                 // defaultValue={getDefaultValue(
                                                 //     item,
                                                 //     subCategory
