@@ -11,7 +11,7 @@ import { NoStockDue } from '@/components/placeholders';
 import SheetTemplate from '@/components/sheet/sheet-template';
 import { ClipboardCheck, Info, Milk } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import SheetData from '@/components/sheet/sheet-data';
+import SheetData from '@/components/sheet/sheet-data'; // used for milk and bread stock
 import {
     Popover,
     PopoverContent,
