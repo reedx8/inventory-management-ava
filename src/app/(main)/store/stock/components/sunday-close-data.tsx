@@ -121,7 +121,7 @@ export default function SundayCloseData({
         // return;
 
         setIsSubmitting(true);
-        for (let item of data) {
+        for (const item of data) {
             if (item.qty === null) {
                 item.qty = 0;
             }
@@ -198,10 +198,10 @@ export default function SundayCloseData({
         };
 
         const todaysDow = new Date().getDay();
-        if (weekCloseToday(0)) {
+        if (weekCloseToday(todaysDow)) {
             fetchSundayClose();
         }
-    }, [category, subCategory, refreshTrigger]);
+    }, [category, subCategory, refreshTrigger, storeId, toast]);
 
     return (
         <div className='flex flex-col h-full'>
