@@ -34,6 +34,8 @@ interface DataTableProps<TData, TValue> {
     tableHeader?: React.ReactNode;
 }
 
+
+// Used for bakery's table
 export function DataTable<TData, TValue>({
     columns,
     data,

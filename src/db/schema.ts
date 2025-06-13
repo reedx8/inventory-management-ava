@@ -36,6 +36,7 @@ export const itemsTable = pgTable(
         sub_categ: varchar('sub_categ'), // 2nd sorting category (used only when main_categ is not enough to sort items as biz desires)
         invoice_categ: varchar('invoice_categ').notNull().default('NONE'), // accounting category for invoicing
         store_categ: varchar('store_categ').notNull(), // categories for store managers
+        bake_order: integer('bake_order'), // the exact order pastry items are made by bakery staff
         is_waste_tracked: boolean('is_waste_tracked').default(false),
         item_description: text('item_description'), // internal description of item
         is_active: boolean('is_active').notNull().default(true), // whether item is active or not for all stores

@@ -94,14 +94,13 @@ export async function getStoresBakeryOrders(
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         )
                     )
-                    .orderBy(
-                        sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
-                        desc(itemsTable.main_categ),
-                        asc(itemsTable.sub_categ),
-                        asc(itemsTable.name)
-                    );
-                // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.name));
-                // .orderBy(asc(bakeryOrdersTable.item_id));
+                    .orderBy(asc(itemsTable.bake_order));
+                // .orderBy(
+                //     sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+                //     desc(itemsTable.main_categ),
+                //     asc(itemsTable.sub_categ),
+                //     asc(itemsTable.name)
+                // );
             });
 
             return {
@@ -177,12 +176,13 @@ export async function getStoresBakeryOrders(
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`,
                         )
                     )
-                    .orderBy(
-                        sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
-                        desc(itemsTable.main_categ),
-                        asc(itemsTable.sub_categ),
-                        asc(itemsTable.name)
-                    );
+                    .orderBy(asc(itemsTable.bake_order));
+                // .orderBy(
+                //     sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+                //     desc(itemsTable.main_categ),
+                //     asc(itemsTable.sub_categ),
+                //     asc(itemsTable.name)
+                // );
                 // .orderBy(asc(storeBakeryOrdersTable.store_id));
             });
             // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
@@ -628,14 +628,13 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                             // )
                         )
                     )
-                    .orderBy(
-                        sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
-                        desc(itemsTable.main_categ),
-                        asc(itemsTable.sub_categ),
-                        asc(itemsTable.name)
-                    );
-                // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.name));
-                // .orderBy(asc(bakeryOrdersTable.item_id));
+                    .orderBy(asc(itemsTable.bake_order));
+                // .orderBy(
+                //     sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+                //     desc(itemsTable.main_categ),
+                //     asc(itemsTable.sub_categ),
+                //     asc(itemsTable.name)
+                // );
             });
         } catch (error) {
             const err = error as Error;
@@ -655,7 +654,7 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                         name: itemsTable.name,
                         units: bakeryOrdersTable.units,
                         order_qty: sql`COALESCE(SUM(${storeBakeryOrdersTable.order_qty}), 0)`, // total order qty for item
-                        store_data: sql`json_agg(json_build_object('store_name', ${storesTable.name}, 'order_qty', ${storeBakeryOrdersTable.order_qty}))`,
+                        store_data: sql`json_agg(json_build_object('store_name', ${storesTable.name}, 'order_qty', ${storeBakeryOrdersTable.order_qty}, 'bakery_completed_at', ${storeBakeryOrdersTable.bakery_completed_at}))`,
                         // completed_at: storeBakeryOrdersTable.completed_at,
                         // store_data: sql`json_agg(json_build_object('store_id', ${storeBakeryOrdersTable.store_id}, 'order_qty', ${storeBakeryOrdersTable.order_qty}))`,
                         // store_data: (db.select(storeBakeryOrdersTable.store_id, storeBakeryOrdersTable.order_qty).from(storeBakeryOrdersTable)),
@@ -680,8 +679,8 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                     .where(
                         and(
                             eq(itemsTable.is_active, true),
-                            sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`,
-                            isNull(storeBakeryOrdersTable.bakery_completed_at)
+                            sql`${storeBakeryOrdersTable.created_at} >= NOW() - INTERVAL '20 hours'`
+                            // isNull(storeBakeryOrdersTable.bakery_completed_at)
                             // sql`DATE(${storeBakeryOrdersTable.created_at}) = CURRENT_DATE`
                         )
                     )
@@ -699,12 +698,13 @@ export async function getBakerysOrders(store_location_id?: number | undefined) {
                     //         0
                     //     )
                     // )
-                    .orderBy(
-                        sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
-                        desc(itemsTable.main_categ),
-                        asc(itemsTable.sub_categ),
-                        asc(itemsTable.name)
-                    );
+                    .orderBy(asc(itemsTable.bake_order));
+                // .orderBy(
+                //     sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+                //     desc(itemsTable.main_categ),
+                //     asc(itemsTable.sub_categ),
+                //     asc(itemsTable.name)
+                // );
                 // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.name));
                 // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.id));
                 // .orderBy(asc(itemsTable.id));
@@ -1093,6 +1093,7 @@ export async function getMilkBreadDueTodayCount(storeId: number, dow: string) {
     }
 }
 
+// Get par levels for store page -> edit pars btn
 export async function getDailyParLevels(
     storeId: number,
     dow: string,
@@ -1129,12 +1130,13 @@ export async function getDailyParLevels(
                         eq(itemsTable.is_active, true)
                     )
                 )
-                .orderBy(
-                    sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
-                    desc(itemsTable.main_categ),
-                    asc(itemsTable.sub_categ),
-                    asc(itemsTable.name)
-                );
+                .orderBy(asc(itemsTable.bake_order));
+            // .orderBy(
+            //     sql`CASE WHEN ${itemsTable.main_categ} = 'CAKES' THEN 1 ELSE 0 END`,
+            //     desc(itemsTable.main_categ),
+            //     asc(itemsTable.sub_categ),
+            //     asc(itemsTable.name)
+            // );
             // .orderBy(desc(itemsTable.main_categ), asc(itemsTable.name));
         });
         return {

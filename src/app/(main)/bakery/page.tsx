@@ -63,7 +63,8 @@ export default function Bakery() {
     const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
     const [isSubmittingBatch, setIsSubmittingBatch] = useState<boolean>(false);
     const [openPrintView, setOpenPrintView] = useState<boolean>(false);
-    // handes edit button click on page basically
+
+    // handles edit button click on page basically
     const handleSheetSubmission = async (formData: BakeryOrder[]) => {
         // console.log('handle auto submit pressed');
         // console.log('formData (handleSheetSubmission): ', formData);
@@ -201,12 +202,10 @@ export default function Bakery() {
                             Daily pastry orders from each store will show on
                             this page every morning by 9 AM.
                         </p>
-                        <p>{`You can fulfill individual orders using the edit button, and/or batch complete the
-                        entire day's orders.`}</p>
+                        <p>{`You can complete individual orders using the edit button, and/or batch complete the
+                        entire day's orders. Batch complete will mark all remaining items for the day as made/completed.`}</p>
                         <p>
-                            Orders with '-' have been marked as made/completed
-                            via the edit button. Batch complete will mark all
-                            remaining items for the day as made/completed.
+                            {`Orders with '-' are stores that have not yet submitted any orders for the day.`}
                         </p>
                     </PopoverContent>
                 </Popover>

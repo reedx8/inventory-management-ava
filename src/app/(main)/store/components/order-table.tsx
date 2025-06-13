@@ -237,9 +237,11 @@ export default function OrderTable({
             ).toLocaleDateString('en-US', { weekday: 'long' })} PAR`,
             cell: (info) => {
                 return (
-                    <p>{`${Number(Number(info.row.original.pars_value).toFixed(2))}`}</p>
-                )
-            }
+                    <p>{`${Number(
+                        Number(info.row.original.pars_value).toFixed(2)
+                    )}`}</p>
+                );
+            },
         },
         {
             accessorKey: 'order',
@@ -549,7 +551,10 @@ export default function OrderTable({
                                 filteredData.length > 0 && (
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                            <Button variant='myTheme5' disabled={isSubmitting}>
+                                            <Button
+                                                variant='myTheme5'
+                                                disabled={isSubmitting}
+                                            >
                                                 Submit
                                                 <Send />
                                             </Button>
@@ -568,9 +573,13 @@ export default function OrderTable({
                                                     {`Press Submit only if all ${activeCateg.toLowerCase()} orders
                                                     are completed. Otherwise press Cancel.`}
                                                 </AlertDialogDescription>
-                                                {!storeId && <AlertDialogDescription className='text-red-500 text-xs'>
-                                                    Note: Only Store Managers can submit orders at this time.
-                                                </AlertDialogDescription>}
+                                                {!storeId && (
+                                                    <AlertDialogDescription className='text-red-500 text-xs'>
+                                                        Note: Only Store
+                                                        Managers can submit
+                                                        orders at this time.
+                                                    </AlertDialogDescription>
+                                                )}
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>
@@ -580,7 +589,10 @@ export default function OrderTable({
                                                     <Button
                                                         variant='myTheme'
                                                         onClick={handleSubmit}
-                                                        disabled={isSubmitting || !storeId}
+                                                        disabled={
+                                                            isSubmitting ||
+                                                            !storeId
+                                                        }
                                                     >
                                                         {isSubmitting
                                                             ? 'Submitting...'
@@ -615,15 +627,22 @@ export default function OrderTable({
                             <SelectTrigger className='h-8 w-[70px]'>
                                 <SelectValue placeholder={pageSize} />
                             </SelectTrigger>
-                            { table.getPageCount() > 0 ? <SelectContent side='top'>
-                                {[5, 10, 20, 200].map((size) => (
-                                    <SelectItem key={size} value={`${size}`}>
-                                        {size === 200 ? 'All' : size}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent> : <SelectContent side='top'>
-                                <SelectItem value={'0'} disabled/>
-                            </SelectContent>}
+                            {table.getPageCount() > 0 ? (
+                                <SelectContent side='top'>
+                                    {[5, 10, 20, 200].map((size) => (
+                                        <SelectItem
+                                            key={size}
+                                            value={`${size}`}
+                                        >
+                                            {size === 200 ? 'All' : size}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            ) : (
+                                <SelectContent side='top'>
+                                    <SelectItem value={'0'} disabled />
+                                </SelectContent>
+                            )}
                         </Select>
                     </div>
                     {/* Pagination: 10 items per page */}
@@ -668,7 +687,9 @@ function autoFillOrders(
 
     setData(
         data.map((order) => {
-            order.order = toggleAutoFill ? null : order.pars_value;
+            order.order = toggleAutoFill
+                ? null
+                : Number(Number(order.pars_value).toFixed(2)) ?? 0;
             return order;
         })
     );

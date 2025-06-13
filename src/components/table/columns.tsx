@@ -6,6 +6,7 @@ import { ColumnDef } from '@tanstack/react-table';
 // import { Button } from '@/components/ui/button';
 import { STORE_LOCATIONS } from '@/components/types';
 
+// Used for bakery's table
 export const BakeryColumns: ColumnDef<BakeryOrder>[] = [
     {
         accessorKey: 'name',
@@ -22,13 +23,21 @@ export const BakeryColumns: ColumnDef<BakeryOrder>[] = [
         id: `store_${store}`, // unique id for each column
         header: store.toLowerCase() === 'progress' ? 'Barrows' : store,
         accessorFn: (row: {
-            store_data: Array<{ store_name: string; order_qty: number }>;
+            store_data: Array<{ store_name: string; order_qty: number | null }>;
         }) => {
             const storeData = row.store_data?.find(
                 (data) => data.store_name === store
             );
 
-            return storeData?.order_qty ?? '-';
+            if (storeData === null){
+                return '-'
+            } else if(storeData && storeData.order_qty !== null) {
+                return storeData.order_qty;
+            } else {
+                return '-';
+            }
+
+            // return storeData?.order_qty ?? '-';
         },
         // cell: ({ getValue }) => {
         //     // cell: simply centers the cell content
