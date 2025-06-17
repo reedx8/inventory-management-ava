@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 
 type ContentType = 'store:milk' | 'store:bread' | 'store:par' | 'bakery:orders';
 
-// Used in stores page (edit pars) and stores stock page (milk/bread)
+// Used in stores page (edit pars btn) and stores stock page (milk/bread)
 export default function SheetData({
     storeId,
     contentType,
@@ -484,7 +484,7 @@ export default function SheetData({
                                             disabled={isSubmitting}
                                             autoComplete='off' // prevents auto-fill in most cases, which wont trigger onChange
                                             onChange={(e) => {
-                                                let value = e.target.value;
+                                                const value = e.target.value;
                                                 setData((prev) =>
                                                     prev?.map((p) =>
                                                         p.id === item.id
@@ -502,7 +502,7 @@ export default function SheetData({
                                             }}
                                             // onBlur just in case auto-fill still occurs in browser, isNaN check to prevent null object
                                             onBlur={(e) => {
-                                                let value =
+                                                const value =
                                                     e.currentTarget.value;
                                                 setData((prev) =>
                                                     prev?.map((p) =>

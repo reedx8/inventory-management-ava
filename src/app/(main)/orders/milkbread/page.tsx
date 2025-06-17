@@ -181,7 +181,7 @@ export default function MilkBread() {
                         }
                         title={'Edit Cost/Unit'}
                         description={
-                            'Edit the cost/unit of milk and bread items'
+                            'Edit the cost/unit of milk and bread items for all stores.'
                         }
                     >
                         <SheetDataCostUnit
@@ -195,9 +195,9 @@ export default function MilkBread() {
                                 <Edit2 className='w-4 h-4' /> Edit PARS
                             </Button>
                         }
-                        title={'Edit PAR levels'}
+                        title={'Edit PAR Levels'}
                         description={
-                            'Edit the PAR levels of milk and bread items'
+                            'Edit the PAR levels of milk and bread items for each store.'
                         }
                     >
                         <SheetData

@@ -1154,6 +1154,60 @@ export async function getDailyParLevels(
     }
 }
 
+// Gets weekly par levels for CCP/CTC items, for each store
+export async function getCCPCTCWeeklyParLevels(
+    storeId: number, // storeId = 0 when par is same for all stores, so not used for now
+    categ: string
+) {
+    try {
+        const result: SheetDataType2[] = await queryWithAuthRole(async (tx) => {
+            return await tx
+                .select({
+                    item_id: itemsTable.id,
+                    name: itemsTable.name,
+                    qty: parsTable.weekly,
+                    units: itemsTable.units,
+                    store_id: parsTable.store_id,
+                    store_name:
+                        sql`(SELECT name FROM stores WHERE id = ${parsTable.store_id})`.as(
+                            'store_name'
+                        ),
+                    was_updated: false,
+                })
+                .from(itemsTable)
+                .leftJoin(
+                    parsTable,
+                    and(
+                        eq(parsTable.item_id, itemsTable.id)
+                        // eq(parsTable.store_id, storeId)
+                    )
+                )
+                .where(
+                    and(
+                        eq(itemsTable.cron_categ, categ.toUpperCase()),
+                        eq(itemsTable.is_active, true),
+                        eq(parsTable.store_id, storeId)
+                    )
+                )
+                .orderBy(asc(itemsTable.id));
+        });
+
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: null,
+        };
+    }
+}
+
+// Gets weekly par levels for milk and bread items i believe, for each store
 export async function getWeeklyParLevels(
     storeId: number, // storeId = 0 when par is same for all stores, so not used for now
     categ: string

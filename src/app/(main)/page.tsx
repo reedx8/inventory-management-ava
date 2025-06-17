@@ -37,8 +37,9 @@ const orderSchedule = [
         day: 'Tuesday',
         itemsDue: (
             <ul className='list-decimal list-inside'>
-                <li>- Pastries</li>
-                <li>- CCP/Sysco Weekly Orders</li>
+                <li>Pastries</li>
+                <li>CTC</li>
+                <li>CCP & Sysco</li>
             </ul>
         ),
         // itemsDue: 'Pastries, CCP/Sysco Weekly Orders',
@@ -47,8 +48,7 @@ const orderSchedule = [
         day: 'Wednesday',
         itemsDue: (
             <ul className='list-decimal list-inside'>
-                <li>- Pastries</li>
-                <li>- CTC Weekly Orders</li>
+                <li>Pastries</li>
             </ul>
         ),
         // itemsDue: 'Pastries, CTC Weekly Orders',
@@ -78,11 +78,17 @@ const invSchedule = [
     },
     {
         day: 'Tuesday',
-        itemsDue: 'Weekly Stock Count',
+        // itemsDue: 'Weekly Stock Count',
+        itemsDue: (
+            <ul className='list-decimal list-inside'>
+                <li>CTC</li>
+                <li>CCP & Sysco</li>
+            </ul>
+        ),
     },
     {
         day: 'Wednesday',
-        itemsDue: 'CTC Stock Count',
+        itemsDue: '-',
     },
     {
         day: 'Thursday',
@@ -109,6 +115,7 @@ export type DashboardType = {
     milkBreadDueTodayCount: number | undefined;
 };
 
+// Home page / dashboard
 export default function Home() {
     const { userRole, userStoreId } = useAuth();
     const [dashboard, setDashboard] = useState<DashboardType>({
@@ -293,9 +300,9 @@ function scheduleBtn() {
                                         className='grid grid-cols-2'
                                     >
                                         <p className='font-bold'>{item.day}</p>
-                                        <p className='font-bold'>
+                                        <div className='font-bold'>
                                             {item.itemsDue}
-                                        </p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div
@@ -303,7 +310,7 @@ function scheduleBtn() {
                                         className='grid grid-cols-2'
                                     >
                                         <p>{item.day}</p>
-                                        <p>{item.itemsDue}</p>
+                                        <div>{item.itemsDue}</div>
                                     </div>
                                 )
                             )}
