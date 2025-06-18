@@ -501,7 +501,7 @@ export async function updateDailyParLevels({
     data,
     dow,
 }: {
-    data: SheetDataType[];
+    data: SheetDataType2[];
     dow: string;
 }) {
     try {
@@ -514,7 +514,7 @@ export async function updateDailyParLevels({
                         .from(parsTable)
                         .where(
                             and(
-                                eq(parsTable.item_id, item.id),
+                                eq(parsTable.item_id, item.item_id),
                                 eq(parsTable.store_id, item.store_id)
                             )
                         )
@@ -527,7 +527,7 @@ export async function updateDailyParLevels({
                         updated = await trx
                             .insert(parsTable)
                             .values({
-                                item_id: item.id,
+                                item_id: item.item_id,
                                 store_id: item.store_id,
                                 [dow as keyof typeof parsTable]: item.qty,
                             })
@@ -539,7 +539,7 @@ export async function updateDailyParLevels({
                             .set({ [dow as keyof typeof parsTable]: item.qty })
                             .where(
                                 and(
-                                    eq(parsTable.item_id, item.id),
+                                    eq(parsTable.item_id, item.item_id),
                                     eq(parsTable.store_id, item.store_id)
                                 )
                             )
@@ -547,7 +547,7 @@ export async function updateDailyParLevels({
                     }
 
                     return {
-                        id: item.id,
+                        id: item.item_id,
                         updated: updated.length > 0,
                     };
                 })

@@ -1100,10 +1100,10 @@ export async function getDailyParLevels(
     categ: string
 ) {
     try {
-        const result = await queryWithAuthRole(async (tx) => {
+        const result: SheetDataType2[] = await queryWithAuthRole(async (tx) => {
             return await tx
                 .select({
-                    id: itemsTable.id,
+                    item_id: itemsTable.id,
                     name: itemsTable.name,
                     qty: parsTable[dow as keyof typeof parsTable],
                     store_id: sql`${storeId}`.as('store_id'), // ": parsTable.store_id," would be null when item not in pars table
@@ -1155,7 +1155,65 @@ export async function getDailyParLevels(
 }
 
 // Gets weekly par levels for CCP/CTC items, for each store
-export async function getCCPCTCWeeklyParLevels(
+export async function getCTCWeeklyParLevels(
+    storeId: number // storeId = 0 when par is same for all stores, so not used for now
+    // categ: string
+) {
+    try {
+        const result: SheetDataType2[] = await queryWithAuthRole(async (tx) => {
+            return await tx
+                .select({
+                    item_id: itemsTable.id,
+                    name: itemsTable.name,
+                    qty: parsTable.weekly,
+                    units: itemsTable.units,
+                    // store_id: parsTable.store_id,
+                    store_id: sql`COALESCE(${parsTable.store_id}, ${storeId})`,
+                    store_name:
+                        sql`(SELECT name FROM stores WHERE id = ${storeId})`.as(
+                            'store_name'
+                        ),
+                    was_updated: false,
+                })
+                .from(itemsTable)
+                .leftJoin(
+                    parsTable,
+                    and(
+                        eq(parsTable.item_id, itemsTable.id),
+                        eq(parsTable.store_id, storeId)
+                    )
+                )
+                .where(
+                    and(
+                        or(
+                            eq(itemsTable.cron_categ, 'COFFEE'),
+                            eq(itemsTable.cron_categ, 'TEA'),
+                            eq(itemsTable.cron_categ, 'CHOCOLATE')
+                        ),
+                        eq(itemsTable.is_active, true)
+                        // eq(parsTable.store_id, storeId)
+                    )
+                )
+                .orderBy(asc(itemsTable.id));
+        });
+
+        return {
+            success: true,
+            error: null,
+            data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: null,
+        };
+    }
+}
+
+// Gets weekly par levels for CCP/CTC items, for each store
+export async function getCCPWeeklyParLevels(
     storeId: number, // storeId = 0 when par is same for all stores, so not used for now
     categ: string
 ) {
@@ -1167,9 +1225,9 @@ export async function getCCPCTCWeeklyParLevels(
                     name: itemsTable.name,
                     qty: parsTable.weekly,
                     units: itemsTable.units,
-                    store_id: parsTable.store_id,
+                    store_id: sql`COALESCE(${parsTable.store_id}, ${storeId})`,
                     store_name:
-                        sql`(SELECT name FROM stores WHERE id = ${parsTable.store_id})`.as(
+                        sql`(SELECT name FROM stores WHERE id = ${storeId})`.as(
                             'store_name'
                         ),
                     was_updated: false,
@@ -1178,18 +1236,19 @@ export async function getCCPCTCWeeklyParLevels(
                 .leftJoin(
                     parsTable,
                     and(
-                        eq(parsTable.item_id, itemsTable.id)
-                        // eq(parsTable.store_id, storeId)
+                        eq(parsTable.item_id, itemsTable.id),
+                        eq(parsTable.store_id, storeId)
                     )
                 )
                 .where(
                     and(
                         eq(itemsTable.cron_categ, categ.toUpperCase()),
-                        eq(itemsTable.is_active, true),
-                        eq(parsTable.store_id, storeId)
+                        eq(itemsTable.is_active, true)
+                        // eq(parsTable.store_id, storeId)
                     )
                 )
-                .orderBy(asc(itemsTable.id));
+                .orderBy(asc(itemsTable.name));
+            // .orderBy(asc(itemsTable.id));
         });
 
         return {
@@ -1212,6 +1271,12 @@ export async function getWeeklyParLevels(
     storeId: number, // storeId = 0 when par is same for all stores, so not used for now
     categ: string
 ) {
+    if (categ.toLowerCase() === 'ctc') {
+        return getCTCWeeklyParLevels(storeId);
+    } else if (categ.toLowerCase() === 'ccp&sysco') {
+        return getCCPWeeklyParLevels(storeId, categ);
+    }
+
     try {
         const result: SheetDataType2[] = await queryWithAuthRole(async (tx) => {
             return await tx

@@ -15,43 +15,36 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { ParsPayload, SheetDataType } from '@/components/types';
+import { ParsPayload, SheetDataType, SheetDataType2 } from '@/components/types';
 import { useToast } from '@/hooks/use-toast';
+import { STORE_LIST, StoreList } from '@/components/types';
 
 // type ContentType = 'store:milk' | 'store:bread' | 'store:par' | 'bakery:orders';
 
 // Used for edit pars btn on stores page (wrap component in Sheet Template component)
 export default function ParsData({
     storeId,
-    // contentType,
+    role,
     setRefreshParent,
 }: {
     storeId: number;
-    // contentType: ContentType;
+    role: string;
     setRefreshParent: React.Dispatch<React.SetStateAction<number>>;
 }) {
-    const [data, setData] = useState<SheetDataType[]>([]);
+    const [data, setData] = useState<SheetDataType2[]>([]);
     const [formFeedback, setFormFeedback] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [parCategory, setParCategory] = useState<string>('Pastry'); // Pastry, CTC, and CCP&SYSCO (items.cron_categ)
-    // const [category, setCategory] = useState<string>('Milk');
-    // const [placeholder] = useState<string>(() => {
-    //     if (contentType === 'store:par') {
-    //         return parCategory;
-    //     } else {
-    //         return '';
-    //     }
-    // });
     const [dowSelection, setDowSelection] = useState<string>('Monday');
-    const [todaysDow] = useState<number>(new Date().getDay()); // for milk/bread stock count
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    // const [refreshStockTrigger, setRefreshStockTrigger] = useState<number>(0); // only use for milk/bread
+    const [adminStoreId, setAdminStoreId] = useState<number>(STORE_LIST[0].id);
     const { toast } = useToast();
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault(); // stop page from refreshing
         setFormFeedback(null);
 
+        // check if any items were updated first:
         const updatedData = data.filter((item) => item.was_updated);
         if (updatedData.length === 0) {
             setFormFeedback('No changes to submit');
@@ -60,9 +53,15 @@ export default function ParsData({
 
         setIsSubmitting(true);
 
+        let dowSelect = dowSelection.toLowerCase();
+        if (parCategory.toLowerCase() !== 'pastry') {
+            dowSelect = 'weekly';
+        }
+
         const payload: ParsPayload = {
             data: updatedData,
-            dow: dowSelection.toLowerCase(),
+            dow: dowSelect,
+            // dow: dowSelection.toLowerCase(),
         };
 
         try {
@@ -86,14 +85,9 @@ export default function ParsData({
                 }))
             );
 
-            // setData(data.map((item: SheetDataType) => ({
-            //     ...item,
-            //     was_updated: false,
-            // })));
-
             toast({
                 title: 'PAR Levels Updated',
-                description: 'Pastry PAR levels have been updated successfully',
+                description: `${parCategory} PAR levels have been updated successfully`,
                 className: 'bg-myBrown border-none text-myDarkbrown',
             });
         } catch (error) {
@@ -116,13 +110,25 @@ export default function ParsData({
     };
 
     useEffect(() => {
-        const fetchDailyParLevels = async () => {
+        // fetch item's daily or weekly par levels depending on its category and current store
+        const fetchParLevels = async () => {
             setIsLoading(true);
             const store_id = storeId ? storeId : 0;
             try {
-                // console.log(dowSelection);
+                let dowSelect = dowSelection;
+                if (parCategory.toLowerCase() !== 'pastry') {
+                    dowSelect = 'weekly';
+                }
+
+                // Need this to handle '&' correctly when parCategory='CCP&SYSCO':
+                const itemCateg = encodeURIComponent(parCategory);
+
+                const currStoreId = role === 'admin' ? adminStoreId : store_id;
+
                 const response = await fetch(
-                    `/api/v1/pars?storeId=${store_id}&dow=${dowSelection}&categ=${parCategory}`
+                    `/api/v1/pars?storeId=${currStoreId}&dow=${dowSelect}&categ=${itemCateg}`
+                    // `/api/v1/pars?storeId=${store_id}&dow=${dowSelect}&categ=${itemCateg}`
+                    // `/api/v1/pars?storeId=${store_id}&dow=${dowSelect}&categ=${parCategory}`
                 );
                 const data = await response.json();
 
@@ -155,38 +161,65 @@ export default function ParsData({
             // console.log(data);
         };
 
-        if (parCategory.toLowerCase() === 'pastry') {
-            fetchDailyParLevels();
-        } else if (
-            parCategory.toLowerCase() === 'ctc' ||
-            parCategory.toLowerCase() === 'ccp&sysco'
-        ) {
-            // fetchCCPCTCWeeklyParLevels();
-        }
+        fetchParLevels();
+
         setFormFeedback(null);
-    }, [
-        // contentType,
-        dowSelection,
-        parCategory,
-        storeId,
-        toast,
-        // category,
-        // refreshStockTrigger,
-        todaysDow,
-    ]);
+    }, [dowSelection, parCategory, storeId, toast, adminStoreId, role]);
 
     return (
         <div className='flex flex-col h-full'>
             <div className='flex justify-between items-center mt-2'>
                 <div>
-                    {data && data.length > 0 && (
+                    {role === 'admin' ? (
+                        <Badge variant='default' className='text-xs bg-myBrown text-myDarkbrown hover:bg-myBrown'>
+                            <Select
+                                defaultValue={adminStoreId.toString()}
+                                onValueChange={(value) =>
+                                    setAdminStoreId(Number(value))
+                                }
+                                disabled={isSubmitting || isLoading}
+                            >
+                                <SelectTrigger className='w-fit h-6 text-xs bg-myBrown outline-none border-none'>
+                                    <SelectValue
+                                        placeholder={
+                                            STORE_LIST.find(
+                                                (store) =>
+                                                    store.id === adminStoreId
+                                            )?.name
+                                        }
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {STORE_LIST.map((store) => (
+                                        <SelectItem
+                                            key={store.id}
+                                            value={store.id.toString()}
+                                        >
+                                            {store.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </Badge>
+                    ) : (
+                        data &&
+                        data.length > 0 && (
+                            <Badge
+                                variant='default'
+                                className='text-xs bg-myBrown text-myDarkbrown hover:bg-myBrown'
+                            >
+                                {data[0].store_name}
+                            </Badge>
+                        )
+                    )}
+                    {/* {data && data.length > 0 && (
                         <Badge
                             variant='default'
                             className='text-xs bg-myBrown text-myDarkbrown hover:bg-myBrown'
                         >
                             {data[0].store_name}
                         </Badge>
-                    )}
+                    )} */}
                 </div>
                 <div className='flex text-sm gap-2 self-end'>
                     {parCategory.toLowerCase() === 'pastry' && (
@@ -274,7 +307,7 @@ export default function ParsData({
                             <div className='grid grid-cols-1 gap-1'>
                                 {data.map((item) => (
                                     <div
-                                        key={item.id}
+                                        key={item.item_id}
                                         className='flex justify-between h-fit items-center mt-1 text-sm'
                                     >
                                         <div>
@@ -291,7 +324,7 @@ export default function ParsData({
                                         <input
                                             name='count'
                                             type='number'
-                                            id={item.id.toString()}
+                                            id={item.item_id.toString()}
                                             className='w-16 rounded-sm border-2 h-8 pl-1'
                                             // defaultValue instead of value to avoid browser restricting submit on invalid input but valid field value, confusing UX
                                             defaultValue={
@@ -304,14 +337,15 @@ export default function ParsData({
                                                       )
                                             }
                                             placeholder='0'
-                                            step={0.5}
+                                            step='any'
                                             disabled={isSubmitting}
                                             autoComplete='off' // prevents auto-fill in most cases, which wont trigger onChange
                                             onChange={(e) => {
                                                 const value = e.target.value;
                                                 setData((prev) =>
                                                     prev?.map((p) =>
-                                                        p.id === item.id
+                                                        p.item_id ===
+                                                        item.item_id
                                                             ? {
                                                                   ...p,
                                                                   qty: Number(
@@ -330,7 +364,8 @@ export default function ParsData({
                                                     e.currentTarget.value;
                                                 setData((prev) =>
                                                     prev?.map((p) =>
-                                                        p.id === item.id
+                                                        p.item_id ===
+                                                        item.item_id
                                                             ? {
                                                                   ...p,
                                                                   qty: Number(

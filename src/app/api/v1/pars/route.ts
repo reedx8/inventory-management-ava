@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
     try {
         let response;
         if (dow.toLowerCase() === 'weekly') {
+            console.log(categ);
             response = await getWeeklyParLevels(
                 Number(storeId),
                 categ.toUpperCase()
