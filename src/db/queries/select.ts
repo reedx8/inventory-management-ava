@@ -207,137 +207,273 @@ export async function getStoresBakeryOrders(
     // return result;
 }
 
-// Get external vendor orders for each store (store -> orders due page)
+// Get external vendor orders (CCP/CTC) for each store (store -> orders due page)
 export async function getStoreOrders(
     store_location_id: string | null,
     dow: number
 ) {
-    return {
-        success: true,
-        error: null,
-        data: [],
-    };
-    // const day = getDaysName(dow);
+    // TODO: return items only if no CCP/CTC orders on current day, empty otherwise
 
-    // if (store_location_id) {
-    //     try {
-    //         const storeId = parseInt(store_location_id);
-    //         const result = await queryWithAuthRole(async (tx) => {
-    //             return await tx
-    //                 .select({
-    //                     id: ordersTable.id,
-    //                     name: itemsTable.name,
-    //                     qty_per_order: itemsTable.units,
-    //                     order: ordersTable.qty,
-    //                     // stage: orderStagesTable.stage_name,
-    //                     store_categ: itemsTable.store_categ,
-    //                     // due_date: sql`${dummyDate}`, // dummy data for now
-    //                     // due_date: ordersTable.due_date,
-    //                     store_name: storesTable.name,
-    //                     cron_categ: itemsTable.cron_categ,
-    //                     pars_value: sql`${
-    //                         parsTable[day as keyof typeof parsTable]
-    //                     }`,
-    //                 })
-    //                 .from(ordersTable)
-    //                 .innerJoin(
-    //                     itemsTable,
-    //                     eq(ordersTable.item_id, itemsTable.id)
-    //                 )
-    //                 .innerJoin(
-    //                     storesTable,
-    //                     eq(storesTable.id, ordersTable.store_id)
-    //                 )
-    //                 .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
-    //                 .where(
-    //                     and(
-    //                         eq(ordersTable.store_id, storeId),
-    //                         sql`${ordersTable.store_submit_at}
-    //                         >= now() - interval '72 hours'`,
-    //                         eq(parsTable.store_id, storeId),
-    //                         eq(itemsTable.is_active, true)
-    //                         // eq(storeOrdersTable.created_at, sql`<WITHIN THE WEEK>`),
-    //                         // eq(orderStagesTable.stage_name, 'DUE')
-    //                     )
-    //                 )
-    //                 .orderBy(asc(ordersTable.item_id));
-    //         });
-    //         // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
-    //         return {
-    //             success: true,
-    //             error: null,
-    //             data: result,
-    //         };
-    //     } catch (error) {
-    //         const err = error as Error;
-    //         return {
-    //             success: false,
-    //             error: err.message,
-    //             data: null,
-    //         };
-    //     }
-    //     // return result;
-    // } else {
-    //     // Return all store items due (admin view)
-    //     try {
-    //         const result = await queryWithAuthRole(async (tx) => {
-    //             return await tx
-    //                 .select({
-    //                     id: ordersTable.id,
-    //                     name: itemsTable.name,
-    //                     qty_per_order: itemsTable.units,
-    //                     order: ordersTable.qty,
-    //                     // stage: orderStagesTable.stage_name,
-    //                     store_categ: itemsTable.store_categ,
-    //                     // due_date: sql`${dummyDate}`, // dummy data for now
-    //                     // due_date: ordersTable.due_date,
-    //                     store_name: storesTable.name,
-    //                     cron_categ: itemsTable.cron_categ,
-    //                     pars_value: sql`${
-    //                         parsTable[day as keyof typeof parsTable]
-    //                     }`,
-    //                 })
-    //                 .from(ordersTable)
-    //                 .innerJoin(
-    //                     itemsTable,
-    //                     eq(ordersTable.item_id, itemsTable.id)
-    //                 )
-    //                 .innerJoin(
-    //                     storesTable,
-    //                     eq(storesTable.id, ordersTable.store_id)
-    //                 )
-    //                 .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
-    //                 .where(
-    //                     and(
-    //                         eq(itemsTable.is_active, true),
-    //                         sql`${ordersTable.store_submit_at}
-    //                         >= now() - interval '72 hours'`,
-    //                         eq(parsTable.store_id, ordersTable.store_id)
-    //                     )
-    //                 )
-    //                 .orderBy(asc(ordersTable.store_id));
-    //         });
-    //         // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+    const tom_day = getDaysName(dow);
 
-    //         return {
-    //             success: true,
-    //             error: null,
-    //             data: result,
-    //         };
-    //     } catch (error) {
-    //         const err = error as Error;
-    //         return {
-    //             success: false,
-    //             error: err.message,
-    //             data: null,
-    //         };
-    //     }
+    if (store_location_id) {
+        // store manager's view
+        try {
+            const storeId = parseInt(store_location_id);
+            const result = await queryWithAuthRole(async (tx) => {
+                return await tx
+                    .select({
+                        id: itemsTable.id,
+                        name: itemsTable.name,
+                        qty_per_order: itemsTable.units,
+                        // order: ordersTable.qty,
+                        store_categ: itemsTable.store_categ,
+                        cron_categ: itemsTable.cron_categ,
+                        pars_value: sql`COALESCE(${
+                            parsTable[tom_day as keyof typeof parsTable]
+                        }, 0)`,
+                    })
+                    .from(itemsTable)
+                    .leftJoin(
+                        parsTable,
+                        and(
+                            eq(parsTable.item_id, itemsTable.id),
+                            eq(parsTable.store_id, storeId)
+                        )
+                    )
+                    .where(
+                        and(
+                            eq(itemsTable.is_active, true),
+                            or(
+                                eq(itemsTable.cron_categ, 'CCP&SYSCO'),
+                                eq(itemsTable.cron_categ, 'COFFEE'),
+                                eq(itemsTable.cron_categ, 'TEA'),
+                                eq(itemsTable.cron_categ, 'CHOCOLATE')
+                            )
+                            // eq(ordersTable.store_id, storeId),
+                            // sql`${ordersTable.store_submit_at}
+                            // >= now() - interval '72 hours'`,
+                            // eq(parsTable.store_id, storeId),
+                            // eq(storeOrdersTable.created_at, sql`<WITHIN THE WEEK>`),
+                        )
+                    )
+                    .orderBy(asc(itemsTable.id));
+            });
+            // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
 
-    //     // return result;
-    // }
+            return {
+                success: true,
+                error: null,
+                data: result,
+            };
+        } catch (error) {
+            const err = error as Error;
+            return {
+                success: false,
+                error: err.message,
+                data: null,
+            };
+        }
+        // return result;
+    } else {
+        // Return all store items due (admin view)
+        return {
+            success: true,
+            error: null,
+            data: [],
+        };
+        try {
+            const result = await queryWithAuthRole(async (tx) => {
+                return await tx
+                    .select({
+                        id: ordersTable.id,
+                        name: itemsTable.name,
+                        qty_per_order: itemsTable.units,
+                        order: ordersTable.qty,
+                        // stage: orderStagesTable.stage_name,
+                        store_categ: itemsTable.store_categ,
+                        // due_date: sql`${dummyDate}`, // dummy data for now
+                        // due_date: ordersTable.due_date,
+                        store_name: storesTable.name,
+                        cron_categ: itemsTable.cron_categ,
+                        pars_value: sql`${
+                            parsTable[tom_day as keyof typeof parsTable]
+                        }`,
+                    })
+                    .from(ordersTable)
+                    .innerJoin(
+                        itemsTable,
+                        eq(ordersTable.item_id, itemsTable.id)
+                    )
+                    .innerJoin(
+                        storesTable,
+                        eq(storesTable.id, ordersTable.store_id)
+                    )
+                    .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
+                    .where(
+                        and(
+                            eq(itemsTable.is_active, true),
+                            sql`${ordersTable.store_submit_at}
+                            >= now() - interval '72 hours'`,
+                            eq(parsTable.store_id, ordersTable.store_id)
+                        )
+                    )
+                    .orderBy(asc(ordersTable.store_id));
+            });
+            // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
 
-    // // return result;
+            return {
+                success: true,
+                error: null,
+                data: result,
+            };
+        } catch (error) {
+            const err = error as Error;
+            return {
+                success: false,
+                error: err.message,
+                data: null,
+            };
+        }
+
+        // return result;
+    }
+
+    // return result;
 }
+
+// // Get external vendor orders for each store (store -> orders due page)
+// export async function getStoreOrders(
+//     store_location_id: string | null,
+//     dow: number
+// ) {
+//     // return {
+//     //     success: true,
+//     //     error: null,
+//     //     data: [],
+//     // };
+//     const day = getDaysName(dow);
+
+//     if (store_location_id) {
+//         // store manager's view
+//         try {
+//             const storeId = parseInt(store_location_id);
+//             const result = await queryWithAuthRole(async (tx) => {
+//                 return await tx
+//                     .select({
+//                         id: ordersTable.id,
+//                         name: itemsTable.name,
+//                         qty_per_order: itemsTable.units,
+//                         order: ordersTable.qty,
+//                         // stage: orderStagesTable.stage_name,
+//                         store_categ: itemsTable.store_categ,
+//                         // due_date: sql`${dummyDate}`, // dummy data for now
+//                         // due_date: ordersTable.due_date,
+//                         store_name: storesTable.name,
+//                         cron_categ: itemsTable.cron_categ,
+//                         pars_value: sql`${
+//                             parsTable[day as keyof typeof parsTable]
+//                         }`,
+//                     })
+//                     .from(ordersTable)
+//                     .innerJoin(
+//                         itemsTable,
+//                         eq(ordersTable.item_id, itemsTable.id)
+//                     )
+//                     .innerJoin(
+//                         storesTable,
+//                         eq(storesTable.id, ordersTable.store_id)
+//                     )
+//                     .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
+//                     .where(
+//                         and(
+//                             eq(ordersTable.store_id, storeId),
+//                             sql`${ordersTable.store_submit_at}
+//                             >= now() - interval '72 hours'`,
+//                             eq(parsTable.store_id, storeId),
+//                             eq(itemsTable.is_active, true)
+//                             // eq(storeOrdersTable.created_at, sql`<WITHIN THE WEEK>`),
+//                             // eq(orderStagesTable.stage_name, 'DUE')
+//                         )
+//                     )
+//                     .orderBy(asc(ordersTable.item_id));
+//             });
+//             // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+//             return {
+//                 success: true,
+//                 error: null,
+//                 data: result,
+//             };
+//         } catch (error) {
+//             const err = error as Error;
+//             return {
+//                 success: false,
+//                 error: err.message,
+//                 data: null,
+//             };
+//         }
+//         // return result;
+//     } else {
+//         // Return all store items due (admin view)
+//         try {
+//             const result = await queryWithAuthRole(async (tx) => {
+//                 return await tx
+//                     .select({
+//                         id: ordersTable.id,
+//                         name: itemsTable.name,
+//                         qty_per_order: itemsTable.units,
+//                         order: ordersTable.qty,
+//                         // stage: orderStagesTable.stage_name,
+//                         store_categ: itemsTable.store_categ,
+//                         // due_date: sql`${dummyDate}`, // dummy data for now
+//                         // due_date: ordersTable.due_date,
+//                         store_name: storesTable.name,
+//                         cron_categ: itemsTable.cron_categ,
+//                         pars_value: sql`${
+//                             parsTable[day as keyof typeof parsTable]
+//                         }`,
+//                     })
+//                     .from(ordersTable)
+//                     .innerJoin(
+//                         itemsTable,
+//                         eq(ordersTable.item_id, itemsTable.id)
+//                     )
+//                     .innerJoin(
+//                         storesTable,
+//                         eq(storesTable.id, ordersTable.store_id)
+//                     )
+//                     .innerJoin(parsTable, eq(parsTable.item_id, itemsTable.id))
+//                     .where(
+//                         and(
+//                             eq(itemsTable.is_active, true),
+//                             sql`${ordersTable.store_submit_at}
+//                             >= now() - interval '72 hours'`,
+//                             eq(parsTable.store_id, ordersTable.store_id)
+//                         )
+//                     )
+//                     .orderBy(asc(ordersTable.store_id));
+//             });
+//             // .where(between(postsTable.createdAt, sql`now() - interval '1 day'`, sql`now()`))
+
+//             return {
+//                 success: true,
+//                 error: null,
+//                 data: result,
+//             };
+//         } catch (error) {
+//             const err = error as Error;
+//             return {
+//                 success: false,
+//                 error: err.message,
+//                 data: null,
+//             };
+//         }
+
+//         // return result;
+//     }
+
+//     // return result;
+// }
 
 // (not used yet)
 export async function getWeeklyStock(store_location_id: string | null) {

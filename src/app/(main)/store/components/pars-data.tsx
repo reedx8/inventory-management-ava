@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { ParsPayload, SheetDataType, SheetDataType2 } from '@/components/types';
 import { useToast } from '@/hooks/use-toast';
-import { STORE_LIST, StoreList } from '@/components/types';
+import { STORE_LIST } from '@/components/types';
 
 // type ContentType = 'store:milk' | 'store:bread' | 'store:par' | 'bakery:orders';
 

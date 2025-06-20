@@ -84,7 +84,7 @@ export default function OrderTable({
     setRefreshTrigger: React.Dispatch<React.SetStateAction<number>>;
 }) {
     const [activeCateg, setActiveCateg] = useState<StoreCategory>(
-        STORE_CATEGORIES[1]
+        STORE_CATEGORIES[0]
     );
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [filteredData, setFilteredData] = useState<OrderItem[]>(data);
@@ -183,6 +183,7 @@ export default function OrderTable({
                 //         ? setValue('')
                 //         : setValue(e.target.value)
                 // }
+                autoComplete='off'
                 onChange={(e) => setValue(e.target.value)}
                 // onFocus and onClick allows consistent selection of all text in input field
                 onFocus={(e) => {
@@ -291,15 +292,6 @@ export default function OrderTable({
 
         if (items.length > 0) {
             return <Dot className='text-myDarkbrown w-8 h-8' />;
-            /*
-            // Check if any item has stage 'DUE'
-            const hasDueItems = items.some((item) => item.stage === 'DUE');
-            if (hasDueItems) {
-                return (
-                    <Dot className='text-red-500 w-8 h-8' />
-                );
-            }
-            */
         } else if (category === 'ALL' && data.length > 0) {
             return <Dot className='text-myDarkbrown w-8 h-8' />;
         }
@@ -443,9 +435,13 @@ export default function OrderTable({
                                                     ? 'myTheme'
                                                     : 'outline'
                                             }
-                                            onClick={() =>
-                                                setActiveCateg(category)
-                                            }
+                                            onClick={() => {
+                                                setPagination({
+                                                    ...pagination,
+                                                    pageIndex: 0,
+                                                })
+                                                setActiveCateg(category);
+                                            }}
                                         >
                                             {category}
                                         </Button>

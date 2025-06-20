@@ -17,71 +17,89 @@ import { Button } from '@/components/ui/button';
 import SheetTemplate from '@/components/sheet/sheet-template';
 // import SheetData from '@/components/sheet/sheet-data';
 import ParsData from './components/pars-data';
+import { ctcCCPToday } from '@/components/schedules';
 // import { Badge } from '@/components/ui/badge';
 
 export default function Stores() {
     const { userRole, userStoreId } = useAuth();
-    const [mergedData, setMergedData] = useState<OrderItem[] | undefined>();
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [mergedData, setMergedData] = useState<OrderItem[] | undefined>(
+        undefined
+    );
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
-    const [refreshParentOnParChange, setRefreshParentOnParChange] = useState<number>(0);
+    const [refreshParentOnParChange, setRefreshParentOnParChange] =
+        useState<number>(0);
 
     useEffect(() => {
-        const fetchStoreOrders = async () => {
+        const fetchAllOrders = async () => {
+            setIsLoading(true);
             try {
-                let regResponse;
+                // let regResponse;
                 let bakeryResponse;
+                let bakeryData;
+                let vendorResponse;
+                let vendorData;
 
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const tom_dow_num = tomorrow.getDay();
+                // to get the correct par values (want tomorrow's par values for each item):
+                // const today = new Date();
+                const tom = new Date();
+                tom.setDate(tom.getDate() + 1);
+                const tomDowNum = tom.getDay();
 
                 if (userRole === 'admin') {
-                    [regResponse, bakeryResponse] = await Promise.all([
-                        fetch(`/api/v1/store-orders?dow=${tom_dow_num}`),
-                        fetch(`/api/v1/store-bakery-orders?dow=${tom_dow_num}`),
-                    ]);
-                } else if (userRole === 'store_manager') {
-                    [regResponse, bakeryResponse] = await Promise.all([
-                        fetch(
-                            `/api/v1/store-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
-                        ),
-                        fetch(
-                            `/api/v1/store-bakery-orders?storeId=${userStoreId}&dow=${tom_dow_num}`
-                        ),
-                    ]);
-                } else {
-                    // dont fetch orders for other roles
-                    return;
-                }
-
-                const [regData, bakeryData] = await Promise.all([
-                    regResponse.json(),
-                    bakeryResponse.json(),
-                ]);
-                // const data = await response.json();
-                // const theBakeryData = await response2.json();
-                if (regResponse.ok && bakeryResponse.ok) {
-                    const mergedOrders = [...regData, ...bakeryData];
-                    setMergedData(mergedOrders);
-                    console.log('mergedOrders: ', mergedOrders);
-                } else {
-                    throw new Error(
-                        'Store Orders Error: ' +
-                            (regData.error || 'Ok') +
-                            `\nBakery Orders Error: ` +
-                            (bakeryData.error || 'Ok')
+                    bakeryResponse = await fetch(
+                        `/api/v1/store-bakery-orders?dow=${tomDowNum}`
                     );
+                    bakeryData = await bakeryResponse.json();
+
+                    if (!bakeryResponse.ok) {
+                        throw new Error(bakeryData.error);
+                    }
+
+                    // if (ctcCCPToday(new Date().getDay())) {
+                    vendorResponse = await fetch(
+                        `/api/v1/store-orders?dow=${tomDowNum}`
+                    );
+                    vendorData = await vendorResponse.json();
+
+                    if (!vendorResponse.ok) {
+                        throw new Error(vendorData.error);
+                    }
+                    // }
+
+                    // set data all at once to avoid setting same state multiple times, causing different renders
+                    setMergedData([...bakeryData, ...(vendorData || [])]);
+                } else if (userRole === 'store_manager') {
+                    bakeryResponse = await fetch(
+                        `/api/v1/store-bakery-orders?storeId=${userStoreId}&dow=${tomDowNum}`
+                    );
+                    bakeryData = await bakeryResponse.json();
+
+                    if (!bakeryResponse.ok) {
+                        throw new Error(bakeryData.error);
+                    }
+
+                    // if (ctcCCPToday(new Date().getDay())){
+                    vendorResponse = await fetch(
+                        `/api/v1/store-orders?storeId=${userStoreId}&dow=${tomDowNum}`
+                    );
+                    vendorData = await vendorResponse.json();
+
+                    if (!vendorResponse.ok) {
+                        throw new Error(vendorData.error);
+                    }
+                    // }
+
+                    setMergedData([...bakeryData, ...(vendorData || [])]);
                 }
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 setMergedData([]);
-                // setData([]);
-                // setStoreData([]);
             }
             setIsLoading(false);
         };
-        fetchStoreOrders();
+
+        fetchAllOrders();
     }, [userRole, userStoreId, refreshTrigger, refreshParentOnParChange]);
 
     return (
@@ -92,7 +110,10 @@ export default function Stores() {
                 <div className='flex gap-1 items-center'>
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant='ghost' className='flex gap-2 text-myDarkbrown hover:bg-transparent hover:text-myDarkbrown/60'>
+                            <Button
+                                variant='ghost'
+                                className='flex gap-2 text-myDarkbrown hover:bg-transparent hover:text-myDarkbrown/60'
+                            >
                                 <Info /> <p className='text-xs'>Info</p>
                             </Button>
                         </PopoverTrigger>
@@ -101,8 +122,8 @@ export default function Stores() {
                             <p>{`You can autofill orders with the item's PAR level
                         using 'Autofill Orders', and edit their levels using 'Edit PARS'.`}</p>
                             <p>
-                                Clicking submit on Orders Due page will submit all orders for that
-                                store category only.
+                                Clicking submit on Orders Due page will submit
+                                all orders for that store category only.
                             </p>
                         </PopoverContent>
                     </Popover>
@@ -116,7 +137,11 @@ export default function Stores() {
                         description={`Edit your store's PAR levels here. PAR levels are the minimum amount of stock you should have on hand for that specified day or week, and are used to autofill orders.`}
                         isCollapsible={true}
                     >
-                        <ParsData storeId={userStoreId} role={userRole} setRefreshParent={setRefreshParentOnParChange} />
+                        <ParsData
+                            storeId={userStoreId}
+                            role={userRole}
+                            setRefreshParent={setRefreshParentOnParChange}
+                        />
                         {/* {userRole === 'store_manager' ? (
                             <ParsData storeId={userStoreId} role={userRole} setRefreshParent={setRefreshParentOnParChange} />
                             // <SheetData storeId={userStoreId} contentType='store:par' setRefreshParent={setRefreshParentOnParChange} />
@@ -126,27 +151,18 @@ export default function Stores() {
                     </SheetTemplate>
                 </div>
             </section>
-            {isLoading && !mergedData && (
-                <section className='flex flex-col gap-3'>
-                    <Skeleton className='h-4 w-[14%]' />
-                    <div className='grid grid-cols-4 gap-4 w-full'>
-                        <Skeleton className='h-6 col-span-2' />
-                        <Skeleton className='h-6 col-span-1' />
-                        <Skeleton className='h-6 col-span-1' />
+            {isLoading && (
+                <div className='flex flex-col gap-2 mt-4'>
+                    <Skeleton className='h-6 w-full mb-5' />
+                    <Skeleton className='h-6 w-full' />
+                    {/* <Skeleton className='h-6 w-full' /> */}
+                    <Skeleton className='h-6 w-3/4' />
+                    <Skeleton className='h-6 w-2/4' />
+                    <div className='flex justify-between mt-5'>
+                        <Skeleton className='h-6 w-1/4' />
+                        <Skeleton className='h-6 w-1/4' />
                     </div>
-                    <Skeleton className='h-4 w-[14%]' />
-                    <div className='grid grid-cols-4 gap-4 w-full'>
-                        <Skeleton className='h-6 col-span-2' />
-                        <Skeleton className='h-6 col-span-1' />
-                        <Skeleton className='h-6 col-span-1' />
-                    </div>
-                    <Skeleton className='h-4 w-[14%]' />
-                    <div className='grid grid-cols-4 gap-4 w-full'>
-                        <Skeleton className='h-6 col-span-2' />
-                        <Skeleton className='h-6 col-span-1' />
-                        <Skeleton className='h-6 col-span-1' />
-                    </div>
-                </section>
+                </div>
             )}
             {!isLoading && mergedData && mergedData?.length > 0 && (
                 <OrderTable

@@ -6,7 +6,7 @@ import { createClient } from '@/app/utils/supabase/server';
 import { OrderItem } from '@/app/(main)/store/types';
 export const dynamic = 'force-dynamic'; // no caching
 
-// store -> orders due page
+// store -> orders due page (CCP/CTC weekly orders for stores)
 export async function GET(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const storeId: string | null = searchParams.get('storeId'); // storeId = null for all stores
@@ -34,9 +34,9 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const response = await getStoreOrders(storeId, dow_num); //
+        const response = await getStoreOrders(storeId, dow_num);
         if (!response.success) {
-            return NextResponse.json(response.error, { status: 400 });
+            return NextResponse.json(response, { status: 400 });
         }
         // should prevent netlify from caching this response
         return new NextResponse(JSON.stringify(response.data), {
