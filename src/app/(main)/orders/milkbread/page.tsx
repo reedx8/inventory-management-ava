@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import SheetData from '../components/sheet-data';
 import { DollarSign, Edit2, Info } from 'lucide-react';
 import SheetDataCostUnit from '../components/sheet-data-costunit';
-import { NoMilkBreadDue } from '@/components/placeholders';
+import { LoadingTable, NoMilkBreadDue } from '@/components/placeholders';
 import {
     Popover,
     PopoverContent,
@@ -208,26 +208,7 @@ export default function MilkBread() {
                 </div>
             </section>
             {isLoading && data.length === 0 && (
-                <section className='flex flex-col gap-3'>
-                    <Skeleton className='h-4 w-[14%]' />
-                    <div className='grid grid-cols-4 gap-4 w-full'>
-                        <Skeleton className='h-6 col-span-2' />
-                        <Skeleton className='h-6 col-span-1' />
-                        <Skeleton className='h-6 col-span-1' />
-                    </div>
-                    <Skeleton className='h-4 w-[14%]' />
-                    <div className='grid grid-cols-4 gap-4 w-full'>
-                        <Skeleton className='h-6 col-span-2' />
-                        <Skeleton className='h-6 col-span-1' />
-                        <Skeleton className='h-6 col-span-1' />
-                    </div>
-                    <Skeleton className='h-4 w-[14%]' />
-                    <div className='grid grid-cols-4 gap-4 w-full'>
-                        <Skeleton className='h-6 col-span-2' />
-                        <Skeleton className='h-6 col-span-1' />
-                        <Skeleton className='h-6 col-span-1' />
-                    </div>
-                </section>
+                <LoadingTable />
             )}
             {!isLoading && data && data.length > 0 && (
                 <section>

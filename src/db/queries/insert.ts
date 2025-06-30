@@ -4,8 +4,143 @@ import { ordersTable, stockTable, weekCloseTable } from '../schema';
 import { config } from 'dotenv';
 import { SheetDataType } from '@/components/types';
 import { SundayCloseType } from '@/app/(main)/store/stock/components/sunday-close-data';
+import { OrderItem, StockItem } from '@/app/(main)/store/types';
 // import { MilkBreadOrder } from '@/app/(main)/orders/types';
 config({ path: '.env' });
+
+// Send store's orders for external vendors only, ie CTC/CCP & Sysco (store page -> submit btn)
+export async function postStoreOrders(storeIdNum: string, data: OrderItem[]) {
+    const storeId = parseInt(storeIdNum);
+
+    try {
+        const result = await executeWithAuthRole(async (trx) => {
+            return await Promise.all(
+                // data is an *array* of order items of type OrderItem
+                data.map(async (item) => {
+                    const existingStock = await trx
+                        .select({ id: stockTable.id })
+                        .from(stockTable)
+                        .where(
+                            and(
+                                eq(stockTable.item_id, item.id),
+                                eq(stockTable.store_id, storeId),
+                                sql`${stockTable.submitted_at} >= NOW() - INTERVAL '24 hours'`
+                            )
+                        )
+                        .limit(1);
+
+                    if (existingStock.length > 0) {
+                        // connect the existing stock record to new order record
+                        return await trx.insert(ordersTable).values({
+                            store_id: storeId,
+                            stock_id: existingStock[0].id,
+                            item_id: item.id,
+                            qty: item.order,
+                            par: item.pars_value,
+                            units: item.qty_per_order,
+                            list_price: item.list_price,
+                            vendor_id: item.vendor_id, // not needed but may be helpful
+                            store_submit_at: sql`now()`,
+                        });
+                    } else {
+                        // else just insert the new order without connecting to stock table
+                        return await trx.insert(ordersTable).values({
+                            store_id: storeId,
+                            item_id: item.id,
+                            qty: item.order,
+                            par: item.pars_value,
+                            units: item.qty_per_order,
+                            list_price: item.list_price,
+                            vendor_id: item.vendor_id, // not needed but may be helpful
+                            store_submit_at: sql`now()`,
+                        });
+                    }
+                })
+            );
+        });
+
+        return {
+            success: true,
+            data: result,
+            error: null,
+        };
+    } catch (error) {
+        // transaction failed
+        const err = error as Error;
+        return {
+            success: false,
+            data: null,
+            error: err.message,
+        };
+    }
+}
+
+// Insert stock counts for CTC/CCP&Sysco items
+export async function postWeeklyStock(data: StockItem[], storeId: string) {
+    const storeIdNum = parseInt(storeId);
+
+    try {
+        const results = await executeWithAuthRole(async (trx) => {
+            return await Promise.all(
+                data.map(async (item) => {
+                    const existingOrder = await trx
+                        .select({ id: ordersTable.id })
+                        .from(ordersTable)
+                        .where(
+                            and(
+                                eq(ordersTable.item_id, item.id),
+                                eq(ordersTable.store_id, storeIdNum),
+                                sql`${ordersTable.store_submit_at} >= NOW() - INTERVAL '24 hours'`
+                            )
+                        )
+                        .limit(1);
+
+                    if (existingOrder.length > 0) {
+                        // insert into stock table then connect stock record with existing orders record
+                        const stockRecord = await trx
+                            .insert(stockTable)
+                            .values({
+                                store_id: storeIdNum,
+                                item_id: item.id,
+                                count: item.count,
+                                units: item.units,
+                                submitted_at: sql`now()`,
+                            })
+                            .returning({ id: stockTable.id });
+
+                        return await trx
+                            .update(ordersTable)
+                            .set({
+                                stock_id: stockRecord[0].id,
+                            })
+                            .where(eq(existingOrder[0].id, ordersTable.id));
+                    } else {
+                        // else just insert the stock count
+                        return await trx.insert(stockTable).values({
+                            store_id: storeIdNum,
+                            item_id: item.id,
+                            count: item.count,
+                            units: item.units,
+                            submitted_at: sql`now()`,
+                        });
+                    }
+                })
+            );
+        });
+        return {
+            success: true,
+            data: results,
+            error: null,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: null,
+        };
+    }
+}
 
 // Inserts milk bread stock from store managers
 export async function insertMilkBreadStock(

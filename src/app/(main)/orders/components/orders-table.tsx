@@ -412,6 +412,7 @@ export default function OrdersTable({
                     </Select>
                 </div>
                 <form>
+                    {/* <div> */}
                     <div className='border-x border-b rounded-b-2xl border-neutral-300 px-4 pb-4'>
                         <Table>
                             <TableHeader>

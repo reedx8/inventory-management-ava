@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import PagesNavBar from '@/components/pages-navbar';
 import { HeaderBar } from '@/components/header-bar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { NoOrders } from '@/components/placeholders';
+import { LoadingTable, NoOrders } from '@/components/placeholders';
 // import { useAuth } from '@/contexts/auth-context';
 
 interface OrderItem {
@@ -42,26 +42,7 @@ export default function Orders() {
                 <PagesNavBar />
             </section>
             {isLoading && !data && (
-                <section className='flex flex-col gap-3'>
-                    <Skeleton className='h-4 w-[14%]' />
-                    <div className='grid grid-cols-4 gap-4 w-full'>
-                        <Skeleton className='h-6 col-span-2' />
-                        <Skeleton className='h-6 col-span-1' />
-                        <Skeleton className='h-6 col-span-1' />
-                    </div>
-                    <Skeleton className='h-4 w-[14%]' />
-                    <div className='grid grid-cols-4 gap-4 w-full'>
-                        <Skeleton className='h-6 col-span-2' />
-                        <Skeleton className='h-6 col-span-1' />
-                        <Skeleton className='h-6 col-span-1' />
-                    </div>
-                    <Skeleton className='h-4 w-[14%]' />
-                    <div className='grid grid-cols-4 gap-4 w-full'>
-                        <Skeleton className='h-6 col-span-2' />
-                        <Skeleton className='h-6 col-span-1' />
-                        <Skeleton className='h-6 col-span-1' />
-                    </div>
-                </section>
+                <LoadingTable />
             )}
             {!isLoading && data && data?.length > 0 && (
                 <>

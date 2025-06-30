@@ -6,7 +6,7 @@ import {
     getWeeklyStock,
 } from '@/db/queries/select';
 // import { postMilkBreadStock } from '@/db/queries/update';
-import { insertMilkBreadStock } from '@/db/queries/insert';
+import { insertMilkBreadStock, postWeeklyStock } from '@/db/queries/insert';
 
 // get stock for store managers (milk/bread, etc)
 export async function GET(request: NextRequest) {
@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
 
     try {
         switch (stockType) {
-            case 'weekly':
+            case 'WEEKLY':
                 const weeklyStock = await getWeeklyStock(storeId);
-                return NextResponse.json(weeklyStock, {
+                return NextResponse.json(weeklyStock.data, {
                     status: 200,
                     headers: {
                         'Content-Type': 'application/json',
@@ -66,31 +66,13 @@ export async function GET(request: NextRequest) {
                     });
                 }
                 return NextResponse.json(
-                    { error: 'GET api/v1/store-stock no storeId provided' },
-                    { status: 400 }
-                );
-            case 'waste':
-                if (storeId) {
-                    const weeklyStock = await getWasteStock(storeId);
-                    return NextResponse.json(weeklyStock, {
-                        status: 200,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Cache-Control':
-                                'no-store, no-cache, must-revalidate',
-                            Pragma: 'no-cache',
-                            Expires: '0',
-                        },
-                    });
-                }
-                return NextResponse.json(
-                    { error: 'GET api/v1/store-stock no storeId provided' },
+                    { error: 'GET api/v1/store-stock: No storeId provided' },
                     { status: 400 }
                 );
             default:
                 return NextResponse.json(
                     {
-                        error: 'GET api/v1/store-stock invalid stockType: Provide a valid stockType through your api url',
+                        error: 'GET api/v1/store-stock: Provide a valid stockType (WEEKLY, BREAD, MILK)',
                     },
                     { status: 400 }
                 );
@@ -123,9 +105,22 @@ export async function POST(request: NextRequest) {
 
     try {
         switch (stockType) {
-            // case 'weekly':
-            //     const weeklyStock = await postWeeklyStock(storeId);
-            //     return Response.json(weeklyStock);
+            case 'weekly':
+                // insert stock counts for CTC/CCP&Sysco items
+                if (storeId) {
+                    const weeklyStock = await postWeeklyStock(data, storeId);
+                    if (!weeklyStock.success) {
+                        return NextResponse.json(
+                            { error: weeklyStock },
+                            { status: 400 }
+                        );
+                    }
+                    return NextResponse.json(weeklyStock.data, { status: 200 });
+                }
+                return NextResponse.json(
+                    { error: 'POST api/v1/store-stock: No storeId provided' },
+                    { status: 400 }
+                );
             case 'milkBread':
                 if (storeId) {
                     const milkBreadStock = await insertMilkBreadStock(
@@ -139,22 +134,16 @@ export async function POST(request: NextRequest) {
                         );
                     }
 
-                    return NextResponse.json(milkBreadStock);
+                    return NextResponse.json(milkBreadStock, { status: 200 });
                 }
                 return NextResponse.json(
-                    { error: 'POST api/v1/store-stock no storeId provided' },
+                    { error: 'POST api/v1/store-stock: No storeId provided' },
                     { status: 400 }
                 );
-            // case 'waste':
-            //     if (storeId) {
-            //         const wasteStock = await postWasteStock(storeId);
-            //         return Response.json(weeklyStock);
-            //     }
-            //     return Response.json({ error: 'No storeId provided' }, { status: 400 });
             default:
                 return NextResponse.json(
                     {
-                        error: 'POST api/v1/store-stock valid stockType not provided in api url',
+                        error: 'POST api/v1/store-stock: valid stockType not provided (milkBread, or weekly)',
                     },
                     { status: 400 }
                 );

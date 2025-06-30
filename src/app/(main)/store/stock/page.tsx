@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import StockTable from './components/stock-table';
 // import TrackWasteSheet from './components/track-waste-sheet';
 // import MilkBreadSheet from './components/milk-bread-sheet';
-import { NoStockDue } from '@/components/placeholders';
+import { LoadingTable, NoStockDue } from '@/components/placeholders';
 import SheetTemplate from '@/components/sheet/sheet-template';
 import { ClipboardCheck, Info, Milk } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,23 +18,17 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import SundayCloseData from './components/sunday-close-data';
+import { ctcCCPToday } from '@/components/schedules';
 // import { useToast } from '@/hooks/use-toast';
-type StockItem = {
-    id: number;
-    name: string;
-    // due_date: string;
-    units: string;
-    count: number | null;
-    store_id: number;
-    cron_categ: string;
-    store_categ?: string;
-};
+import { StockItem } from '@/app/(main)/store/types';
+
 
 export default function Stock() {
     const [data, setData] = useState<StockItem[] | undefined>();
     const { userRole, userStoreId } = useAuth();
     // const [activeCateg, setActiveCateg] = useState<string>('PASTRY');
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [refreshParentTrigger, setRefreshParentTrigger] = useState<number>(0);
     // const { toast } = useToast();
 
     useEffect(() => {
@@ -42,43 +36,39 @@ export default function Stock() {
         const fetchWeeklyStock = async () => {
             try {
                 let response;
+                setIsLoading(true);
                 if (userRole === 'admin') {
                     // fetch every store (no storeId param in api url)
-                    response = await fetch('/api/v1/store-stock');
+                    response = await fetch('/api/v1/store-stock?stockType=WEEKLY');
                 } else if (userRole === 'store_manager') {
                     // fetch single store
                     response = await fetch(
-                        `/api/v1/store-stock?storeId=${userStoreId}`
+                        `/api/v1/store-stock?storeId=${userStoreId}&stockType=WEEKLY`
                     );
                 } else {
                     // dont fetch stock for other roles
+                    setIsLoading(false);
                     return;
                 }
                 const data = await response.json();
 
-                if (response.ok) {
-                    setData(data); // set data to all stores
-                    // setStoreData(data);
-                } else {
-                    console.error('Error fetching stock: ', data);
-                    setData([]);
-                    // setStoreData([]);
+                if (!response.ok) {
+                    throw new Error(data.error);
                 }
+                setData(data);
             } catch (error) {
                 console.error('Error fetching stock: ', error);
                 setData([]);
-                // setStoreData([]);
             }
             setIsLoading(false);
         };
 
-        // fetchWeeklyStock();
+        fetchWeeklyStock();
 
         // testing:
-        setData([]);
-        setIsLoading(false);
-        // console.log('Store stock fetched');
-    }, [userRole, userStoreId]);
+        // setData([]);
+        // setIsLoading(false);
+    }, [userRole, userStoreId, refreshParentTrigger]);
 
     // testing:
     // console.log('the data: ', data);
@@ -144,31 +134,15 @@ export default function Stock() {
                 </div>
             </section>
             {data === undefined && isLoading && (
-                <section className='flex flex-col w-[90%] gap-3'>
-                    <div className='space-y-2'>
-                        <Skeleton className='h-6 w-[100%] rounded-md' />
-                        {/* <Skeleton className='h-4 w-[200px]' /> */}
-                    </div>
-                    <Skeleton className='h-[175px] w-[100%] rounded-md' />
-                    <div className='flex gap-2 self-end'>
-                        <Skeleton className='h-6 w-[75px] round-md' />
-                        <Skeleton className='h-6 w-[75px] round-md' />
-                    </div>
-                </section>
-                // <div className='flex flex-col items-center justify-center gap-2 mb-4'>
-                // <p className='text-2xl text-gray-600'>Loading...</p>
-                // </div>
+                <LoadingTable />
             )}
             {data && !isLoading && data?.length > 0 && (
-                <StockTable />
-                // <StockTable data={data} setData={setData} />
+                <StockTable data={data} setData={setData} storeId={userStoreId} setRefreshParentTrigger={setRefreshParentTrigger} />
             )}
             {!isLoading && data?.length === 0 && (
-                // <div className='flex flex-col justify-center'>
                 <section className='flex justify-center'>
                     <NoStockDue />
                 </section>
-                // </div>
             )}
         </main>
     );

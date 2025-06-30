@@ -1,5 +1,6 @@
 import { getStoreOrders } from '@/db/queries/select';
-import { putStoreBakeryOrders, putStoreOrders } from '@/db/queries/update';
+import { putStoreBakeryOrders } from '@/db/queries/update';
+import { postStoreOrders } from '@/db/queries/insert';
 // import { NextResponse } from 'next/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     if (dow_num === null || !valid_days.includes(dow_num)) {
         return NextResponse.json(
             {
-                error: `You need to pass tomorrow's day of week number to api/v1/store-orders (e.g. 0-6)`,
+                error: `GET api/v1/store-orders: You need to pass tomorrow's day of week number (e.g. 0-6)`,
             },
             { status: 400 }
         );
@@ -30,7 +31,6 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        // return Response.redirect('/login');
     }
 
     try {
@@ -50,13 +50,12 @@ export async function GET(request: NextRequest) {
         });
         // return Response.json(response.data, { status: 200 });
     } catch (error) {
-        // console.error('Error fetching store orders:', error);
         const err = error as Error;
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
 
-// Send store's orders for bakery items only (store -> orders due page's submit btn)
+// Send store's orders for all items (store -> orders due page's submit btn)
 export async function PUT(request: NextRequest) {
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const storeId: string | null = searchParams.get('storeId');
@@ -66,7 +65,7 @@ export async function PUT(request: NextRequest) {
     if (!storeId) {
         return NextResponse.json(
             {
-                error: 'You need to pass in a store id to PUT api/v1/store-orders',
+                error: 'PUT api/v1/store-orders: You need to pass in a storeId',
             },
             { status: 400 }
         );
@@ -79,7 +78,6 @@ export async function PUT(request: NextRequest) {
 
     if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        // return Response.redirect('/login');
     }
 
     try {
@@ -87,12 +85,10 @@ export async function PUT(request: NextRequest) {
 
         if (vendor === 'bakery') {
             response = await putStoreBakeryOrders(storeId, data);
-        } else if (vendor === 'external') {
-            response = await putStoreOrders(storeId, data);
         } else {
             return NextResponse.json(
                 {
-                    error: 'Invalid vendor parameter: Please add vendor type (bakery or external)',
+                    error: 'PUT api/v1/store-orders: Only valid vendor type is bakery (vendor = bakery)',
                 },
                 { status: 400 }
             );
@@ -105,6 +101,55 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json(response, { status: 200 });
     } catch (error) {
         // console.error('Error fetching store orders:', error);
+        const err = error as Error;
+        return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}
+
+export async function POST(request: NextRequest) {
+    const searchParams: URLSearchParams = request.nextUrl.searchParams;
+    const storeId: string | null = searchParams.get('storeId');
+    const vendor: string | null = searchParams.get('vendor'); // vendor = "bakery" or "external"
+    const data: OrderItem[] = await request.json();
+
+    if (!storeId) {
+        return NextResponse.json(
+            {
+                error: 'POST api/v1/store-orders: You need to pass in a storeId',
+            },
+            { status: 400 }
+        );
+    }
+
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        let response;
+
+        if (vendor === 'external') {
+            response = await postStoreOrders(storeId, data);
+        } else {
+            return NextResponse.json(
+                {
+                    error: 'POST api/v1/store-orders: Only valid vendor type is external (vendor = external)',
+                },
+                { status: 400 }
+            );
+        }
+
+        if (!response.success) {
+            return NextResponse.json(response, { status: 400 });
+        }
+
+        return NextResponse.json(response.data, { status: 200 });
+    } catch (error) {
         const err = error as Error;
         return NextResponse.json({ error: err.message }, { status: 500 });
     }

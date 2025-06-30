@@ -20,80 +20,6 @@ import { SheetDataTypeCU } from '@/app/(main)/orders/components/sheet-data-costu
 import { MilkBreadOrder } from '@/app/(main)/orders/types';
 config({ path: '.env' });
 
-// Send store's orders for external vendors only (store page)
-export async function putStoreOrders(
-    storeIdNum: string,
-    data: OrderItem[]
-    // data: Array<{ id: number; order: number }>
-) {
-    const storeId = parseInt(storeIdNum);
-
-    // TODO: where should include a date check as well, + will cause 'some updates failed' when store ids dont match, ie admin view submitting orders)
-    try {
-        const updates = await executeWithAuthRole(async (trx) => {
-            const results = await Promise.all(
-                data.map(async (order) => {
-                    try {
-                        const updated = await trx
-                            .update(ordersTable)
-                            .set({
-                                qty: sql`${order.order}::decimal`,
-                                submitted_at: sql`now()`,
-                            })
-                            .where(
-                                and(
-                                    eq(ordersTable.store_id, storeId),
-                                    eq(ordersTable.id, order.id)
-                                )
-                            )
-                            .returning({
-                                id: ordersTable.id,
-                                store_id: ordersTable.store_id,
-                            });
-
-                        return {
-                            id: order.id,
-                            updated: updated.length > 0,
-                            updatedRow: updated,
-                            error: null,
-                        };
-                    } catch (error) {
-                        const err = error as Error;
-                        return {
-                            id: order.id,
-                            updated: false,
-                            error: err.message,
-                        };
-                    }
-                })
-            );
-            return results;
-        });
-
-        const failures = updates.filter((update) => update.updated === false);
-        if (failures.length > 0) {
-            return {
-                success: false,
-                message: 'Some or all updates failed',
-                updates,
-            };
-        }
-
-        return {
-            success: true,
-            message: 'All updates successful',
-            updates,
-        };
-    } catch (error) {
-        // transaction failed
-        const err = error as Error;
-        return {
-            success: false,
-            message: 'Transaction failed',
-            error: err.message,
-        };
-    }
-}
 export async function putStoreBakeryOrders(
     storeIdNum: string,
     data: OrderItem[]
@@ -167,7 +93,7 @@ export async function putStoreBakeryOrders(
                 });
             } catch (error) {
                 const err = error as Error;
-                console.error(`Error updating order ${order.id}:`, err);
+                // console.error(`Error updating order ${order.id}:`, err);
                 results.push({
                     id: order.id,
                     updated: false,

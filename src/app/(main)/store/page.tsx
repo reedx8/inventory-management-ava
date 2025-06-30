@@ -6,7 +6,7 @@ import { HeaderBar } from '@/components/header-bar';
 import { useAuth } from '@/contexts/auth-context';
 import OrderTable from './components/order-table';
 import { OrderItem } from '@/app/(main)/store/types';
-import { NoStoreOrdersDue } from '@/components/placeholders';
+import { LoadingTable, NoStoreOrdersDue } from '@/components/placeholders';
 import {
     Popover,
     PopoverContent,
@@ -40,7 +40,7 @@ export default function Stores() {
                 let vendorResponse;
                 let vendorData;
 
-                // to get the correct par values (want tomorrow's par values for each item):
+                // to get the correct par values for pastries (want tomorrow's par values for pastry items):
                 // const today = new Date();
                 const tom = new Date();
                 tom.setDate(tom.getDate() + 1);
@@ -152,24 +152,14 @@ export default function Stores() {
                 </div>
             </section>
             {isLoading && (
-                <div className='flex flex-col gap-2 mt-4'>
-                    <Skeleton className='h-6 w-full mb-5' />
-                    <Skeleton className='h-6 w-full' />
-                    {/* <Skeleton className='h-6 w-full' /> */}
-                    <Skeleton className='h-6 w-3/4' />
-                    <Skeleton className='h-6 w-2/4' />
-                    <div className='flex justify-between mt-5'>
-                        <Skeleton className='h-6 w-1/4' />
-                        <Skeleton className='h-6 w-1/4' />
-                    </div>
-                </div>
+                <LoadingTable />
             )}
             {!isLoading && mergedData && mergedData?.length > 0 && (
                 <OrderTable
                     data={mergedData}
                     setData={setMergedData}
                     storeId={userStoreId}
-                    setRefreshTrigger={setRefreshTrigger}
+                    setRefreshParentTrigger={setRefreshTrigger}
                 />
             )}
             {!isLoading && mergedData && mergedData?.length <= 0 && (

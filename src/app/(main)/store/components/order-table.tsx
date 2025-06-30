@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     Table,
     TableBody,
@@ -20,7 +20,7 @@ import {
     CellContext,
     PaginationState,
 } from '@tanstack/react-table';
-import { ClipboardCopy, Dot, Send } from 'lucide-react';
+import { Check, ClipboardCopy, Dot, Send } from 'lucide-react';
 import {
     OrderItem,
     StoreCategory,
@@ -76,18 +76,18 @@ export default function OrderTable({
     data,
     setData,
     storeId,
-    setRefreshTrigger,
+    setRefreshParentTrigger,
 }: {
     data: OrderItem[];
     setData: React.Dispatch<React.SetStateAction<OrderItem[] | undefined>>;
     storeId: number | undefined;
-    setRefreshTrigger: React.Dispatch<React.SetStateAction<number>>;
+    setRefreshParentTrigger: React.Dispatch<React.SetStateAction<number>>;
 }) {
     const [activeCateg, setActiveCateg] = useState<StoreCategory>(
-        STORE_CATEGORIES[0]
+        STORE_CATEGORIES[1]
     );
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [filteredData, setFilteredData] = useState<OrderItem[]>(data);
+    // const [filteredData, setFilteredData] = useState<OrderItem[]>(data);
     const { toast } = useToast();
     const [toggleAutoFill, setToggleAutoFill] = useState<boolean>(false);
     const [{ pageIndex, pageSize }, setPagination] =
@@ -103,6 +103,9 @@ export default function OrderTable({
         }),
         [pageIndex, pageSize]
     );
+    const filteredData = useMemo(() => {
+        return data.filter((item) => item.store_categ === activeCateg);
+    }, [data, activeCateg]);
 
     // Accepts integers only
     const OrderCell = ({
@@ -229,13 +232,18 @@ export default function OrderTable({
         // },
         {
             accessorKey: 'qty_per_order',
-            header: 'Qty/Order',
+            header: 'Size',
         },
         {
             accessorKey: 'pars_value',
-            header: `${new Date(
-                new Date().setDate(new Date().getDate() + 1)
-            ).toLocaleDateString('en-US', { weekday: 'long' })} PAR`,
+            header: `${
+                activeCateg === 'PASTRY'
+                    ? new Date(
+                          new Date().setDate(new Date().getDate() + 1)
+                      ).toLocaleDateString('en-US', { weekday: 'long' }) +
+                      ' PAR'
+                    : 'PAR'
+            }`,
             cell: (info) => {
                 return (
                     <p>{`${Number(
@@ -316,114 +324,128 @@ export default function OrderTable({
             setIsSubmitting(false);
             return;
         } else if (activeCateg === 'PASTRY') {
+            // pastries go to bakery_orders and store_bakery_orders tables
             const bakeryOrders = filteredData.filter(
                 (order) => order.cron_categ === 'PASTRY'
             );
-            // console.log('bakeryOrders: ', bakeryOrders);
-            try {
-                const response = await fetch(
-                    `/api/v1/store-orders?storeId=${storeId}&vendor=bakery`,
-                    {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(bakeryOrders),
-                    }
-                );
-                const res = await response.json();
 
-                if (!response.ok) {
-                    const msg = res.message;
-                    throw new Error(msg);
-                }
-
+            if (bakeryOrders.length === 0) {
                 toast({
-                    title: 'Store Orders Sent',
-                    description: 'Your orders have been sent successfully',
-                    className: 'bg-myBrown border-none text-myDarkbrown',
-                });
-            } catch (error) {
-                const err = error as Error;
-                toast({
-                    title: 'Error',
-                    description: err.message,
+                    title: 'No Orders to Submit',
+                    description: `No orders to submit for ${activeCateg} category`,
                     variant: 'destructive',
                 });
+            } else {
+                try {
+                    const response = await fetch(
+                        `/api/v1/store-orders?storeId=${storeId}&vendor=bakery`,
+                        {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(bakeryOrders),
+                        }
+                    );
+                    const res = await response.json();
+
+                    if (!response.ok) {
+                        const msg = res.message;
+                        throw new Error(msg);
+                    }
+
+                    toast({
+                        title: 'Store Orders Sent',
+                        description: `${activeCateg} orders have been sent successfully`,
+                        className: 'bg-myBrown border-none text-myDarkbrown',
+                    });
+                } catch (error) {
+                    const err = error as Error;
+                    let msg = err.message;
+                    if (msg.length >= 100) {
+                        msg = msg.slice(0, 100) + '...';
+                    }
+                    toast({
+                        title: 'Error',
+                        description: msg,
+                        variant: 'destructive',
+                    });
+                }
             }
         } else {
-            const externalOrders = filteredData.filter(
-                (order) => order.cron_categ !== 'PASTRY'
+            // ...And every other item category (cron_categ) goes to orders table as an external vendor order
+            // let externalOrders = filteredData.filter(
+            //     (order) => order.cron_categ !== 'PASTRY'
+            // );
+            let externalOrders = filteredData.filter(
+                (order) => order.store_categ === activeCateg
             );
 
-            try {
-                const response = await fetch(
-                    `/api/v1/store-orders?storeId=${storeId}&vendor=external`,
-                    {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(externalOrders),
-                        // body: JSON.stringify(progressOrders),
-                    }
-                );
-                const res = await response.json();
-
-                if (!response.ok) {
-                    const msg = res.message;
-                    // const id = res.updates.id.toString();
-                    // const msg = `Failed sending store's orders`;
-                    throw new Error(msg);
-                }
-                // console.log('data sent: ', result);
+            if (externalOrders.length === 0) {
                 toast({
-                    title: 'Store Orders Sent',
-                    description: 'Your orders have been sent successfully',
-                    className: 'bg-myBrown border-none text-myDarkbrown',
-                });
-            } catch (error) {
-                const err = error as Error;
-                toast({
-                    title: 'Error',
-                    description: err.message,
+                    title: 'No Orders to Submit',
+                    description: `No orders to submit for ${activeCateg} category`,
                     variant: 'destructive',
                 });
+            } else {
+                try {
+                    const response = await fetch(
+                        `/api/v1/store-orders?storeId=${storeId}&vendor=external`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(externalOrders),
+                        }
+                    );
+                    const responseData = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(responseData.error);
+                    }
+
+                    toast({
+                        title: 'Store Orders Sent',
+                        description: `${activeCateg} orders have been sent successfully`,
+                        className: 'bg-myBrown border-none text-myDarkbrown',
+                    });
+                } catch (error) {
+                    const err = error as Error;
+                    let msg = err.message;
+                    if (msg.length >= 100) {
+                        msg = msg.slice(0, 100) + '...';
+                    }
+                    toast({
+                        title: 'Error',
+                        description: msg,
+                        variant: 'destructive',
+                    });
+                }
             }
         }
+
         setIsSubmitting(false);
-        setRefreshTrigger((prev) => prev + 1);
-        // refreshPage();
+        setRefreshParentTrigger((prev) => prev + 1); // refresh page
     };
 
-    useEffect(() => {
-        if (activeCateg !== 'ALL') {
-            setFilteredData(
-                data.filter((item) => item.store_categ === activeCateg)
-            );
-        }
-    }, [data, activeCateg]);
-
-    // function getStoreCategOrders() {
-    //     if (activeCateg === STORE_CATEGORIES[0]){ // ALL
-    //         console.log("all data")
-    //         return data;
-    //     } else {
-    //         console.log("filtered data")
-    //         return data.filter((item) => item.store_categ === activeCateg);
+    // useEffect(() => {
+    //     if (activeCateg !== 'ALL') {
+    //         setFilteredData(
+    //             data.filter((item) => item.store_categ === activeCateg)
+    //         );
     //     }
-    // }
-    // console.log(getStoreCategOrders);
+    // }, [data, activeCateg]);
 
     return (
-        <div>
-            {/* <div className='mb-2 text-sm'>{categoryMessage[activeCateg]}</div> */}
+        <div className='mt-2'>
             <div className='flex flex-col mr-2'>
-                <div className='rounded-2xl border border-neutral-300 p-6'>
-                    <div className='flex flex-wrap gap-x-2 gap-y-0 '>
+                <div>
+                    <div className='flex flex-wrap gap-x-2 gap-y-0 border-x border-t rounded-t-2xl border-neutral-300 px-4 pt-4'>
                         {STORE_CATEGORIES.map(
                             (category) =>
-                                category !== 'NONE' && (
+                                category !== 'NONE' &&
+                                category !== 'ALL' && (
                                     <div
                                         key={category}
                                         className='flex flex-col items-center'
@@ -439,7 +461,8 @@ export default function OrderTable({
                                                 setPagination({
                                                     ...pagination,
                                                     pageIndex: 0,
-                                                })
+                                                });
+                                                setToggleAutoFill(false);
                                                 setActiveCateg(category);
                                             }}
                                         >
@@ -450,222 +473,271 @@ export default function OrderTable({
                                 )
                         )}
                     </div>
-                    <div className='flex justify-end'>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant='myTheme2'
-                                        style={{
-                                            width: '130px',
-                                            height: '30px',
-                                            fontSize: 12,
-                                        }}
-                                        onClick={() =>
-                                            autoFillOrders(
-                                                filteredData,
-                                                setData,
-                                                toggleAutoFill,
-                                                setToggleAutoFill
-                                            )
-                                        }
-                                        disabled={
-                                            filteredData.length === 0 ||
-                                            isSubmitting ||
-                                            activeCateg === 'ALL'
-                                        }
-                                    >
-                                        Autofill Orders
-                                        <ClipboardCopy size={8} />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Fill orders with PAR levels</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                    <form>
-                        <Table>
-                            <TableHeader>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => (
-                                            <TableHead
-                                                key={header.id}
-                                                className={`text-neutral-500/30 font-semibold ${
-                                                    header.id === 'order'
-                                                        ? 'text-center'
-                                                        : ''
-                                                }`}
-                                                style={{
-                                                    width:
-                                                        header.id === 'order'
-                                                            ? '130px'
-                                                            : 'auto',
-                                                }}
-                                            >
-                                                {flexRender(
-                                                    header.column.columnDef
-                                                        .header,
-                                                    header.getContext()
-                                                )}
-                                            </TableHead>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableHeader>
-                            <TableBody>
-                                {table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id}>
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell
-                                                key={cell.id}
-                                                style={{
-                                                    width:
-                                                        cell.column.id ===
-                                                        'order'
-                                                            ? '130px'
-                                                            : 'auto',
-                                                }}
-                                                className='py-2'
-                                            >
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext()
-                                                )}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                        <div className='flex justify-end gap-2'>
-                            {/* TODO */}
-                            {/* <Button variant='outline' className='border-myDarkbrown text-myDarkbrown hover:text-myDarkbrown'>Pars Fill <CopyPlus /></Button> */}
-                            {activeCateg !== 'ALL' &&
-                                filteredData.length > 0 && (
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button
-                                                variant='myTheme5'
-                                                disabled={isSubmitting}
-                                            >
-                                                Submit
-                                                <Send />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>
-                                                    {`Complete All ${
-                                                        activeCateg[0] +
-                                                        activeCateg
-                                                            .slice(1)
-                                                            .toLowerCase()
-                                                    } Orders?`}
-                                                </AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    {`Press Submit only if all ${activeCateg.toLowerCase()} orders
-                                                    are completed. Otherwise press Cancel.`}
-                                                </AlertDialogDescription>
-                                                {!storeId && (
-                                                    <AlertDialogDescription className='text-red-500 text-xs'>
-                                                        Note: Only Store
-                                                        Managers can submit
-                                                        orders at this time.
-                                                    </AlertDialogDescription>
-                                                )}
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>
-                                                    Cancel
-                                                </AlertDialogCancel>
-                                                <AlertDialogAction asChild>
-                                                    <Button
-                                                        variant='myTheme'
-                                                        onClick={handleSubmit}
-                                                        disabled={
-                                                            isSubmitting ||
-                                                            !storeId
-                                                        }
-                                                    >
-                                                        {isSubmitting
-                                                            ? 'Submitting...'
-                                                            : 'Submit'}
-                                                    </Button>
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                    // <Button
-                                    //     type='submit'
-                                    //     variant='myTheme5'
-                                    //     disabled={isSubmitting}
-                                    // >
-                                    //     Submit <Send />
-                                    // </Button>
-                                )}
-                        </div>
-                    </form>
-                </div>
-                <div className='flex justify-between'>
-                    <div className='flex items-center space-x-2'>
-                        <p className='text-sm text-muted-foreground'>
-                            Rows per page
-                        </p>
-                        <Select
-                            value={`${pageSize}`}
-                            onValueChange={(value) => {
-                                table.setPageSize(Number(value));
-                            }}
-                        >
-                            <SelectTrigger className='h-8 w-[70px]'>
-                                <SelectValue placeholder={pageSize} />
-                            </SelectTrigger>
-                            {table.getPageCount() > 0 ? (
-                                <SelectContent side='top'>
-                                    {[5, 10, 20, 200].map((size) => (
-                                        <SelectItem
-                                            key={size}
-                                            value={`${size}`}
+                    <div>
+                        <div className='flex justify-end border-x border-neutral-300 px-4'>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant='myTheme2'
+                                            style={{
+                                                width: '130px',
+                                                height: '30px',
+                                                fontSize: 12,
+                                            }}
+                                            onClick={() =>
+                                                autoFillOrders(
+                                                    data,
+                                                    activeCateg,
+                                                    setData,
+                                                    toggleAutoFill,
+                                                    setToggleAutoFill
+                                                )
+                                            }
+                                            disabled={
+                                                filteredData.length === 0 ||
+                                                isSubmitting ||
+                                                activeCateg === 'ALL'
+                                            }
                                         >
-                                            {size === 200 ? 'All' : size}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            ) : (
-                                <SelectContent side='top'>
-                                    <SelectItem value={'0'} disabled />
-                                </SelectContent>
-                            )}
-                        </Select>
-                    </div>
-                    {/* Pagination: 10 items per page */}
-                    <div className='flex items-center space-x-2'>
-                        {table.getPageCount() > 0 && (
-                            <p className='text-sm text-neutral-500 mr-2'>
-                                Page {pageIndex + 1} / {table.getPageCount()}
-                            </p>
-                        )}
-                        <div className='flex items-center space-x-2 py-4'>
-                            <Button
-                                variant='outline'
-                                size='sm'
-                                onClick={() => table.previousPage()}
-                                disabled={!table.getCanPreviousPage()}
-                            >
-                                Previous
-                            </Button>
-                            <Button
-                                variant='outline'
-                                size='sm'
-                                onClick={() => table.nextPage()}
-                                disabled={!table.getCanNextPage()}
-                            >
-                                Next
-                            </Button>
+                                            Autofill Orders
+                                            <ClipboardCopy size={8} />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Fill orders with PAR levels</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
+                        <form>
+                            <div className='border-x border-b rounded-b-2xl border-neutral-300 px-4 pb-4'>
+                                <Table>
+                                    <TableHeader>
+                                        {table
+                                            .getHeaderGroups()
+                                            .map((headerGroup) => (
+                                                <TableRow key={headerGroup.id}>
+                                                    {headerGroup.headers.map(
+                                                        (header) => (
+                                                            <TableHead
+                                                                key={header.id}
+                                                                className={`text-neutral-500/60 font-semibold ${
+                                                                    header.id ===
+                                                                    'order'
+                                                                        ? 'text-center'
+                                                                        : ''
+                                                                }`}
+                                                                style={{
+                                                                    width:
+                                                                        header.id ===
+                                                                        'order'
+                                                                            ? '130px'
+                                                                            : 'auto',
+                                                                }}
+                                                            >
+                                                                {flexRender(
+                                                                    header
+                                                                        .column
+                                                                        .columnDef
+                                                                        .header,
+                                                                    header.getContext()
+                                                                )}
+                                                            </TableHead>
+                                                        )
+                                                    )}
+                                                </TableRow>
+                                            ))}
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredData.length === 0 &&
+                                            activeCateg !== 'ALL' && (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={columns.length}
+                                                        className='text-center text-neutral-500/60'
+                                                    >
+                                                        <div className='flex justify-center gap-1'>
+                                                            {activeCateg} orders
+                                                            completed
+                                                            <Check className='w-4 h-4' />
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        {(filteredData.length > 0 ||
+                                            activeCateg === 'ALL') &&
+                                            table
+                                                .getRowModel()
+                                                .rows.map((row) => (
+                                                    <TableRow key={row.id}>
+                                                        {row
+                                                            .getVisibleCells()
+                                                            .map((cell) => (
+                                                                <TableCell
+                                                                    key={
+                                                                        cell.id
+                                                                    }
+                                                                    style={{
+                                                                        width:
+                                                                            cell
+                                                                                .column
+                                                                                .id ===
+                                                                            'order'
+                                                                                ? '130px'
+                                                                                : 'auto',
+                                                                    }}
+                                                                    className='py-2'
+                                                                >
+                                                                    {flexRender(
+                                                                        cell
+                                                                            .column
+                                                                            .columnDef
+                                                                            .cell,
+                                                                        cell.getContext()
+                                                                    )}
+                                                                </TableCell>
+                                                            ))}
+                                                    </TableRow>
+                                                ))}
+                                    </TableBody>
+                                </Table>
+                                <div className='flex justify-between'>
+                                    <div className='flex items-center space-x-2'>
+                                        <p className='text-sm text-muted-foreground'>
+                                            Rows per page
+                                        </p>
+                                        <Select
+                                            value={`${pageSize}`}
+                                            onValueChange={(value) => {
+                                                table.setPageSize(
+                                                    Number(value)
+                                                );
+                                            }}
+                                        >
+                                            <SelectTrigger className='h-8 w-[70px]'>
+                                                <SelectValue
+                                                    placeholder={pageSize}
+                                                />
+                                            </SelectTrigger>
+                                            {table.getPageCount() > 0 ? (
+                                                <SelectContent side='top'>
+                                                    {[5, 10, 20, 200].map(
+                                                        (size) => (
+                                                            <SelectItem
+                                                                key={size}
+                                                                value={`${size}`}
+                                                            >
+                                                                {size === 200
+                                                                    ? 'All'
+                                                                    : size}
+                                                            </SelectItem>
+                                                        )
+                                                    )}
+                                                </SelectContent>
+                                            ) : (
+                                                <SelectContent side='top'>
+                                                    <SelectItem
+                                                        value={'0'}
+                                                        disabled
+                                                    />
+                                                </SelectContent>
+                                            )}
+                                        </Select>
+                                    </div>
+                                    {/* Pagination: 10 items per page */}
+                                    <div className='flex items-center space-x-2'>
+                                        {table.getPageCount() > 0 && (
+                                            <p className='text-sm text-neutral-500 mr-2'>
+                                                Page {pageIndex + 1} /{' '}
+                                                {table.getPageCount()}
+                                            </p>
+                                        )}
+                                        <div className='flex items-center space-x-2 py-4'>
+                                            <Button
+                                                type='button'
+                                                variant='outline'
+                                                size='sm'
+                                                onClick={() =>
+                                                    table.previousPage()
+                                                }
+                                                disabled={
+                                                    !table.getCanPreviousPage()
+                                                }
+                                            >
+                                                Previous
+                                            </Button>
+                                            <Button
+                                                type='button'
+                                                variant='outline'
+                                                size='sm'
+                                                onClick={() => table.nextPage()}
+                                                disabled={
+                                                    !table.getCanNextPage()
+                                                }
+                                            >
+                                                Next
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='flex justify-end mt-2'>
+                                {activeCateg !== 'ALL' &&
+                                    filteredData.length > 0 && (
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    variant='myTheme5'
+                                                    disabled={isSubmitting}
+                                                >
+                                                    Submit
+                                                    <Send />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>
+                                                        {`Complete All ${activeCateg} Orders?`}
+                                                    </AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        {`Press Submit only if all ${activeCateg.toLowerCase()} orders
+                                                    are completed. Otherwise press Cancel.`}
+                                                    </AlertDialogDescription>
+                                                    {!storeId && (
+                                                        <AlertDialogDescription className='text-red-500 text-xs'>
+                                                            Note: Only Store
+                                                            Managers can submit
+                                                            orders at this time.
+                                                        </AlertDialogDescription>
+                                                    )}
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>
+                                                        Cancel
+                                                    </AlertDialogCancel>
+                                                    <AlertDialogAction asChild>
+                                                        <Button
+                                                            variant='myTheme'
+                                                            onClick={
+                                                                handleSubmit
+                                                            }
+                                                            disabled={
+                                                                isSubmitting ||
+                                                                !storeId
+                                                            }
+                                                        >
+                                                            {isSubmitting
+                                                                ? 'Submitting...'
+                                                                : 'Submit'}
+                                                        </Button>
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    )}
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -675,6 +747,7 @@ export default function OrderTable({
 
 function autoFillOrders(
     data: OrderItem[],
+    activeCateg: StoreCategory,
     setData: React.Dispatch<React.SetStateAction<OrderItem[] | undefined>>,
     toggleAutoFill: boolean,
     setToggleAutoFill: React.Dispatch<React.SetStateAction<boolean>>
@@ -683,9 +756,11 @@ function autoFillOrders(
 
     setData(
         data.map((order) => {
-            order.order = toggleAutoFill
-                ? null
-                : Number(Number(order.pars_value).toFixed(2)) ?? 0;
+            if (order.store_categ === activeCateg) {
+                order.order = toggleAutoFill
+                    ? null
+                    : Number(Number(order.pars_value).toFixed(2)) ?? 0;
+            }
             return order;
         })
     );
