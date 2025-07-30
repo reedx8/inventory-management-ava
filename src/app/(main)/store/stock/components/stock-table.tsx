@@ -48,6 +48,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { StockItem } from '@/app/(main)/store/types';
+import { Badge } from '@/components/ui/badge';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface TableMeta<TData> {
@@ -390,6 +391,13 @@ export default function StockTable({
                                     </div>
                                 )
                         )}
+                    </div>
+                    <div className='border-x border-neutral-300 px-4 pb-4'>
+                        <Badge variant='outline' className='text-xs'>
+                            <p>
+                                {filteredData.length} items
+                            </p>
+                        </Badge>
                     </div>
                     <form>
                         <div className='border-x border-b rounded-b-2xl border-neutral-300 px-4 pb-4'>

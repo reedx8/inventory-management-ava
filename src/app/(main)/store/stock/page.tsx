@@ -22,7 +22,6 @@ import { ctcCCPToday } from '@/components/schedules';
 // import { useToast } from '@/hooks/use-toast';
 import { StockItem } from '@/app/(main)/store/types';
 
-
 export default function Stock() {
     const [data, setData] = useState<StockItem[] | undefined>();
     const { userRole, userStoreId } = useAuth();
@@ -39,7 +38,9 @@ export default function Stock() {
                 setIsLoading(true);
                 if (userRole === 'admin') {
                     // fetch every store (no storeId param in api url)
-                    response = await fetch('/api/v1/store-stock?stockType=WEEKLY');
+                    response = await fetch(
+                        '/api/v1/store-stock?stockType=WEEKLY'
+                    );
                 } else if (userRole === 'store_manager') {
                     // fetch single store
                     response = await fetch(
@@ -89,14 +90,14 @@ export default function Stock() {
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className='mr-2 flex flex-col gap-2 text-neutral-500 text-sm'>
-                            <p>Your store's CTC/CCP stock are due on a weekly basis.</p>
+                            <p>{`Your store's CTC/CCP stock are due on a weekly basis.`}</p>
                             <p>
-                                Milk and bread stock can be submitted using the 'Milk
+                                {`Milk and bread stock can instead be submitted using the 'Milk
                                 & Bread' button at top of page, and their stock counts
-                                are due every Monday and/or Thursday.
+                                are due every Monday and/or Thursday.`}
                             </p>
                             <p>
-                                Sunday Close can be performed using the 'Sunday Close' button at top of page, and is due at the end of every Sunday. 
+                                {`Sunday Close Inventory can be performed using the 'Sunday Close' button at top of page, and is due at the end of every Sunday.`}
                             </p>
                         </PopoverContent>
                     </Popover>
@@ -133,11 +134,14 @@ export default function Stock() {
                     {/* <TrackWasteSheet /> */}
                 </div>
             </section>
-            {data === undefined && isLoading && (
-                <LoadingTable />
-            )}
+            {data === undefined && isLoading && <LoadingTable />}
             {data && !isLoading && data?.length > 0 && (
-                <StockTable data={data} setData={setData} storeId={userStoreId} setRefreshParentTrigger={setRefreshParentTrigger} />
+                <StockTable
+                    data={data}
+                    setData={setData}
+                    storeId={userStoreId}
+                    setRefreshParentTrigger={setRefreshParentTrigger}
+                />
             )}
             {!isLoading && data?.length === 0 && (
                 <section className='flex justify-center'>

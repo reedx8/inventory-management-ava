@@ -5,6 +5,8 @@ import {
     getItemCount,
     getStoreCount,
     getMilkBreadDueTodayCount,
+    getWeeklyStockCount,
+    getWeeklyOrdersCount,
 } from '@/db/queries/select';
 export const dynamic = 'force-dynamic'; // no caching
 
@@ -40,11 +42,15 @@ export async function GET(request: NextRequest) {
                 itemResponse,
                 storeResponse,
                 milkBreadResponse,
+                weeklyStockResponse,
+                weeklyOrdersResponse,
             ] = await Promise.all([
                 getBakeryDueTodayCount(storeIdInt),
                 getItemCount(),
                 getStoreCount(),
                 getMilkBreadDueTodayCount(storeIdInt, dow ?? ''),
+                getWeeklyStockCount(storeIdInt, dow ?? ''),
+                getWeeklyOrdersCount(storeIdInt, dow ?? ''),
             ]);
             response = {
                 success: true,
@@ -52,6 +58,8 @@ export async function GET(request: NextRequest) {
                 itemCount: itemResponse.data ?? 0,
                 storeCount: storeResponse.data ?? 0,
                 milkBreadDueTodayCount: milkBreadResponse.data ?? 0,
+                weeklyStockCount: weeklyStockResponse.data ?? 0,
+                weeklyOrdersCount: weeklyOrdersResponse.data ?? 0,
             };
         } else {
             return NextResponse.json(

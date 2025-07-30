@@ -20,13 +20,11 @@ import {
     ChevronDown,
     Store,
     Milk,
-    // ChevronRight,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HeaderBar, todaysDay } from '@/components/header-bar';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/auth-context';
-// import Link from 'next/link';
 
 const orderSchedule = [
     {
@@ -38,8 +36,8 @@ const orderSchedule = [
         itemsDue: (
             <ul className='list-decimal list-inside'>
                 <li>Pastries</li>
-                <li>CTC</li>
-                <li>CCP & Sysco</li>
+                <li>Weekly Orders</li>
+                {/* <li>CCP & Sysco</li> */}
             </ul>
         ),
         // itemsDue: 'Pastries, CCP/Sysco Weekly Orders',
@@ -81,8 +79,9 @@ const invSchedule = [
         // itemsDue: 'Weekly Stock Count',
         itemsDue: (
             <ul className='list-decimal list-inside'>
-                <li>CTC</li>
-                <li>CCP & Sysco</li>
+                <li>Weekly Stock</li>
+                {/* <li>CTC</li> */}
+                {/* <li>CCP & Sysco</li> */}
             </ul>
         ),
     },
@@ -113,6 +112,8 @@ export type DashboardType = {
     itemCount: number | undefined;
     storeCount: number | undefined;
     milkBreadDueTodayCount: number | undefined;
+    weeklyStockCount: number | undefined;
+    weeklyOrdersCount: number | undefined;
 };
 
 // Home page / dashboard
@@ -123,6 +124,8 @@ export default function Home() {
         itemCount: undefined,
         storeCount: undefined,
         milkBreadDueTodayCount: undefined,
+        weeklyStockCount: undefined,
+        weeklyOrdersCount: undefined,
     });
     // const [isLoading, setIsLoading] = useState<boolean>(true);
     // const todaysDate : string = new Date().toISOString().split('T')[0];
@@ -130,12 +133,12 @@ export default function Home() {
     useEffect(() => {
         const getDashboardData = async (storeId: number) => {
             try {
-                const dow = todaysDay();
+                const dowName = todaysDay();
                 const response = await fetch(
                     'api/v1/dashboard?fetch=all&storeId=' +
                         storeId +
                         '&dow=' +
-                        dow
+                        dowName
                 );
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error);
@@ -148,6 +151,8 @@ export default function Home() {
                     itemCount: 0,
                     storeCount: 0,
                     milkBreadDueTodayCount: 0,
+                    weeklyStockCount: 0,
+                    weeklyOrdersCount: 0,
                 });
             }
         };
@@ -208,7 +213,7 @@ export default function Home() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {miniOrderCards(dashboard.bakeryDueTodayCount)}
+                            {miniOrderCards(dashboard.bakeryDueTodayCount, dashboard.weeklyOrdersCount)}
                             {/* {miniOrderCards(bakeryDueTodayCount)} */}
                         </CardContent>
                     </Card>
@@ -222,7 +227,7 @@ export default function Home() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {miniStockCards(dashboard.milkBreadDueTodayCount)}
+                            {miniStockCards(dashboard.milkBreadDueTodayCount, dashboard.weeklyStockCount)}
                         </CardContent>
                     </Card>
                 </div>
@@ -282,6 +287,9 @@ function scheduleBtn() {
                                     Note: These are due dates for all stores
                                 </p>
                                 <p className='italic'>
+                                    Weekly Orders = CTC, CCP/Sysco
+                                </p>
+                                <p className='italic'>
                                     CTC = Coffee, Tea, and Chocolate items
                                 </p>
                                 <p className='italic'>
@@ -320,6 +328,9 @@ function scheduleBtn() {
                                     Note: These are due dates for all stores
                                 </p>
                                 <p className='italic'>
+                                    Weekly Stock = CTC & CCP/Sysco
+                                </p>
+                                <p className='italic'>
                                     CTC = Coffee, Tea, and Chocolate items
                                 </p>
                                 <p className='italic'>
@@ -334,15 +345,15 @@ function scheduleBtn() {
     );
 }
 
-function miniOrderCards(bakeryDueTodayCount: number | null) {
+function miniOrderCards(bakeryDueTodayCount: number | null, weeklyOrdersCount: number | undefined) {
     const invTypes = [
         {
             name: 'Pastries',
             count: bakeryDueTodayCount,
             icon: <Cake width={18} className='text-myBrown' />,
         },
-        { name: 'Weekly Orders', count: 0 },
-        { name: 'CTC', count: 0 },
+        { name: 'Weekly Orders', count: weeklyOrdersCount ?? '-' },
+        // { name: 'CTC', count: 0 },
     ];
     return (
         <div className='flex flex-wrap gap-2'>
@@ -370,9 +381,28 @@ function miniOrderCards(bakeryDueTodayCount: number | null) {
         </div>
     );
 }
-function miniStockCards(milkBreadDueTodayCount: number | undefined) {
+function miniStockCards(milkBreadDueTodayCount: number | undefined, weeklyStockCount: number | undefined) {
     return (
         <div className='flex flex-wrap gap-2'>
+                            <div className='w-[125px]'>
+                    <div className='flex h-[25px] w-full mb-1'>
+                        <div className='w-full h-full text-center rounded-full bg-myBrown/30'>
+                            Weekly Stock
+                        </div>
+                    </div>
+                    <div className='text-center'>
+                        <p className='text-5xl text-myBrown drop-shadow-sm'>
+                            {weeklyStockCount !== undefined
+                        ? weeklyStockCount
+                        : '-'}
+                            {/* {type.count ?? 0} */}
+                        </p>
+                        <div className='text-sm flex items-center justify-center gap-1'>
+                            <Box width={18} className='text-myBrown' />
+                            Items
+                        </div>
+                    </div>
+                </div>
                 <div className='w-[125px]'>
                     <div className='flex h-[25px] w-full mb-1'>
                         <div className='w-full h-full text-center rounded-full bg-myBrown/30'>
@@ -410,27 +440,27 @@ function miniStockCards(milkBreadDueTodayCount: number | undefined) {
                 </div>
         </div>
     );
-    return (
-        <div className='w-[125px]'>
-            <div className='flex h-[25px] w-full mb-1'>
-                <div className='w-full h-full text-center rounded-full bg-myBrown/30'>
-                    Milk & Bread
-                </div>
-            </div>
-            <div className='text-center'>
-                <p className='text-5xl text-myBrown drop-shadow-sm'>
-                    {milkBreadDueTodayCount !== undefined
-                        ? milkBreadDueTodayCount
-                        : '-'}
-                    {/* {type.count ?? 0} */}
-                </p>
-                <div className='text-sm flex items-center justify-center gap-1'>
-                    <Milk width={18} className='text-myBrown' />
-                    Items
-                </div>
-            </div>
-        </div>
-    );
+    // return (
+    //     <div className='w-[125px]'>
+    //         <div className='flex h-[25px] w-full mb-1'>
+    //             <div className='w-full h-full text-center rounded-full bg-myBrown/30'>
+    //                 Milk & Bread
+    //             </div>
+    //         </div>
+    //         <div className='text-center'>
+    //             <p className='text-5xl text-myBrown drop-shadow-sm'>
+    //                 {milkBreadDueTodayCount !== undefined
+    //                     ? milkBreadDueTodayCount
+    //                     : '-'}
+    //                 {/* {type.count ?? 0} */}
+    //             </p>
+    //             <div className='text-sm flex items-center justify-center gap-1'>
+    //                 <Milk width={18} className='text-myBrown' />
+    //                 Items
+    //             </div>
+    //         </div>
+    //     </div>
+    // );
     // return (
     //     <div className='flex flex-col items-center'>
     //         <div className='text-5xl text-myBrown drop-shadow-sm'>0</div>

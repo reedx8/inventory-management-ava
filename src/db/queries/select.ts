@@ -919,7 +919,7 @@ export async function getAllItems() {
     }
 }
 
-// home: get store count
+// home: get active store count
 export async function getStoreCount() {
     try {
         let result = await queryWithAuthRole(async (tx) => {
@@ -1614,6 +1614,147 @@ export async function getPastryWeekClose(storeId: number) {
             success: true,
             error: null,
             data: result,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
+        };
+    }
+}
+
+// home: gets weekly CTC/CCP&Sysco due stock counts for stores
+export async function getWeeklyStockCount(storeId: number, dowName: string) {
+    // if not tuesday, just return 0
+    if (dowName.toLowerCase() !== 'tuesday') {
+        return {
+            success: true,
+            data: 0,
+            error: null,
+        };
+    }
+
+    try {
+        const result = await queryWithAuthRole(async (tx) => {
+            const todaysStockCount = await tx
+                .select({
+                    count: count(stockTable.item_id),
+                })
+                .from(stockTable)
+                .innerJoin(itemsTable, eq(itemsTable.id, stockTable.item_id))
+                .where(
+                    and(
+                        or(
+                            eq(itemsTable.cron_categ, 'CCP&SYSCO'),
+                            eq(itemsTable.cron_categ, 'CHOCOLATE'),
+                            eq(itemsTable.cron_categ, 'TEA'),
+                            eq(itemsTable.cron_categ, 'COFFEE')
+                        ),
+                        eq(itemsTable.is_active, true),
+                        eq(stockTable.store_id, storeId),
+                        sql`${stockTable.submitted_at} >= now() - interval '1 day'`
+                    )
+                );
+
+            const totalItems = await tx
+                .select({
+                    count: count(itemsTable.id),
+                })
+                .from(itemsTable)
+                .where(
+                    and(
+                        or(
+                            eq(itemsTable.cron_categ, 'CCP&SYSCO'),
+                            eq(itemsTable.cron_categ, 'CHOCOLATE'),
+                            eq(itemsTable.cron_categ, 'TEA'),
+                            eq(itemsTable.cron_categ, 'COFFEE')
+                        ),
+                        eq(itemsTable.is_active, true)
+                    )
+                );
+
+            return {
+                totalItems: totalItems[0]?.count ?? 0,
+                todaysStockCount: todaysStockCount[0]?.count ?? 0,
+            };
+        });
+
+        return {
+            success: true,
+            data: result.totalItems - result.todaysStockCount,
+            error: null,
+        };
+    } catch (error) {
+        const err = error as Error;
+        return {
+            success: false,
+            error: err.message,
+            data: [],
+        };
+    }
+}
+// gets weekly CTC/CCP&Sysco order counts for stores
+export async function getWeeklyOrdersCount(storeId: number, dowName: string) {
+    // if not tuesday, just return 0
+    if (dowName.toLowerCase() !== 'tuesday') {
+        return {
+            success: true,
+            data: 0,
+            error: null,
+        };
+    }
+
+    try {
+        const result = await queryWithAuthRole(async (tx) => {
+            const todaysOrders = await tx
+                .select({
+                    count: count(ordersTable.item_id),
+                })
+                .from(ordersTable)
+                .innerJoin(itemsTable, eq(itemsTable.id, ordersTable.item_id))
+                .where(
+                    and(
+                        or(
+                            eq(itemsTable.cron_categ, 'CCP&SYSCO'),
+                            eq(itemsTable.cron_categ, 'CHOCOLATE'),
+                            eq(itemsTable.cron_categ, 'TEA'),
+                            eq(itemsTable.cron_categ, 'COFFEE')
+                        ),
+                        eq(itemsTable.is_active, true),
+                        eq(ordersTable.store_id, storeId),
+                        sql`${ordersTable.store_submit_at} >= now() - interval '1 day'`
+                    )
+                );
+
+            const totalItems = await tx
+                .select({
+                    count: count(itemsTable.id),
+                })
+                .from(itemsTable)
+                .where(
+                    and(
+                        or(
+                            eq(itemsTable.cron_categ, 'CCP&SYSCO'),
+                            eq(itemsTable.cron_categ, 'CHOCOLATE'),
+                            eq(itemsTable.cron_categ, 'TEA'),
+                            eq(itemsTable.cron_categ, 'COFFEE')
+                        ),
+                        eq(itemsTable.is_active, true)
+                    )
+                );
+
+            return {
+                totalItems: totalItems[0]?.count ?? 0,
+                todaysOrders: todaysOrders[0]?.count ?? 0,
+            };
+        });
+
+        return {
+            success: true,
+            data: result.totalItems - result.todaysOrders,
+            error: null,
         };
     } catch (error) {
         const err = error as Error;

@@ -28,7 +28,7 @@ export function weekCloseToday(todaysDow: number) {
 // Not used yet
 export function milkBreadToday(todaysDow: number) {
     if (todaysDow === 1){
-        return 'milkbread';
+        return 'both';
     } else if (todaysDow === 4){
         return 'milk'
     } else {

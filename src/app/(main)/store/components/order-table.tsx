@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     Table,
     TableBody,
@@ -51,6 +51,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 // object lookup for category messages
 // const categoryMessage: Record<StoreCategory, JSX.Element | string> = {
@@ -377,7 +378,7 @@ export default function OrderTable({
             // let externalOrders = filteredData.filter(
             //     (order) => order.cron_categ !== 'PASTRY'
             // );
-            let externalOrders = filteredData.filter(
+            const externalOrders = filteredData.filter(
                 (order) => order.store_categ === activeCateg
             );
 
@@ -474,7 +475,15 @@ export default function OrderTable({
                         )}
                     </div>
                     <div>
-                        <div className='flex justify-end border-x border-neutral-300 px-4'>
+                        <div className='flex justify-between items-center border-x border-neutral-300 px-4'>
+                            <div>
+                                <Badge variant='outline' className='text-xs'>
+                                    <p>
+                                        {filteredData.length} items
+                                    </p>
+                                </Badge>
+                            </div>
+                            {/* Autofill Orders */}
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>

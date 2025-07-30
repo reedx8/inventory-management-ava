@@ -40,6 +40,7 @@ export function HeaderBar({ pageName }: { pageName: string }) {
     );
 }
 
+// returns name of todays day
 export function todaysDay() {
     const today = new Date();
     const daysOfWeek = [

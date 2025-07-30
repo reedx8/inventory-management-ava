@@ -19,7 +19,7 @@ import {
     ColumnDef,
     CellContext,
 } from '@tanstack/react-table';
-import { Dot, Loader2, Pencil, Send } from 'lucide-react';
+import { Dot, Loader2, Send } from 'lucide-react';
 import { MilkBreadOrder } from '../types';
 import {
     AlertDialog,
@@ -37,7 +37,7 @@ import {
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectLabel,
+    // SelectLabel,
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
