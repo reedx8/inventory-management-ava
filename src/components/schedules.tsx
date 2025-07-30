@@ -1,4 +1,4 @@
-// Allow CTC/CCP&Sysco orders/stock counts if tuesday. Used in stores page -> orders due table
+// Allow weekly orders/stock counts (ie ctc/ccp&sysco) if tuesday. Used in stores page -> orders due table
 export function ctcCCPToday(todaysDow: number){
     // Tuesday = 2
     if (todaysDow === 2){

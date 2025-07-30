@@ -18,7 +18,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import SundayCloseData from './components/sunday-close-data';
-import { ctcCCPToday } from '@/components/schedules';
+import { ctcCCPToday } from '@/components/schedules'; // Used for fetching weekly stock only on certain days accord. to invent schedule
 // import { useToast } from '@/hooks/use-toast';
 import { StockItem } from '@/app/(main)/store/types';
 
@@ -38,25 +38,39 @@ export default function Stock() {
                 setIsLoading(true);
                 if (userRole === 'admin') {
                     // fetch every store (no storeId param in api url)
+
                     response = await fetch(
                         '/api/v1/store-stock?stockType=WEEKLY'
                     );
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error);
+                    }
+                    setData(data);
                 } else if (userRole === 'store_manager') {
                     // fetch single store
                     response = await fetch(
                         `/api/v1/store-stock?storeId=${userStoreId}&stockType=WEEKLY`
                     );
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error);
+                    }
+
+                    setData(data);
                 } else {
                     // dont fetch stock for other roles
+                    setData([]);
                     setIsLoading(false);
                     return;
                 }
-                const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(data.error);
-                }
-                setData(data);
+                // const data = await response.json();
+                // if (!response.ok) {
+                //     throw new Error(data.error);
+                // }
+                // setData(data);
             } catch (error) {
                 console.error('Error fetching stock: ', error);
                 setData([]);
@@ -64,7 +78,12 @@ export default function Stock() {
             setIsLoading(false);
         };
 
-        fetchWeeklyStock();
+        if (ctcCCPToday(new Date().getDay())) {
+        // if (ctcCCPToday(2)) { // for testing purposes
+            fetchWeeklyStock();
+        } {
+            setData([])
+        }
 
         // testing:
         // setData([]);
@@ -134,7 +153,7 @@ export default function Stock() {
                     {/* <TrackWasteSheet /> */}
                 </div>
             </section>
-            {data === undefined && isLoading && <LoadingTable />}
+            {isLoading && <LoadingTable />}
             {data && !isLoading && data?.length > 0 && (
                 <StockTable
                     data={data}

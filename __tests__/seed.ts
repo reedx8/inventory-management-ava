@@ -1,3 +1,17 @@
+/*
+    Summary: This file is used to seed the test database with data.
+    It is used to test the application and ensure that the application is working as expected.
+    It is also used to generate data for the application.
+    It is not used in production, or staging.
+    You will need to log-in/use a store's (or the bakerys) account/email to test certain features (eg bakery orders, etc). See "Master P List" google spreadsheet for login credentials.
+
+    Most seeding functions needed to test are here (eg daily bakery orders, etc). For other tests, 
+    like weekly orders and weekly stock counts (ie ctc/ccp&sysco), instead alter
+    ctcCCPToday() argument in store/page.tsx and /store/stock/page.tsx (eg this will fill 
+    orders and stock table with ctc/ccp&sysco items no matter the day), and/or alter those functions in 
+    components/schedules.tsx. However, for dashboard page testing, comment out code in 
+    dq/queries/select.ts. Will refactor this later to so that testing is more straightforward.  
+*/
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { seed, reset } from 'drizzle-seed';
 // import * as schema from '@/db/schema';
@@ -42,7 +56,8 @@ const order_qtys = [
 // ];
 
 async function main() {
-    // seedItemsVendorsTables(); // Items and vendors table need to be seeded first
+    // seedItemsVendorsTables(); // Step 0: Items and vendors table need to be seeded first if not already in the db (shoudl already by tho)
+
     seedTodaysDailyBakeryOrders(false); // then you can do storeBakeryOrders and bakeryOrders
     // seedVendorsTable();
     // seedMilkBreadStock(true, false);

@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import SheetTemplate from '@/components/sheet/sheet-template';
 // import SheetData from '@/components/sheet/sheet-data';
 import ParsData from './components/pars-data';
-import { ctcCCPToday } from '@/components/schedules';
+import { ctcCCPToday } from '@/components/schedules'; // Used for fetching weekly orders only on certain day accord. to order schedule
 // import { Badge } from '@/components/ui/badge';
 
 export default function Stores() {
@@ -56,16 +56,16 @@ export default function Stores() {
                         throw new Error(bakeryData.error);
                     }
 
-                    // if (ctcCCPToday(new Date().getDay())) {
-                    vendorResponse = await fetch(
-                        `/api/v1/store-orders?dow=${tomDowNum}`
-                    );
-                    vendorData = await vendorResponse.json();
+                    if (ctcCCPToday(new Date().getDay())) {
+                        vendorResponse = await fetch(
+                            `/api/v1/store-orders?dow=${tomDowNum}`
+                        );
+                        vendorData = await vendorResponse.json();
 
-                    if (!vendorResponse.ok) {
-                        throw new Error(vendorData.error);
+                        if (!vendorResponse.ok) {
+                            throw new Error(vendorData.error);
+                        }
                     }
-                    // }
 
                     // set data all at once to avoid setting same state multiple times, causing different renders
                     setMergedData([...bakeryData, ...(vendorData || [])]);
@@ -79,16 +79,16 @@ export default function Stores() {
                         throw new Error(bakeryData.error);
                     }
 
-                    // if (ctcCCPToday(new Date().getDay())){
-                    vendorResponse = await fetch(
-                        `/api/v1/store-orders?storeId=${userStoreId}&dow=${tomDowNum}`
-                    );
-                    vendorData = await vendorResponse.json();
+                    if (ctcCCPToday(new Date().getDay())){
+                        vendorResponse = await fetch(
+                            `/api/v1/store-orders?storeId=${userStoreId}&dow=${tomDowNum}`
+                        );
+                        vendorData = await vendorResponse.json();
 
-                    if (!vendorResponse.ok) {
-                        throw new Error(vendorData.error);
+                        if (!vendorResponse.ok) {
+                            throw new Error(vendorData.error);
+                        }
                     }
-                    // }
 
                     setMergedData([...bakeryData, ...(vendorData || [])]);
                 }
